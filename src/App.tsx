@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChefHat, ShoppingCart, CheckCircle2, Circle, Plus, Trash2, Edit2, Save } from 'lucide-react';
 
 export function App() {
@@ -7,7 +7,7 @@ export function App() {
     type RecipeType = { nom: string; categorie: string; ingredients: string[] };
     type EditingRecipeType = { index: number; data: RecipeType } | null;
 
-    const [ingredients, setIngredients] = useState<IngredientsType>({
+    const defaultIngredients: IngredientsType = {
         'Tomates cerises': false,
         'Pommes de terre au four micro-ondes': false,
         'Maïs': true,
@@ -37,9 +37,17 @@ export function App() {
         'Knockis poulet surgelés': true,
         'Légumes poulet surgelés': true,
         'Lasagnes': true,
+    };
+    const [ingredients, setIngredients] = useState<IngredientsType>(() => {
+        const saved = localStorage.getItem('ingredients');
+        return saved ? JSON.parse(saved) : defaultIngredients;
     });
 
-    const [categories, setCategories] = useState<CategoriesType>({
+    useEffect(() => {
+        localStorage.setItem('ingredients', JSON.stringify(ingredients));
+    }, [ingredients]);
+
+    const defaultCategories: CategoriesType = {
         '🥦 Fruits & Légumes frais': ['Tomates cerises', 'Pommes de terre au four micro-ondes'],
         '🥫 Épicerie salée': [
             'Maïs', 'Pâtes', 'Riz', 'Thon', 'Sauce tomate',
@@ -53,9 +61,17 @@ export function App() {
             'Lardons', 'Steaks hachés', 'Dés de chorizo', 'Dés de jambon blanc', 'Tortilla'
         ],
         '🥶 Surgelés': ['Knockis poulet surgelés', 'Légumes poulet surgelés', 'Lasagnes']
+    };
+    const [categories, setCategories] = useState<CategoriesType>(() => {
+        const saved = localStorage.getItem('categories');
+        return saved ? JSON.parse(saved) : defaultCategories;
     });
 
-    const [recettes, setRecettes] = useState<RecipeType[]>([
+    useEffect(() => {
+        localStorage.setItem('categories', JSON.stringify(categories));
+    }, [categories]);
+
+    const defaultRecettes: RecipeType[] = [
         { nom: 'Salade maïs thon', categorie: '🥗 Salade', ingredients: ['Maïs', 'Thon'] },
         { nom: 'Salade tomates cerises thon', categorie: '🥗 Salade', ingredients: ['Tomates cerises', 'Thon'] },
         { nom: 'Salade pomme de terre et thon', categorie: '🥗 Salade', ingredients: ['Pommes de terre au four micro-ondes', 'Thon'] },
@@ -75,7 +91,15 @@ export function App() {
         { nom: 'Légumes poulet', categorie: '🧊 Surgelés', ingredients: ['Légumes poulet surgelés'] },
         { nom: 'Lasagnes', categorie: '🧊 Surgelés', ingredients: ['Lasagnes'] },
         { nom: 'Tortilla', categorie: '🥔 Pomme de terre', ingredients: ['Tortilla'] }
-    ]);
+    ];
+    const [recettes, setRecettes] = useState<RecipeType[]>(() => {
+        const saved = localStorage.getItem('recettes');
+        return saved ? JSON.parse(saved) : defaultRecettes;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('recettes', JSON.stringify(recettes));
+    }, [recettes]);
 
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion'>('courses');
     const [showAddIngredient, setShowAddIngredient] = useState(false);
@@ -181,29 +205,29 @@ export function App() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-            <div className="max-w-6xl mx-auto p-6">
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white">
-                        <h1 className="text-3xl font-bold flex items-center gap-3">
-                            <ChefHat className="w-8 h-8" />
+            <div className="mx-auto p-2 sm:p-3">
+                <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 text-white">
+                        <h1 className="text-2xl font-bold flex items-center gap-2">
+                            <ChefHat className="w-7 h-7" />
                             Gestionnaire de Courses et Recettes
                         </h1>
-                        <p className="mt-2 text-orange-100">Gérez vos courses et découvrez les plats que vous pouvez cuisiner</p>
+                        <p className="mt-1 text-orange-100 text-sm">Gérez vos courses et découvrez les plats que vous pouvez cuisiner</p>
                     </div>
 
-                    <div className="flex border-b">
-                        <button onClick={() => setActiveTab('courses')} className={`flex-1 px-6 py-4 font-semibold transition-colors flex items-center justify-center gap-2 ${activeTab === 'courses' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
+                    <div className="flex flex-col sm:flex-row border-b">
+                        <button onClick={() => setActiveTab('courses')} className={`w-full px-3 py-3 font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${activeTab === 'courses' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
                             <ShoppingCart className="w-5 h-5" />Liste de Courses
                         </button>
-                        <button onClick={() => setActiveTab('recettes')} className={`flex-1 px-6 py-4 font-semibold transition-colors flex items-center justify-center gap-2 ${activeTab === 'recettes' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
-                            <ChefHat className="w-5 h-5" />Recettes Possibles ({recettesPossibles.length})
+                        <button onClick={() => setActiveTab('recettes')} className={`w-full px-3 py-3 font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${activeTab === 'recettes' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
+                            <ChefHat className="w-5 h-5" />Recettes ({recettesPossibles.length})
                         </button>
-                        <button onClick={() => setActiveTab('gestion')} className={`flex-1 px-6 py-4 font-semibold transition-colors flex items-center justify-center gap-2 ${activeTab === 'gestion' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
+                        <button onClick={() => setActiveTab('gestion')} className={`w-full px-3 py-3 font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${activeTab === 'gestion' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
                             <Edit2 className="w-5 h-5" />Gestion
                         </button>
                     </div>
 
-                    <div className="p-6">
+                    <div className="p-2 sm:p-3">
                         {activeTab === 'courses' && (
                             <div className="space-y-6">
                                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
