@@ -103,7 +103,7 @@ export function App() {
         localStorage.setItem('recettes', JSON.stringify(recettes));
     }, [recettes]);
 
-    const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion'>('courses');
+    const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion' | 'historique'>('courses');
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<EditingRecipeType>(null);
@@ -118,6 +118,41 @@ export function App() {
     const [newIngredient, setNewIngredient] = useState<{ name: string; category: string; price: string; parts: string }>({ name: '', category: '', price: '', parts: '' });
     const [newRecipe, setNewRecipe] = useState<RecipeType>({ nom: '', categorie: '', ingredients: [] });
     const [editingCategory, setEditingCategory] = useState<{ original: string; name: string } | null>(null);
+    // Mode courses en magasin
+    const [shoppingMode, setShoppingMode] = useState(false);
+    const [shoppingSelected, setShoppingSelected] = useState<Set<string>>(new Set());
+    type ShoppingSession = { id: string; date: string; items: string[]; total: number };
+    const [shoppingHistory, setShoppingHistory] = useState<ShoppingSession[]>(() => {
+        const saved = localStorage.getItem('shoppingHistory');
+        return saved ? JSON.parse(saved) : [];
+    });
+    useEffect(() => {
+        localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory));
+    }, [shoppingHistory]);
+    // Gestion suppression multiple historique
+    const [historySelectMode, setHistorySelectMode] = useState(false);
+    const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
+    const toggleHistorySelect = (id: string) => {
+        setHistorySelected(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+    const deleteHistoryIds = (ids: string[]) => {
+        if (ids.length === 0) return;
+        if (!confirm(ids.length === 1 ? 'Supprimer cette session ?' : `Supprimer ${ids.length} sessions ?`)) return;
+        setShoppingHistory(prev => prev.filter(s => !ids.includes(s.id)));
+        setHistorySelected(new Set());
+        setHistorySelectMode(false);
+    };
+    const selectAllHistory = () => {
+        if (historySelected.size === shoppingHistory.length) {
+            setHistorySelected(new Set());
+        } else {
+            setHistorySelected(new Set(shoppingHistory.map(s => s.id)));
+        }
+    };
 
     // CRUD Ingrédients
     const addIngredient = () => {
@@ -210,9 +245,79 @@ export function App() {
     }, [recettesPossibles]);
 
     const ingredientsManquants = useMemo(() => Object.keys(ingredients).filter((ing: string) => !ingredients[ing].inStock), [ingredients]);
+    // Ordre des catégories pour les courses: on veut frais et surgelés en dernier
+    const shoppingCategoryOrder = useMemo(() => {
+        const orderTail = ['🧀 Produits frais / Crèmerie', '🥶 Surgelés', '🧊 Surgelés']; // inclure variantes éventuelles
+        const allCats = Object.keys(categories);
+        const head = allCats.filter(c => !orderTail.includes(c));
+        const tail = orderTail.filter(c => allCats.includes(c));
+        return [...head, ...tail];
+    }, [categories]);
+    const missingByCategory = useMemo(() => {
+        const map: { [key: string]: string[] } = {};
+        ingredientsManquants.forEach(ing => {
+            const cat = Object.entries(categories).find(([_, list]) => list.includes(ing))?.[0];
+            if (cat) (map[cat] ||= []).push(ing);
+        });
+        return map;
+    }, [ingredientsManquants, categories]);
+
+    const startShopping = () => {
+        setShoppingSelected(new Set());
+        setShoppingMode(true);
+    };
+    const toggleShoppingItem = (ing: string) => {
+        setShoppingSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(ing)) next.delete(ing); else next.add(ing);
+            return next;
+        });
+    };
+    const finishShopping = () => {
+        if (shoppingSelected.size === 0) {
+            setShoppingMode(false);
+            return;
+        }
+        // calculer le total avant mutation pour que les prix correspondent à l'achat
+        let sessionTotal = 0;
+        shoppingSelected.forEach(ing => { if (ingredients[ing]) sessionTotal += ingredients[ing].price; });
+        setIngredients(prev => {
+            const next = { ...prev };
+            shoppingSelected.forEach(ing => {
+                if (next[ing]) next[ing].inStock = true;
+            });
+            return next;
+        });
+        // enregistrer l'historique
+        setShoppingHistory(prev => [
+            {
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+                date: new Date().toISOString(),
+                items: Array.from(shoppingSelected),
+                total: parseFloat(sessionTotal.toFixed(2))
+            },
+            ...prev
+        ]);
+        setShoppingMode(false);
+    };
+    const cancelShopping = () => {
+        setShoppingMode(false);
+    };
     const totalCourses = useMemo(() => ingredientsManquants.reduce((total, ing) => total + ingredients[ing].price, 0), [ingredientsManquants, ingredients]);
+    const shoppingSubtotal = useMemo(() => {
+        let sum = 0; shoppingSelected.forEach(ing => { if (ingredients[ing]) sum += ingredients[ing].price; }); return sum;
+    }, [shoppingSelected, ingredients]);
+    const shoppingProgress = useMemo(() => ingredientsManquants.length === 0 ? 0 : shoppingSelected.size / ingredientsManquants.length, [shoppingSelected, ingredientsManquants]);
     const allIngredients = useMemo(() => Object.keys(ingredients), [ingredients]);
     const categoriesRecettes = useMemo(() => [...new Set(recettes.map(r => r.categorie))], [recettes]);
+    // Structure pour regroupement dans la gestion (inclut index pour édition)
+    const recettesParCategorie = useMemo(() => {
+        const map: { [key: string]: { recette: RecipeType; index: number }[] } = {};
+        recettes.forEach((r, idx) => {
+            (map[r.categorie] ||= []).push({ recette: r, index: idx });
+        });
+        return map;
+    }, [recettes]);
 
     // Callbacks stables pour éviter de recréer les fonctions sur chaque rendu et réduire les rerenders dans les listes
     const toggleIngredient = useCallback((ingredient: string) => {
@@ -270,6 +375,9 @@ export function App() {
                         <Edit2 className="w-6 h-6" />
                         <span>Gestion</span>
                     </button>
+                    <button onClick={() => setActiveTab('historique')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'historique' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
+                        <span className="text-sm font-semibold">Hist.</span>
+                    </button>
                 </div>
 
                 {/* p-2 + pb-28 pour laisser l'espace du footer tab fixe, y compris safe-area éventuelle */}
@@ -279,6 +387,16 @@ export function App() {
                             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                                 <p className="text-xs text-orange-800"><strong>Astuce :</strong> Cochez les ingrédients que vous avez à la maison.</p>
                             </div>
+
+                            {!shoppingMode && ingredientsManquants.length > 0 && (
+                                <button
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={startShopping}
+                                    className="w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium shadow hover:bg-green-700 active:scale-[.98] transition"
+                                >
+                                    Démarrer les courses ({ingredientsManquants.length} articles)
+                                </button>
+                            )}
 
                             {Object.entries(categories).map(([categorie, items]) => (
                                 <div key={categorie} className="border rounded-lg overflow-hidden">
@@ -301,6 +419,62 @@ export function App() {
 
                             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
                                 <h3 className="font-semibold text-red-800 mb-2">À acheter ({ingredientsManquants.length} articles)</h3>
+                                {shoppingMode && (
+                                    <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-sm p-4 overflow-y-auto">
+                                        <div className="max-w-md mx-auto space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <h2 className="text-lg font-semibold text-gray-800">Liste des courses</h2>
+                                                <button onClick={cancelShopping} className="text-sm text-gray-500 hover:text-gray-700">Fermer</button>
+                                            </div>
+                                            <p className="text-xs text-gray-500">Cochez au fur et à mesure. Les produits frais et surgelés apparaissent à la fin pour optimiser la chaîne du froid.</p>
+                                            <div className="border rounded-lg p-3 bg-white flex flex-col gap-2 text-xs">
+                                                <div className="flex justify-between"><span>Sélectionnés :</span><span>{shoppingSelected.size} / {ingredientsManquants.length}</span></div>
+                                                <div className="flex justify-between"><span>Sous-total :</span><span>{shoppingSubtotal.toFixed(2)} €</span></div>
+                                                <div className="h-2 bg-gray-200 rounded overflow-hidden">
+                                                    <div className="h-full bg-green-500 transition-all" style={{ width: `${(shoppingProgress * 100).toFixed(1)}%` }} />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-5">
+                                                {shoppingCategoryOrder.map(cat => (
+                                                    missingByCategory[cat] && missingByCategory[cat].length > 0 && (
+                                                        <div key={cat} className="border rounded-lg">
+                                                            <div className="px-3 py-2 bg-gray-100 text-xs font-semibold text-gray-700 sticky top-0 z-10">{cat}</div>
+                                                            <div className="divide-y">
+                                                                {missingByCategory[cat].map(ing => {
+                                                                    const checked = shoppingSelected.has(ing);
+                                                                    return (
+                                                                        <label key={ing} className="flex items-center justify-between gap-3 px-3 py-2 text-sm select-none active:bg-gray-50">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={checked}
+                                                                                    onChange={() => toggleShoppingItem(ing)}
+                                                                                    className="w-4 h-4 accent-green-600"
+                                                                                />
+                                                                                <span className={checked ? 'line-through text-gray-400' : 'text-gray-700'}>{ing}</span>
+                                                                            </div>
+                                                                            <span className="text-xs text-gray-500">{ingredients[ing].price.toFixed(2)}€</span>
+                                                                        </label>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-2 pt-2">
+                                                <button
+                                                    onClick={finishShopping}
+                                                    className="flex-1 bg-green-600 text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-50"
+                                                >Terminer ({shoppingSubtotal.toFixed(2)} €)</button>
+                                                <button
+                                                    onClick={cancelShopping}
+                                                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg text-sm font-medium"
+                                                >Annuler</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 {ingredientsManquants.length > 0 ? (
                                     <>
                                         <ul className="space-y-2 text-sm text-red-700">
@@ -687,58 +861,151 @@ export function App() {
                                     </div>
                                 )}
 
-                                <div className="p-4 space-y-3">
-                                    {recettes.map((recette, idx) => (
-                                        <div key={idx} className="border rounded-lg p-4 bg-gray-50">
-                                            {editingRecipe?.index === idx ? (
-                                                <div className="space-y-3">
-                                                    <input type="text" value={editingRecipe.data.nom} onChange={(e) => setEditingRecipe({ ...editingRecipe, data: { ...editingRecipe.data, nom: e.target.value } })} className="w-full px-3 py-2 border rounded-lg" />
-                                                    <select value={editingRecipe.data.categorie} onChange={(e) => setEditingRecipe({ ...editingRecipe, data: { ...editingRecipe.data, categorie: e.target.value } })} className="w-full px-3 py-2 border rounded-lg">
-                                                        {categoriesRecettes.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                                    </select>
-                                                    <div className="border rounded-lg p-3 bg-white max-h-48 overflow-y-auto">
-                                                        <p className="text-sm font-semibold mb-2">Ingrédients :</p>
-                                                        {allIngredients.map(ing => (
-                                                            <label key={ing} className="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
-                                                                <input type="checkbox" checked={editingRecipe.data.ingredients.includes(ing)} onChange={() => toggleIngredientInRecipe(ing, true)} className="w-4 h-4" />
-                                                                <span className="text-sm">{ing}</span>
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <button onMouseDown={(e) => e.preventDefault()} onClick={updateRecipe} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600">
-                                                            <Save className="w-4 h-4" />Sauvegarder
-                                                        </button>
-                                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setEditingRecipe(null)} className="bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-sm hover:bg-gray-400">Annuler</button>
-                                                    </div>
+                                <div className="p-4 space-y-6">
+                                    {Object.entries(recettesParCategorie).map(([cat, items]) => (
+                                        <div key={cat} className="space-y-3">
+                                            <h3 className="text-sm font-semibold text-purple-700 px-2">{cat}</h3>
+                                            {items.map(({ recette, index: idx }) => (
+                                                <div key={idx} className="border rounded-lg p-4 bg-gray-50">
+                                                    {editingRecipe?.index === idx ? (
+                                                        <div className="space-y-3">
+                                                            <input type="text" value={editingRecipe.data.nom} onChange={(e) => setEditingRecipe({ ...editingRecipe, data: { ...editingRecipe.data, nom: e.target.value } })} className="w-full px-3 py-2 border rounded-lg" />
+                                                            <select value={editingRecipe.data.categorie} onChange={(e) => setEditingRecipe({ ...editingRecipe, data: { ...editingRecipe.data, categorie: e.target.value } })} className="w-full px-3 py-2 border rounded-lg">
+                                                                {categoriesRecettes.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                                            </select>
+                                                            <div className="border rounded-lg p-3 bg-white max-h-48 overflow-y-auto">
+                                                                <p className="text-sm font-semibold mb-2">Ingrédients :</p>
+                                                                {allIngredients.map(ing => (
+                                                                    <label key={ing} className="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                                                        <input type="checkbox" checked={editingRecipe.data.ingredients.includes(ing)} onChange={() => toggleIngredientInRecipe(ing, true)} className="w-4 h-4" />
+                                                                        <span className="text-sm">{ing}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <button onMouseDown={(e) => e.preventDefault()} onClick={updateRecipe} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600">
+                                                                    <Save className="w-4 h-4" />Sauvegarder
+                                                                </button>
+                                                                <button onMouseDown={(e) => e.preventDefault()} onClick={() => setEditingRecipe(null)} className="bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-sm hover:bg-gray-400">Annuler</button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div>
+                                                                    <h4 className="font-semibold text-gray-900">{recette.nom}</h4>
+                                                                    <p className="text-xs text-gray-500">{recette.categorie}</p>
+                                                                </div>
+                                                                <div className="flex gap-2">
+                                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => setEditingRecipe({ index: idx, data: { ...recette } })} className="text-blue-500 hover:text-blue-700">
+                                                                        <Edit2 className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button onMouseDown={(e) => e.preventDefault()} onClick={() => deleteRecipe(idx)} className="text-red-500 hover:text-red-700">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {recette.ingredients.map(ing => (
+                                                                    <span key={ing} className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">{ing}</span>
+                                                                ))}
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
-                                            ) : (
-                                                <>
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <div>
-                                                            <h4 className="font-semibold text-gray-900">{recette.nom}</h4>
-                                                            <p className="text-xs text-gray-500">{recette.categorie}</p>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setEditingRecipe({ index: idx, data: { ...recette } })} className="text-blue-500 hover:text-blue-700">
-                                                                <Edit2 className="w-4 h-4" />
-                                                            </button>
-                                                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => deleteRecipe(idx)} className="text-red-500 hover:text-red-700">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {recette.ingredients.map(ing => (
-                                                            <span key={ing} className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">{ing}</span>
-                                                        ))}
-                                                    </div>
-                                                </>
-                                            )}
+                                            ))}
                                         </div>
                                     ))}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'historique' && (
+                        <div className="space-y-4">
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-xs text-orange-800">Historique de vos sessions de courses.</p>
+                                    {shoppingHistory.length > 0 && (
+                                        <button
+                                            onClick={() => {
+                                                if (historySelectMode) {
+                                                    setHistorySelected(new Set());
+                                                    setHistorySelectMode(false);
+                                                } else {
+                                                    setHistorySelectMode(true);
+                                                }
+                                            }}
+                                            className="text-[10px] px-2 py-1 rounded bg-orange-200 text-orange-800 hover:bg-orange-300"
+                                        >{historySelectMode ? 'Terminer' : 'Gérer'}</button>
+                                    )}
+                                </div>
+                            </div>
+                            {shoppingHistory.length === 0 ? (
+                                <p className="text-center text-xs text-gray-500 py-8">Aucune session enregistrée pour l'instant.</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {historySelectMode && (
+                                        <div className="flex items-center gap-2 text-[10px] bg-white border rounded p-2">
+                                            <button onClick={selectAllHistory} className="px-2 py-1 rounded bg-gray-200 text-gray-700">{historySelected.size === shoppingHistory.length ? 'Tout désélectionner' : 'Tout sélectionner'}</button>
+                                            <span className="text-gray-500">{historySelected.size} sélectionné(s)</span>
+                                            <button
+                                                disabled={historySelected.size === 0}
+                                                onClick={() => deleteHistoryIds(Array.from(historySelected))}
+                                                className="ml-auto px-2 py-1 rounded bg-red-500 disabled:opacity-40 text-white"
+                                            >Supprimer sélection</button>
+                                        </div>
+                                    )}
+                                    {shoppingHistory.map(session => {
+                                        const checked = historySelected.has(session.id);
+                                        return (
+                                            <div key={session.id} className={`border rounded-lg p-3 bg-white shadow-sm relative ${checked ? 'ring-2 ring-orange-400' : ''}`}>
+                                                {historySelectMode && (
+                                                    <label className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] cursor-pointer select-none">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="w-3 h-3"
+                                                            checked={checked}
+                                                            onChange={() => toggleHistorySelect(session.id)}
+                                                        />
+                                                    </label>
+                                                )}
+                                                <div className="flex justify-between items-center mb-1 pr-6">
+                                                    <h4 className="text-sm font-semibold">Courses du {new Date(session.date).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</h4>
+                                                    <span className="text-xs font-medium text-green-600">{session.total.toFixed(2)} €</span>
+                                                </div>
+                                                <p className="text-[11px] text-gray-500 mb-2">{session.items.length} article{session.items.length > 1 ? 's' : ''}</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {session.items.slice(0, 12).map(i => (
+                                                        <span key={i} className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-[10px]">{i}</span>
+                                                    ))}
+                                                    {session.items.length > 12 && (
+                                                        <span className="px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full text-[10px]">+{session.items.length - 12}</span>
+                                                    )}
+                                                </div>
+                                                {historySelectMode && (
+                                                    <div className="pt-2 flex justify-end">
+                                                        <button
+                                                            onClick={() => deleteHistoryIds([session.id])}
+                                                            className="text-[10px] px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
+                                                        >Supprimer</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            {shoppingHistory.length > 0 && (
+                                <div className="pt-2">
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Effacer tout l\'historique des courses ?')) setShoppingHistory([]);
+                                        }}
+                                        className="w-full text-xs bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded"
+                                    >Vider l'historique</button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
