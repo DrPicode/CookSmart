@@ -150,11 +150,15 @@ export function App() {
             try {
                 const text = reader.result as string;
                 const parsed = JSON.parse(text);
-                if (!validateExportData(parsed)) {
-                    setImportError('Fichier invalide ou version non supportée.');
+                const { valid, errors, warnings } = validateExportData(parsed);
+                if (!valid) {
+                    setImportError('Fichier invalide: ' + (errors.join(' | ') || 'Raison inconnue'));
                     return;
                 }
-                const cleaned = sanitizeImport(parsed);
+                const cleaned = sanitizeImport(parsed as any);
+                if (warnings.length) {
+                    alert('Import avec ajustements:\n' + warnings.join('\n'));
+                }
                 if (!confirm('Importer ce fichier et remplacer les données actuelles ?')) return;
                 setIngredients(cleaned.ingredients);
                 setCategories(cleaned.categories);
