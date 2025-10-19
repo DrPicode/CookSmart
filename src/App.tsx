@@ -2,41 +2,41 @@ import { useState, useEffect } from 'react';
 import { ChefHat, ShoppingCart, CheckCircle2, Circle, Plus, Trash2, Edit2, Save } from 'lucide-react';
 
 export function App() {
-    type IngredientsType = { [key: string]: { inStock: boolean; price: number } };
+    type IngredientsType = { [key: string]: { inStock: boolean; price: number; parts: number } };
     type CategoriesType = { [key: string]: string[] };
     type RecipeType = { nom: string; categorie: string; ingredients: string[] };
     type EditingRecipeType = { index: number; data: RecipeType } | null;
 
     const defaultIngredients: IngredientsType = {
-        'Tomates cerises': { inStock: false, price: 2.50 },
-        'Pommes de terre au four micro-ondes': { inStock: false, price: 3.00 },
-        'Maïs': { inStock: true, price: 1.20 },
-        'Pâtes': { inStock: false, price: 1.50 },
-        'Riz': { inStock: true, price: 2.00 },
-        'Thon': { inStock: false, price: 2.80 },
-        'Sauce tomate': { inStock: true, price: 1.50 },
-        'Sauce bolognaise': { inStock: false, price: 2.30 },
-        'Ketchup': { inStock: true, price: 2.00 },
-        'Biscottes': { inStock: true, price: 1.80 },
-        'Boîte Albóndigas': { inStock: true, price: 4.50 },
-        'Boite lentilles chorizo': { inStock: true, price: 3.80 },
-        'Champignons en boîte': { inStock: false, price: 1.90 },
-        'Petits pois en boîte': { inStock: true, price: 1.60 },
-        'Céréales': { inStock: false, price: 3.50 },
-        'Jus de fruit': { inStock: false, price: 2.20 },
-        'Eau': { inStock: false, price: 0.80 },
-        'Yaourt à boire': { inStock: false, price: 2.10 },
-        'Beurre': { inStock: false, price: 2.90 },
-        'Fromage râpé': { inStock: true, price: 2.50 },
-        'Crème fraîche en brique': { inStock: true, price: 1.70 },
-        'Lardons': { inStock: true, price: 2.30 },
-        'Steaks hachés': { inStock: false, price: 4.50 },
-        'Dés de chorizo': { inStock: true, price: 2.80 },
-        'Dés de jambon blanc': { inStock: false, price: 2.60 },
-        'Tortilla': { inStock: false, price: 3.50 },
-        'Knockis poulet surgelés': { inStock: true, price: 4.20 },
-        'Légumes poulet surgelés': { inStock: true, price: 3.90 },
-        'Lasagnes': { inStock: true, price: 5.50 },
+        'Tomates cerises': { inStock: false, price: 2.50, parts: 4 },
+        'Pommes de terre au four micro-ondes': { inStock: false, price: 3.00, parts: 4 },
+        'Maïs': { inStock: true, price: 1.20, parts: 4 },
+        'Pâtes': { inStock: false, price: 1.50, parts: 5 },
+        'Riz': { inStock: true, price: 2.00, parts: 5 },
+        'Thon': { inStock: false, price: 2.80, parts: 2 },
+        'Sauce tomate': { inStock: true, price: 1.50, parts: 3 },
+        'Sauce bolognaise': { inStock: false, price: 2.30, parts: 3 },
+        'Ketchup': { inStock: true, price: 2.00, parts: 10 },
+        'Biscottes': { inStock: true, price: 1.80, parts: 8 },
+        'Boîte Albóndigas': { inStock: true, price: 4.50, parts: 2 },
+        'Boite lentilles chorizo': { inStock: true, price: 3.80, parts: 2 },
+        'Champignons en boîte': { inStock: false, price: 1.90, parts: 3 },
+        'Petits pois en boîte': { inStock: true, price: 1.60, parts: 3 },
+        'Céréales': { inStock: false, price: 3.50, parts: 8 },
+        'Jus de fruit': { inStock: false, price: 2.20, parts: 4 },
+        'Eau': { inStock: false, price: 0.80, parts: 6 },
+        'Yaourt à boire': { inStock: false, price: 2.10, parts: 1 },
+        'Beurre': { inStock: false, price: 2.90, parts: 10 },
+        'Fromage râpé': { inStock: true, price: 2.50, parts: 4 },
+        'Crème fraîche en brique': { inStock: true, price: 1.70, parts: 3 },
+        'Lardons': { inStock: true, price: 2.30, parts: 2 },
+        'Steaks hachés': { inStock: false, price: 4.50, parts: 2 },
+        'Dés de chorizo': { inStock: true, price: 2.80, parts: 3 },
+        'Dés de jambon blanc': { inStock: false, price: 2.60, parts: 3 },
+        'Tortilla': { inStock: false, price: 3.50, parts: 2 },
+        'Knockis poulet surgelés': { inStock: true, price: 4.20, parts: 2 },
+        'Légumes poulet surgelés': { inStock: true, price: 3.90, parts: 2 },
+        'Lasagnes': { inStock: true, price: 5.50, parts: 2 },
     };
     const [ingredients, setIngredients] = useState<IngredientsType>(() => {
         const saved = localStorage.getItem('ingredients');
@@ -105,20 +105,21 @@ export function App() {
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<EditingRecipeType>(null);
-    const [editingIngredient, setEditingIngredient] = useState<{ name: string; category: string; price: number } | null>(null);
-    const [newIngredient, setNewIngredient] = useState<{ name: string; category: string; price: string }>({ name: '', category: '', price: '' });
+    const [editingIngredient, setEditingIngredient] = useState<{ name: string; category: string; price: number; parts: number } | null>(null);
+    const [newIngredient, setNewIngredient] = useState<{ name: string; category: string; price: string; parts: string }>({ name: '', category: '', price: '', parts: '' });
     const [newRecipe, setNewRecipe] = useState<RecipeType>({ nom: '', categorie: '', ingredients: [] });
 
     // CRUD Ingrédients
     const addIngredient = () => {
-        if (!newIngredient.name.trim() || !newIngredient.category || !newIngredient.price) return;
+        if (!newIngredient.name.trim() || !newIngredient.category || !newIngredient.price || !newIngredient.parts) return;
 
         const price = parseFloat(newIngredient.price);
-        if (isNaN(price)) return;
+        const parts = parseInt(newIngredient.parts);
+        if (isNaN(price) || isNaN(parts)) return;
 
         setIngredients((prev: IngredientsType) => ({
             ...prev,
-            [newIngredient.name]: { inStock: false, price }
+            [newIngredient.name]: { inStock: false, price, parts }
         }));
         setCategories((prev: CategoriesType) => ({
             ...prev,
@@ -127,7 +128,7 @@ export function App() {
                 newIngredient.name
             ]
         }));
-        setNewIngredient({ name: '', category: '', price: '' });
+        setNewIngredient({ name: '', category: '', price: '', parts: '' });
         setShowAddIngredient(false);
     };
 
@@ -224,39 +225,42 @@ export function App() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-            <div className="mx-auto p-2 sm:p-3">
-                <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 text-white">
-                        <h1 className="text-2xl font-bold flex items-center gap-2">
-                            <ChefHat className="w-7 h-7" />
-                            Gestionnaire de Courses et Recettes
+            <div className="mx-auto">
+                <div className="bg-white shadow-md overflow-hidden">
+                    <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white">
+                        <h1 className="text-xl font-bold flex items-center gap-2">
+                            <ChefHat className="w-6 h-6" />
+                            Gestionnaire de Courses
                         </h1>
-                        <p className="mt-1 text-orange-100 text-sm">Gérez vos courses et découvrez les plats que vous pouvez cuisiner</p>
+                        <p className="mt-1 text-orange-100 text-xs">Gérez vos courses et découvrez les plats que vous pouvez cuisiner</p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row border-b">
-                        <button onClick={() => setActiveTab('courses')} className={`w-full px-3 py-3 font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${activeTab === 'courses' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
-                            <ShoppingCart className="w-5 h-5" />Liste de Courses
+                    <div className="flex border-b fixed bottom-0 left-0 right-0 bg-white">
+                        <button onClick={() => setActiveTab('courses')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'courses' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
+                            <ShoppingCart className="w-6 h-6" />
+                            <span>Courses</span>
                         </button>
-                        <button onClick={() => setActiveTab('recettes')} className={`w-full px-3 py-3 font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${activeTab === 'recettes' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
-                            <ChefHat className="w-5 h-5" />Recettes ({recettesPossibles.length})
+                        <button onClick={() => setActiveTab('recettes')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'recettes' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
+                            <ChefHat className="w-6 h-6" />
+                            <span>Recettes ({recettesPossibles.length})</span>
                         </button>
-                        <button onClick={() => setActiveTab('gestion')} className={`w-full px-3 py-3 font-semibold transition-colors flex items-center justify-center gap-2 text-sm ${activeTab === 'gestion' ? 'bg-orange-50 text-orange-600 border-b-2 border-orange-500' : 'text-gray-500 hover:bg-gray-50'}`}>
-                            <Edit2 className="w-5 h-5" />Gestion
+                        <button onClick={() => setActiveTab('gestion')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'gestion' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
+                            <Edit2 className="w-6 h-6" />
+                            <span>Gestion</span>
                         </button>
                     </div>
 
-                    <div className="p-2 sm:p-3">
+                    <div className="p-2 pb-24">
                         {activeTab === 'courses' && (
-                            <div className="space-y-6">
-                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                                    <p className="text-sm text-orange-800"><strong>Astuce :</strong> Cochez les ingrédients que vous avez à la maison.</p>
+                            <div className="space-y-4">
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                    <p className="text-xs text-orange-800"><strong>Astuce :</strong> Cochez les ingrédients que vous avez à la maison.</p>
                                 </div>
 
                                 {Object.entries(categories).map(([categorie, items]) => (
                                     <div key={categorie} className="border rounded-lg overflow-hidden">
-                                        <div className="bg-gray-100 px-4 py-3 font-semibold text-gray-700">{categorie}</div>
-                                        <div className="p-4 space-y-2">
+                                        <div className="bg-gray-100 px-3 py-2 font-medium text-gray-700 text-sm sticky top-0">{categorie}</div>
+                                        <div className="divide-y divide-gray-100">
                                             {items.map(ingredient => (
                                                 <label key={ingredient} className="flex items-center justify-between gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                                                     <div className="flex items-center gap-3">
@@ -299,31 +303,36 @@ export function App() {
                         )}
 
                         {activeTab === 'recettes' && (
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 {recettesPossibles.length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                        <p className="text-gray-500 text-lg">Aucune recette possible avec les ingrédients actuels.</p>
+                                    <div className="text-center py-8">
+                                        <ChefHat className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                        <p className="text-gray-500 text-sm">Aucune recette possible avec les ingrédients actuels.</p>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                            <p className="text-green-800"><strong>🎉 Super !</strong> Vous pouvez préparer {recettesPossibles.length} plat{recettesPossibles.length > 1 ? 's' : ''}.</p>
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                            <p className="text-green-800 text-sm"><strong>🎉 Super !</strong> Vous pouvez préparer {recettesPossibles.length} plat{recettesPossibles.length > 1 ? 's' : ''}.</p>
                                         </div>
 
                                         {Object.entries(recettesGroupees).map(([categorie, recs]) => (
                                             <div key={categorie} className="border rounded-lg overflow-hidden">
-                                                <div className="bg-gradient-to-r from-orange-100 to-red-100 px-4 py-3 font-semibold text-gray-800">{categorie}</div>
-                                                <div className="p-4 space-y-3">
+                                                <div className="bg-gradient-to-r from-orange-100 to-red-100 px-3 py-2 font-medium text-gray-800 text-sm sticky top-0">{categorie}</div>
+                                                <div className="divide-y divide-gray-100">
                                                     {recs.map((recette, idx) => (
-                                                        <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4">
-                                                            <h4 className="font-semibold text-gray-900 mb-2">{recette.nom}</h4>
-                                                            <div className="flex flex-wrap gap-2">
+                                                        <div key={idx} className="p-3">
+                                                            <h4 className="font-medium text-gray-900 mb-2 text-sm">{recette.nom}</h4>
+                                                            <div className="flex flex-wrap gap-1.5 mb-2">
                                                                 {recette.ingredients.map(ing => (
-                                                                    <span key={ing} className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
+                                                                    <span key={ing} className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs">
                                                                         <CheckCircle2 className="w-3 h-3" />{ing}
                                                                     </span>
                                                                 ))}
+                                                            </div>
+                                                            <div className="flex items-center justify-between mt-2 text-xs">
+                                                                <span className="text-gray-500">Prix par personne :</span>
+                                                                <span className="text-blue-600 font-medium">{recette.ingredients.reduce((total, ing) =>
+                                                                    total + (ingredients[ing].price / ingredients[ing].parts), 0).toFixed(2)}€</span>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -339,37 +348,50 @@ export function App() {
                             <div className="space-y-6">
                                 {/* Gestion Ingrédients */}
                                 <div className="border rounded-lg overflow-hidden">
-                                    <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-3 font-semibold text-gray-800 flex justify-between items-center">
-                                        <span>Gestion des Ingrédients</span>
-                                        <button onClick={() => setShowAddIngredient(!showAddIngredient)} className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2 hover:bg-blue-600">
+                                    <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 flex justify-between items-center sticky top-0">
+                                        <span className="text-sm">Gestion des Ingrédients</span>
+                                        <button onClick={() => setShowAddIngredient(!showAddIngredient)} className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 hover:bg-blue-600">
                                             <Plus className="w-4 h-4" />Ajouter
                                         </button>
                                     </div>
 
                                     {showAddIngredient && (
-                                        <div className="p-4 bg-blue-50 border-b space-y-3">
-                                            <input type="text" placeholder="Nom de l'ingrédient" value={newIngredient.name} onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
-                                            <select value={newIngredient.category} onChange={(e) => setNewIngredient({ ...newIngredient, category: e.target.value })} className="w-full px-3 py-2 border rounded-lg">
+                                        <div className="p-3 bg-blue-50 border-b space-y-3">
+                                            <input type="text" placeholder="Nom de l'ingrédient" value={newIngredient.name} onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" />
+                                            <select value={newIngredient.category} onChange={(e) => setNewIngredient({ ...newIngredient, category: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm">
                                                 <option value="">Choisir une catégorie</option>
                                                 {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                             </select>
                                             <div className="flex items-center gap-2">
-                                                <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    min="0"
-                                                    placeholder="Prix"
-                                                    value={newIngredient.price}
-                                                    onChange={(e) => setNewIngredient({ ...newIngredient, price: e.target.value })}
-                                                    className="w-full px-3 py-2 border rounded-lg"
-                                                />
-                                                <span className="text-gray-500">€</span>
+                                                <div className="flex-1 relative">
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0"
+                                                        placeholder="Prix"
+                                                        value={newIngredient.price}
+                                                        onChange={(e) => setNewIngredient({ ...newIngredient, price: e.target.value })}
+                                                        className="w-full px-3 py-2.5 border rounded-lg pr-8 text-sm"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">€</span>
+                                                </div>
+                                                <div className="flex-1 relative">
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        placeholder="Parts"
+                                                        value={newIngredient.parts}
+                                                        onChange={(e) => setNewIngredient({ ...newIngredient, parts: e.target.value })}
+                                                        className="w-full px-3 py-2.5 border rounded-lg pr-12 text-sm"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">parts</span>
+                                                </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <button onClick={addIngredient} className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600">
+                                                <button onClick={addIngredient} className="flex-1 bg-green-500 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 text-sm">
                                                     <Save className="w-4 h-4" />Enregistrer
                                                 </button>
-                                                <button onClick={() => setShowAddIngredient(false)} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">Annuler</button>
+                                                <button onClick={() => setShowAddIngredient(false)} className="flex-1 bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-300 text-sm">Annuler</button>
                                             </div>
                                         </div>
                                     )}
@@ -396,6 +418,14 @@ export function App() {
                                                                         onChange={(e) => setEditingIngredient({ ...editingIngredient, price: parseFloat(e.target.value) })}
                                                                         className="px-2 py-1 border rounded w-20"
                                                                     />
+                                                                    <input
+                                                                        type="number"
+                                                                        min="1"
+                                                                        value={editingIngredient.parts}
+                                                                        onChange={(e) => setEditingIngredient({ ...editingIngredient, parts: parseInt(e.target.value) })}
+                                                                        className="px-2 py-1 border rounded w-20"
+                                                                        placeholder="Parts"
+                                                                    />
                                                                     <button onClick={() => {
                                                                         setIngredients(prev => {
                                                                             const newIngs = { ...prev };
@@ -404,7 +434,8 @@ export function App() {
                                                                             }
                                                                             newIngs[editingIngredient.name] = {
                                                                                 inStock: prev[ing].inStock,
-                                                                                price: editingIngredient.price
+                                                                                price: editingIngredient.price,
+                                                                                parts: editingIngredient.parts
                                                                             };
                                                                             return newIngs;
                                                                         });
@@ -433,14 +464,18 @@ export function App() {
                                                                 <>
                                                                     <div className="flex items-center gap-4">
                                                                         <span className="text-sm">{ing}</span>
-                                                                        <span className="text-sm text-gray-500">{ingredients[ing].price.toFixed(2)} €</span>
+                                                                        <div className="text-sm text-gray-500">
+                                                                            <div>{ingredients[ing].price.toFixed(2)} € ({ingredients[ing].parts} parts)</div>
+                                                                            <div className="text-xs text-blue-500">{(ingredients[ing].price / ingredients[ing].parts).toFixed(2)} €/part</div>
+                                                                        </div>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <button onClick={() => setEditingIngredient({
                                                                             name: ing,
                                                                             category: categorie,
-                                                                            price: ingredients[ing].price
-                                                                        })} className="text-blue-500 hover:text-blue-700">
+                                                                            price: ingredients[ing].price,
+                                                                            parts: ingredients[ing].parts
+                                                                        })} className="text-blue-500 hover:text-blue-700">\
                                                                             <Edit2 className="w-4 h-4" />
                                                                         </button>
                                                                         <button onClick={() => deleteIngredient(ing, categorie)} className="text-red-500 hover:text-red-700">
