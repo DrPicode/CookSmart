@@ -2,41 +2,41 @@ import { useState, useEffect } from 'react';
 import { ChefHat, ShoppingCart, CheckCircle2, Circle, Plus, Trash2, Edit2, Save } from 'lucide-react';
 
 export function App() {
-    type IngredientsType = { [key: string]: boolean };
+    type IngredientsType = { [key: string]: { inStock: boolean; price: number } };
     type CategoriesType = { [key: string]: string[] };
     type RecipeType = { nom: string; categorie: string; ingredients: string[] };
     type EditingRecipeType = { index: number; data: RecipeType } | null;
 
     const defaultIngredients: IngredientsType = {
-        'Tomates cerises': false,
-        'Pommes de terre au four micro-ondes': false,
-        'Maïs': true,
-        'Pâtes': false,
-        'Riz': true,
-        'Thon': false,
-        'Sauce tomate': true,
-        'Sauce bolognaise': false,
-        'Ketchup': true,
-        'Biscottes': true,
-        'Boîte Albóndigas': true,
-        'Boite lentilles chorizo': true,
-        'Champignons en boîte': false,
-        'Petits pois en boîte': true,
-        'Céréales': false,
-        'Jus de fruit': false,
-        'Eau': false,
-        'Yaourt à boire': false,
-        'Beurre': false,
-        'Fromage râpé': true,
-        'Crème fraîche en brique': true,
-        'Lardons': true,
-        'Steaks hachés': false,
-        'Dés de chorizo': true,
-        'Dés de jambon blanc': false,
-        'Tortilla': false,
-        'Knockis poulet surgelés': true,
-        'Légumes poulet surgelés': true,
-        'Lasagnes': true,
+        'Tomates cerises': { inStock: false, price: 2.50 },
+        'Pommes de terre au four micro-ondes': { inStock: false, price: 3.00 },
+        'Maïs': { inStock: true, price: 1.20 },
+        'Pâtes': { inStock: false, price: 1.50 },
+        'Riz': { inStock: true, price: 2.00 },
+        'Thon': { inStock: false, price: 2.80 },
+        'Sauce tomate': { inStock: true, price: 1.50 },
+        'Sauce bolognaise': { inStock: false, price: 2.30 },
+        'Ketchup': { inStock: true, price: 2.00 },
+        'Biscottes': { inStock: true, price: 1.80 },
+        'Boîte Albóndigas': { inStock: true, price: 4.50 },
+        'Boite lentilles chorizo': { inStock: true, price: 3.80 },
+        'Champignons en boîte': { inStock: false, price: 1.90 },
+        'Petits pois en boîte': { inStock: true, price: 1.60 },
+        'Céréales': { inStock: false, price: 3.50 },
+        'Jus de fruit': { inStock: false, price: 2.20 },
+        'Eau': { inStock: false, price: 0.80 },
+        'Yaourt à boire': { inStock: false, price: 2.10 },
+        'Beurre': { inStock: false, price: 2.90 },
+        'Fromage râpé': { inStock: true, price: 2.50 },
+        'Crème fraîche en brique': { inStock: true, price: 1.70 },
+        'Lardons': { inStock: true, price: 2.30 },
+        'Steaks hachés': { inStock: false, price: 4.50 },
+        'Dés de chorizo': { inStock: true, price: 2.80 },
+        'Dés de jambon blanc': { inStock: false, price: 2.60 },
+        'Tortilla': { inStock: false, price: 3.50 },
+        'Knockis poulet surgelés': { inStock: true, price: 4.20 },
+        'Légumes poulet surgelés': { inStock: true, price: 3.90 },
+        'Lasagnes': { inStock: true, price: 5.50 },
     };
     const [ingredients, setIngredients] = useState<IngredientsType>(() => {
         const saved = localStorage.getItem('ingredients');
@@ -105,14 +105,21 @@ export function App() {
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<EditingRecipeType>(null);
-    const [newIngredient, setNewIngredient] = useState<{ name: string; category: string }>({ name: '', category: '' });
+    const [editingIngredient, setEditingIngredient] = useState<{ name: string; category: string; price: number } | null>(null);
+    const [newIngredient, setNewIngredient] = useState<{ name: string; category: string; price: string }>({ name: '', category: '', price: '' });
     const [newRecipe, setNewRecipe] = useState<RecipeType>({ nom: '', categorie: '', ingredients: [] });
 
     // CRUD Ingrédients
     const addIngredient = () => {
-        if (!newIngredient.name.trim() || !newIngredient.category) return;
+        if (!newIngredient.name.trim() || !newIngredient.category || !newIngredient.price) return;
 
-        setIngredients((prev: IngredientsType) => ({ ...prev, [newIngredient.name]: false }));
+        const price = parseFloat(newIngredient.price);
+        if (isNaN(price)) return;
+
+        setIngredients((prev: IngredientsType) => ({
+            ...prev,
+            [newIngredient.name]: { inStock: false, price }
+        }));
         setCategories((prev: CategoriesType) => ({
             ...prev,
             [newIngredient.category]: [
@@ -120,23 +127,31 @@ export function App() {
                 newIngredient.name
             ]
         }));
-        setNewIngredient({ name: '', category: '' });
+        setNewIngredient({ name: '', category: '', price: '' });
         setShowAddIngredient(false);
     };
 
     const deleteIngredient = (ingredient: string, category: string) => {
         if (!confirm(`Supprimer "${ingredient}" ?`)) return;
 
+        // Supprimer l'ingrédient de la liste des ingrédients
         setIngredients((prev: IngredientsType) => {
             const newIng = { ...prev };
-            delete newIng[ingredient as keyof IngredientsType];
+            delete newIng[ingredient];
             return newIng;
         });
+
+        // Supprimer l'ingrédient de sa catégorie
         setCategories((prev: CategoriesType) => ({
             ...prev,
-            [category]: (prev[category as keyof CategoriesType] || []).filter((i: string) => i !== ingredient)
+            [category]: prev[category].filter((i: string) => i !== ingredient)
         }));
-        setRecettes((prev: RecipeType[]) => prev.filter((r: RecipeType) => !r.ingredients.includes(ingredient)));
+
+        // Mettre à jour les recettes qui contiennent cet ingrédient
+        setRecettes((prev: RecipeType[]) => prev.map((recipe: RecipeType) => ({
+            ...recipe,
+            ingredients: recipe.ingredients.filter((ing: string) => ing !== ingredient)
+        })).filter((recipe: RecipeType) => recipe.ingredients.length > 0)); // Supprimer les recettes qui n'ont plus d'ingrédients
     };
 
     // CRUD Recettes
@@ -163,7 +178,10 @@ export function App() {
     };
 
     const toggleIngredient = (ingredient: string) => {
-        setIngredients((prev: IngredientsType) => ({ ...prev, [ingredient]: !prev[ingredient] }));
+        setIngredients((prev: IngredientsType) => ({
+            ...prev,
+            [ingredient]: { ...prev[ingredient], inStock: !prev[ingredient].inStock }
+        }));
     };
 
     const toggleIngredientInRecipe = (ingredient: string, isEditing = false) => {
@@ -190,7 +208,7 @@ export function App() {
     };
 
     const recettesPossibles = recettes.filter(recette =>
-        recette.ingredients.every((ing: string) => ingredients[ing])
+        recette.ingredients.every((ing: string) => ingredients[ing].inStock)
     );
 
     const recettesGroupees = recettesPossibles.reduce<{ [key: string]: RecipeType[] }>((acc, recette) => {
@@ -199,7 +217,8 @@ export function App() {
         return acc;
     }, {});
 
-    const ingredientsManquants = Object.keys(ingredients).filter((ing: string) => !ingredients[ing]);
+    const ingredientsManquants = Object.keys(ingredients).filter((ing: string) => !ingredients[ing].inStock);
+    const totalCourses = ingredientsManquants.reduce((total, ing) => total + ingredients[ing].price, 0);
     const allIngredients = Object.keys(ingredients);
     const categoriesRecettes = [...new Set(recettes.map(r => r.categorie))];
 
@@ -239,11 +258,14 @@ export function App() {
                                         <div className="bg-gray-100 px-4 py-3 font-semibold text-gray-700">{categorie}</div>
                                         <div className="p-4 space-y-2">
                                             {items.map(ingredient => (
-                                                <label key={ingredient} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                                                    <button onClick={() => toggleIngredient(ingredient)} className="flex-shrink-0">
-                                                        {ingredients[ingredient] ? <CheckCircle2 className="w-6 h-6 text-green-500" /> : <Circle className="w-6 h-6 text-gray-300" />}
-                                                    </button>
-                                                    <span className={ingredients[ingredient] ? 'text-gray-900' : 'text-gray-500'}>{ingredient}</span>
+                                                <label key={ingredient} className="flex items-center justify-between gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <button onClick={() => toggleIngredient(ingredient)} className="flex-shrink-0">
+                                                            {ingredients[ingredient].inStock ? <CheckCircle2 className="w-6 h-6 text-green-500" /> : <Circle className="w-6 h-6 text-gray-300" />}
+                                                        </button>
+                                                        <span className={ingredients[ingredient].inStock ? 'text-gray-900' : 'text-gray-500'}>{ingredient}</span>
+                                                    </div>
+                                                    <span className="text-gray-500 font-medium">{ingredients[ingredient].price.toFixed(2)} €</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -253,7 +275,22 @@ export function App() {
                                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
                                     <h3 className="font-semibold text-red-800 mb-2">À acheter ({ingredientsManquants.length} articles)</h3>
                                     {ingredientsManquants.length > 0 ? (
-                                        <ul className="space-y-1 text-sm text-red-700">{ingredientsManquants.map(ing => <li key={ing}>• {ing}</li>)}</ul>
+                                        <>
+                                            <ul className="space-y-2 text-sm text-red-700">
+                                                {ingredientsManquants.map(ing => (
+                                                    <li key={ing} className="flex justify-between items-center">
+                                                        <span>• {ing}</span>
+                                                        <span className="font-medium">{ingredients[ing].price.toFixed(2)} €</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="mt-4 pt-4 border-t border-red-200">
+                                                <div className="flex justify-between items-center text-red-800 font-semibold">
+                                                    <span>Total estimé :</span>
+                                                    <span>{totalCourses.toFixed(2)} €</span>
+                                                </div>
+                                            </div>
+                                        </>
                                     ) : (
                                         <p className="text-sm text-red-700">Tout est en stock ! 🎉</p>
                                     )}
@@ -316,6 +353,18 @@ export function App() {
                                                 <option value="">Choisir une catégorie</option>
                                                 {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                             </select>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    placeholder="Prix"
+                                                    value={newIngredient.price}
+                                                    onChange={(e) => setNewIngredient({ ...newIngredient, price: e.target.value })}
+                                                    className="w-full px-3 py-2 border rounded-lg"
+                                                />
+                                                <span className="text-gray-500">€</span>
+                                            </div>
                                             <div className="flex gap-2">
                                                 <button onClick={addIngredient} className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600">
                                                     <Save className="w-4 h-4" />Enregistrer
@@ -332,10 +381,74 @@ export function App() {
                                                 <div className="space-y-1">
                                                     {items.map(ing => (
                                                         <div key={ing} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                                                            <span className="text-sm">{ing}</span>
-                                                            <button onClick={() => deleteIngredient(ing, categorie)} className="text-red-500 hover:text-red-700">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            {editingIngredient && editingIngredient.name === ing ? (
+                                                                <div className="flex items-center gap-2 flex-grow">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editingIngredient.name}
+                                                                        onChange={(e) => setEditingIngredient({ ...editingIngredient, name: e.target.value })}
+                                                                        className="px-2 py-1 border rounded flex-grow"
+                                                                    />
+                                                                    <input
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                        value={editingIngredient.price}
+                                                                        onChange={(e) => setEditingIngredient({ ...editingIngredient, price: parseFloat(e.target.value) })}
+                                                                        className="px-2 py-1 border rounded w-20"
+                                                                    />
+                                                                    <button onClick={() => {
+                                                                        setIngredients(prev => {
+                                                                            const newIngs = { ...prev };
+                                                                            if (editingIngredient.name !== ing) {
+                                                                                delete newIngs[ing];
+                                                                            }
+                                                                            newIngs[editingIngredient.name] = {
+                                                                                inStock: prev[ing].inStock,
+                                                                                price: editingIngredient.price
+                                                                            };
+                                                                            return newIngs;
+                                                                        });
+                                                                        setCategories(prev => {
+                                                                            const newCats = { ...prev };
+                                                                            newCats[categorie] = newCats[categorie].map(item =>
+                                                                                item === ing ? editingIngredient.name : item
+                                                                            );
+                                                                            return newCats;
+                                                                        });
+                                                                        setRecettes(prev => prev.map(recipe => ({
+                                                                            ...recipe,
+                                                                            ingredients: recipe.ingredients.map(item =>
+                                                                                item === ing ? editingIngredient.name : item
+                                                                            )
+                                                                        })));
+                                                                        setEditingIngredient(null);
+                                                                    }} className="text-green-500 hover:text-green-700">
+                                                                        <Save className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button onClick={() => setEditingIngredient(null)} className="text-gray-500 hover:text-gray-700">
+                                                                        <Circle className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="text-sm">{ing}</span>
+                                                                        <span className="text-sm text-gray-500">{ingredients[ing].price.toFixed(2)} €</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button onClick={() => setEditingIngredient({
+                                                                            name: ing,
+                                                                            category: categorie,
+                                                                            price: ingredients[ing].price
+                                                                        })} className="text-blue-500 hover:text-blue-700">
+                                                                            <Edit2 className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button onClick={() => deleteIngredient(ing, categorie)} className="text-red-500 hover:text-red-700">
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
