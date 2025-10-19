@@ -18,6 +18,7 @@
   - Total dépensé / items achetés
   - Suppression individuelle ou multiple
   - Vidage complet
+- 💾 Export / Import JSON complet (sauvegarde / restauration)
 
 ## 🧱 Tech Stack
 
@@ -95,7 +96,40 @@ Fonctions disponibles :
 
 ## 🧪 Idées d'amélioration (Roadmap)
 
-- [ ] Export / import JSON (sauvegarde / restauration)
+<!-- Retiré car implémenté -->
+<!-- - [ ] Export / import JSON (sauvegarde / restauration) -->
+## 📤 Format d'export
+
+Fichier JSON versionné (actuellement `1.0.0`). Exemple minimal :
+
+```jsonc
+{
+  "version": "1.0.0",
+  "exportedAt": "2025-10-19T12:34:56.789Z",
+  "ingredients": {
+    "Riz": { "inStock": true, "price": 2.0, "parts": 5 }
+  },
+  "categories": {
+    "🥫 Épicerie salée": ["Riz"]
+  },
+  "recettes": [
+    { "nom": "Riz au thon", "categorie": "🍝 Pâtes / Riz / Crème", "ingredients": ["Riz", "Thon"] }
+  ],
+  "shoppingHistory": [
+    { "id": "abc123", "date": "2025-10-18T10:00:00.000Z", "items": ["Riz"], "total": 2.0 }
+  ]
+}
+```
+
+### Import
+
+1. Cliquer sur "Importer" et sélectionner un fichier `.json` exporté.
+2. Validation basique : version + structure + types.
+3. Les catégories et recettes sont nettoyées si elles référencent des ingrédients absents.
+4. Remplacement complet des données existantes (fusion non disponible pour l'instant).
+
+En cas d'erreur, un message rouge s'affiche. Aucune donnée n'est remplacée tant que le fichier n'est pas validé et confirmé.
+
 - [ ] Détail modal d'une session (liste complète des ingrédients)
 - [ ] Ajout d'un champ "magasin" et "notes"
 - [ ] Filtre par période + stats (total mensuel, dépense moyenne)

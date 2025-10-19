@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { buildExportData, validateExportData, sanitizeImport, ShoppingSession } from './exportImport';
 import { ChefHat, ShoppingCart, CheckCircle2, Circle, Plus, Trash2, Edit2, Save } from 'lucide-react';
 
 // Types extraits hors du composant pour éviter leur recréation à chaque rendu
@@ -121,11 +122,56 @@ export function App() {
     // Mode courses en magasin
     const [shoppingMode, setShoppingMode] = useState(false);
     const [shoppingSelected, setShoppingSelected] = useState<Set<string>>(new Set());
-    type ShoppingSession = { id: string; date: string; items: string[]; total: number };
+    // Type déplacé dans exportImport.ts pour réutilisation
     const [shoppingHistory, setShoppingHistory] = useState<ShoppingSession[]>(() => {
         const saved = localStorage.getItem('shoppingHistory');
         return saved ? JSON.parse(saved) : [];
     });
+    // Import / Export state
+    const [importError, setImportError] = useState<string | null>(null);
+    const handleExport = () => {
+        const data = buildExportData(ingredients, categories, recettes, shoppingHistory);
+        try {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `recipe-manager-export-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            alert('Erreur lors de l\'export des données.');
+        }
+    };
+    const handleImportFile = (file: File) => {
+        setImportError(null);
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const text = reader.result as string;
+                const parsed = JSON.parse(text);
+                if (!validateExportData(parsed)) {
+                    setImportError('Fichier invalide ou version non supportée.');
+                    return;
+                }
+                const cleaned = sanitizeImport(parsed);
+                if (!confirm('Importer ce fichier et remplacer les données actuelles ?')) return;
+                setIngredients(cleaned.ingredients);
+                setCategories(cleaned.categories);
+                setRecettes(cleaned.recettes);
+                setShoppingHistory(cleaned.shoppingHistory);
+            } catch (err) {
+                setImportError('Lecture ou parsing JSON échoué.');
+            }
+        };
+        reader.onerror = () => setImportError('Impossible de lire le fichier.');
+        reader.readAsText(file, 'utf-8');
+    };
+    const onImportInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) handleImportFile(file);
+        e.target.value = '';
+    };
     useEffect(() => {
         localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory));
     }, [shoppingHistory]);
@@ -916,6 +962,28 @@ export function App() {
                                             ))}
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Import / Export */}
+                            <div className="border rounded-lg overflow-hidden">
+                                <div className="bg-gradient-to-r from-green-100 to-green-200 px-4 py-3 font-semibold text-gray-800 flex justify-between items-center">
+                                    <span>Import / Export</span>
+                                </div>
+                                <div className="p-4 space-y-3">
+                                    <p className="text-xs text-gray-600">Sauvegardez ou restaurez toutes vos données (ingrédients, catégories, recettes, historique). Format JSON versionné.</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button onMouseDown={(e) => e.preventDefault()} onClick={handleExport} className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 flex items-center gap-2">
+                                            <Save className="w-4 h-4" />Exporter
+                                        </button>
+                                        <label className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 cursor-pointer flex items-center gap-2">
+                                            <Edit2 className="w-4 h-4" />Importer
+                                            <input type="file" accept="application/json" className="hidden" onChange={onImportInputChange} />
+                                        </label>
+                                        {importError && (
+                                            <span className="text-xs text-red-600">{importError}</span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
