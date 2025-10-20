@@ -14,6 +14,7 @@
   - Ordre optimisé (frais & surgelés à la fin)
   - Sélection des articles achetés
   - Sous-total dynamique + progression
+  - Saisie immédiate de la date de péremption pour les produits frais au moment où vous les cochez (si absente)
 - 🗂️ Historique des sessions de courses (persisté dans localStorage)
   - Total dépensé / items achetés
   - Suppression individuelle ou multiple
@@ -78,6 +79,7 @@ npm run preview
 | Ordonnancement | Catégories réordonnées pour garder frais & surgelés en dernier |
 | Sous-total | Somme des prix des ingrédients cochés |
 | Progression | `cochés / total manquants` (barre animée) |
+| Péremption frais | Quand un produit frais est coché sans date existante, un champ date apparaît pour l'ajouter immédiatement. |
 | Annulation | Aucune modification persistée |
 | Terminer | Mise à jour du stock + log historique |
 
@@ -111,6 +113,7 @@ Fonctions disponibles :
 
 - Virtualisation des listes d'ingrédients si le volume augmente (ex: `react-window`).
 - Gestion des parts consommées / ouverture des produits frais (ajout d'un hook dédié).
+- Alerte proactive visuelle quand un produit approche de la péremption dans l'écran Courses.
 - Ajout de tests unitaires (jest + react-testing-library) pour les utilitaires (expiry, export/import).
 - Mode offline sync via IndexedDB (ex: `idb`) si besoin multi-sessions.
 - Internationalisation (i18n) pour adapter les libellés.

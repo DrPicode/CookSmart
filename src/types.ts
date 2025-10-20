@@ -1,5 +1,6 @@
 // Types et constantes partagés
 
+// Catégorie de produits frais (doit correspondre exactement à la clé dans defaultCategories)
 export const FRESH_CATEGORY = '🧀 Produits frais';
 
 export type IngredientsType = { [key: string]: { inStock: boolean; price: number; parts: number; expiryDate?: string; remainingParts?: number } };
@@ -48,7 +49,7 @@ export const defaultCategories: CategoriesType = {
     ],
     '🥣 Épicerie sucrée / Petit déjeuner': ['Céréales', 'Jus de fruit'],
     '💧 Boissons': ['Eau'],
-    '🧀 Produits frais / Crèmerie': [
+    '🧀 Produits frais': [
         'Yaourt à boire', 'Beurre', 'Fromage râpé', 'Crème fraîche en brique',
         'Lardons', 'Steaks hachés', 'Dés de chorizo', 'Dés de jambon blanc', 'Tortilla'
     ],

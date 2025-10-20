@@ -219,7 +219,7 @@ export function App() {
     const ingredientsManquants = useMemo(() => Object.keys(ingredients).filter((ing: string) => !ingredients[ing].inStock), [ingredients]);
     // Ordre des catégories pour les courses: on veut frais et surgelés en dernier
     const shoppingCategoryOrder = useMemo(() => {
-        const orderTail = ['🧀 Produits frais / Crèmerie', '🥶 Surgelés', '🧊 Surgelés']; // inclure variantes éventuelles
+        const orderTail = ['🧀 Produits frais', '🥶 Surgelés', '🧊 Surgelés']; // inclure variantes éventuelles
         const allCats = Object.keys(categories);
         const head = allCats.filter(c => !orderTail.includes(c));
         const tail = orderTail.filter(c => allCats.includes(c));
@@ -421,19 +421,48 @@ export function App() {
                                                             <div className="divide-y">
                                                                 {missingByCategory[cat].map(ing => {
                                                                     const checked = shoppingSelected.has(ing);
+                                                                    const isFresh = categories[FRESH_CATEGORY]?.includes(ing);
+                                                                    const showExpiry = isFresh && checked; // toujours afficher pour modification
+                                                                    // Déterminer statut pour style (uniquement si frais et stocké après achat ou déjà en stock)
+                                                                    let statusClass = '';
+                                                                    if (isFresh && ingredients[ing].expiryDate) {
+                                                                        const { status } = computeExpiryStatus({ expiryDate: ingredients[ing].expiryDate, inStock: true });
+                                                                        if (status === 'expired') statusClass = 'border border-red-500 bg-red-50';
+                                                                        else if (status === 'soon') statusClass = 'border border-orange-400 bg-orange-50';
+                                                                    }
                                                                     return (
-                                                                        <label key={ing} className="flex items-center justify-between gap-3 px-3 py-2 text-sm select-none active:bg-gray-50">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    checked={checked}
-                                                                                    onChange={() => toggleShoppingItem(ing)}
-                                                                                    className="w-4 h-4 accent-green-600"
-                                                                                />
-                                                                                <span className={checked ? 'line-through text-gray-400' : 'text-gray-700'}>{ing}</span>
+                                                                        <div key={ing} className={`px-3 py-2 text-sm select-none active:bg-gray-50 ${statusClass}`}>
+                                                                            <div className="flex items-center justify-between gap-3">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={checked}
+                                                                                        onChange={() => toggleShoppingItem(ing)}
+                                                                                        className="w-4 h-4 accent-green-600"
+                                                                                    />
+                                                                                    <span className={checked ? 'line-through text-gray-400' : 'text-gray-700'}>{ing}</span>
+                                                                                </div>
+                                                                                <span className="text-xs text-gray-500">{ingredients[ing].price.toFixed(2)}€</span>
                                                                             </div>
-                                                                            <span className="text-xs text-gray-500">{ingredients[ing].price.toFixed(2)}€</span>
-                                                                        </label>
+                                                                            {showExpiry && (
+                                                                                <div className="mt-2 flex items-center gap-2">
+                                                                                    <label className="text-[10px] text-gray-600">Date de péremption :</label>
+                                                                                    <input
+                                                                                        type="date"
+                                                                                        className="px-2 py-1 border rounded text-xs"
+                                                                                        value={ingredients[ing].expiryDate ? ingredients[ing].expiryDate.slice(0, 10) : ''}
+                                                                                        min={new Date().toISOString().slice(0, 10)}
+                                                                                        onChange={(e) => {
+                                                                                            const val = e.target.value;
+                                                                                            setIngredients(prev => ({
+                                                                                                ...prev,
+                                                                                                [ing]: { ...prev[ing], expiryDate: val || undefined }
+                                                                                            }));
+                                                                                        }}
+                                                                                    />
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     );
                                                                 })}
                                                             </div>
