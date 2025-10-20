@@ -15,21 +15,28 @@ export interface ExportDataV2 extends Omit<ExportDataV1, 'version'> {
     version: '1.1.0';
 }
 
-export type AnyExportData = ExportDataV1 | ExportDataV2;
+export interface ExportDataV3 extends Omit<ExportDataV2, 'version'> {
+    version: '1.2.0';
+    recipeCategories: string[]; // explicit list of recipe categories
+}
+
+export type AnyExportData = ExportDataV1 | ExportDataV2 | ExportDataV3;
 
 export function buildExportData(
     ingredients: IngredientsType,
     categories: CategoriesType,
     recettes: RecipeType[],
-    shoppingHistory: ShoppingSession[]
-): ExportDataV2 {
+    shoppingHistory: ShoppingSession[],
+    recipeCategories: string[]
+): ExportDataV3 {
     return {
-        version: '1.1.0',
+        version: '1.2.0',
         exportedAt: new Date().toISOString(),
         ingredients,
         categories,
         recettes,
         shoppingHistory,
+        recipeCategories,
     };
 }
 
@@ -42,12 +49,13 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
     if (raw && !raw.version) {
         raw.version = '1.0.0';
     }
-    if (raw && !['1.0.0', '1.1.0'].includes(raw.version)) fail(`Version non supportée: ${raw.version}`);
+    if (raw && !['1.0.0', '1.1.0', '1.2.0'].includes(raw.version)) fail(`Version non supportée: ${raw.version}`);
     if (raw && typeof raw.exportedAt !== 'string') fail('Champ exportedAt manquant ou non-string.');
     if (raw && (!raw.ingredients || typeof raw.ingredients !== 'object')) fail('Champ ingredients manquant ou invalide.');
     if (raw && (!raw.categories || typeof raw.categories !== 'object')) fail('Champ categories manquant ou invalide.');
     if (raw && !Array.isArray(raw.recettes)) fail('Champ recettes doit être un tableau.');
     if (raw && !Array.isArray(raw.shoppingHistory)) fail('Champ shoppingHistory doit être un tableau.');
+    if (raw && raw.version === '1.2.0' && !Array.isArray(raw.recipeCategories)) fail('Champ recipeCategories doit être un tableau pour version 1.2.0.');
 
     if (errors.length === 0 && raw) {
         for (const [idx, r] of (raw.recettes as any[]).entries()) {
@@ -93,7 +101,7 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
             else if (!s.items.every((i: unknown) => typeof i === 'string')) fail(`Session historique index ${idx}: items contient non-string.`);
         }
     }
-    return { valid: errors.length === 0 && !!raw && ['1.0.0', '1.1.0'].includes(raw.version), errors, warnings };
+    return { valid: errors.length === 0 && !!raw && ['1.0.0', '1.1.0', '1.2.0'].includes(raw.version), errors, warnings };
 }
 
 export function sanitizeImport(data: AnyExportData): AnyExportData {
@@ -126,5 +134,9 @@ export function sanitizeImport(data: AnyExportData): AnyExportData {
         ...s,
         total: typeof s.total === 'string' ? parseFloat(s.total) : s.total,
     }));
-    return { ...data, categories, recettes, ingredients, shoppingHistory };
+    // recipeCategories backward compatibility: if missing (older export), derive from recettes
+    const recipeCategories = (data as any).recipeCategories && Array.isArray((data as any).recipeCategories)
+        ? (data as any).recipeCategories.filter((c: any) => typeof c === 'string')
+        : Array.from(new Set(recettes.map(r => r.categorie)));
+    return { ...data, categories, recettes, ingredients, shoppingHistory, recipeCategories } as AnyExportData;
 }
