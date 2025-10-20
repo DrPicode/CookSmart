@@ -1,6 +1,3 @@
-// Types et constantes partagés
-
-// Catégorie de produits frais (doit correspondre exactement à la clé dans defaultCategories)
 export const FRESH_CATEGORY = '🧀 Produits frais';
 
 export type IngredientsType = { [key: string]: { inStock: boolean; price: number; parts: number; expiryDate?: string; remainingParts?: number } };

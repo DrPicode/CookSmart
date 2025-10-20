@@ -1,28 +1,22 @@
-// Utilitaires d'export / import pour Recipe Manager
-// Centralise le schéma afin de pouvoir évoluer (versionnage)
-
-// Importer maintenant depuis types.ts (éviter dépendance circulaire avec App)
 import { IngredientsType, CategoriesType, RecipeType } from './types';
 
 export type ShoppingSession = { id: string; date: string; items: string[]; total: number };
 
 export interface ExportDataV1 {
     version: '1.0.0';
-    exportedAt: string; // ISO date
+    exportedAt: string;
     ingredients: IngredientsType;
     categories: CategoriesType;
     recettes: RecipeType[];
     shoppingHistory: ShoppingSession[];
 }
 
-// Nouvelle version avec dates de péremption optionnelles (IngredientsType contient maintenant expiryDate?)
 export interface ExportDataV2 extends Omit<ExportDataV1, 'version'> {
     version: '1.1.0';
 }
 
-export type AnyExportData = ExportDataV1 | ExportDataV2; // futures versions en union
+export type AnyExportData = ExportDataV1 | ExportDataV2;
 
-// Construit la structure d'export à partir des états courants
 export function buildExportData(
     ingredients: IngredientsType,
     categories: CategoriesType,
@@ -39,18 +33,15 @@ export function buildExportData(
     };
 }
 
-// Validation simple runtime pour sécuriser l'import
 export function validateExportData(raw: any): { valid: boolean; errors: string[]; warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
     const fail = (msg: string) => { errors.push(msg); };
     const warn = (msg: string) => { warnings.push(msg); };
     if (!raw || typeof raw !== 'object') fail('Structure racine absente ou non-objet.');
-    // Version: accepter absence -> considérer v1
     if (raw && !raw.version) {
         raw.version = '1.0.0';
     }
-    // Supporter v1.0.0 et v1.1.0
     if (raw && !['1.0.0', '1.1.0'].includes(raw.version)) fail(`Version non supportée: ${raw.version}`);
     if (raw && typeof raw.exportedAt !== 'string') fail('Champ exportedAt manquant ou non-string.');
     if (raw && (!raw.ingredients || typeof raw.ingredients !== 'object')) fail('Champ ingredients manquant ou invalide.');
@@ -59,7 +50,6 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
     if (raw && !Array.isArray(raw.shoppingHistory)) fail('Champ shoppingHistory doit être un tableau.');
 
     if (errors.length === 0 && raw) {
-        // Recettes
         for (const [idx, r] of (raw.recettes as any[]).entries()) {
             if (!r || typeof r !== 'object') { fail(`Recette index ${idx} invalide.`); break; }
             if (typeof r.nom !== 'string') fail(`Recette index ${idx}: nom invalide.`);
@@ -67,7 +57,6 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
             if (!Array.isArray(r.ingredients)) fail(`Recette index ${idx}: ingredients doit être tableau.`);
             else if (!r.ingredients.every((i: any) => typeof i === 'string')) fail(`Recette index ${idx}: ingredients contient valeur non-string.`);
         }
-        // Ingrédients
         for (const [name, ing] of Object.entries(raw.ingredients)) {
             if (!ing || typeof ing !== 'object') { fail(`Ingrédient '${name}' invalide.`); continue; }
             const inStock = (ing as any).inStock;
@@ -91,12 +80,10 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
                 }
             }
         }
-        // Catégories
         for (const [cat, list] of Object.entries(raw.categories)) {
             if (!Array.isArray(list)) { fail(`Catégorie '${cat}' n'est pas un tableau.`); continue; }
             if (!list.every(i => typeof i === 'string')) fail(`Catégorie '${cat}' contient valeur non-string.`);
         }
-        // Shopping history
         for (const [idx, s] of (raw.shoppingHistory as any[]).entries()) {
             if (!s || typeof s !== 'object') { fail(`Session historique index ${idx} invalide.`); continue; }
             if (typeof s.id !== 'string') fail(`Session historique index ${idx}: id invalide.`);
@@ -109,7 +96,6 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
     return { valid: errors.length === 0 && !!raw && ['1.0.0', '1.1.0'].includes(raw.version), errors, warnings };
 }
 
-// Nettoie les incohérences possibles (ex: catégories listant un ingrédient absent)
 export function sanitizeImport(data: AnyExportData): AnyExportData {
     const ingredientNames = new Set(Object.keys(data.ingredients));
     const categories: CategoriesType = {};
@@ -121,7 +107,6 @@ export function sanitizeImport(data: AnyExportData): AnyExportData {
         ingredients: r.ingredients.filter(i => ingredientNames.has(i)),
     })).filter(r => r.ingredients.length > 0);
 
-    // Conversion éventuelle price/parts en number (défensive)
     const ingredients: IngredientsType = Object.fromEntries(Object.entries(data.ingredients).map(([name, ing]) => {
         const rawIng: any = ing;
         let inStock: boolean;
@@ -141,6 +126,5 @@ export function sanitizeImport(data: AnyExportData): AnyExportData {
         ...s,
         total: typeof s.total === 'string' ? parseFloat(s.total) : s.total,
     }));
-    // Les champs nouveaux (expiryDate, openedAt, remainingParts) sont laissés tels quels s'ils existent
     return { ...data, categories, recettes, ingredients, shoppingHistory };
 }

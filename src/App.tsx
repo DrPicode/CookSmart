@@ -12,23 +12,18 @@ import {
     defaultCategories,
     defaultRecettes
 } from './types';
-import { computeExpiryStatus, scoreRecette } from './utils/expiry';
+import { computeExpiryStatus, scoreRecette, earliestExpiryDays } from './utils/expiry';
 import { CategoryIngredients } from './components/CategoryIngredients';
 import { RecipeGroup } from './components/RecipeGroup';
 
 export function App() {
-    // États persistants simplifiés via hook
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', defaultIngredients);
-
     const [categories, setCategories] = usePersistentState<CategoriesType>('categories', defaultCategories);
-
     const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', defaultRecettes);
-
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion' | 'historique'>('courses');
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<EditingRecipeType>(null);
-    // Track editing ingredient separately: keep originalName for lookup, and use string fields to allow empty input while editing
     const [editingIngredient, setEditingIngredient] = useState<{
         originalName: string;
         name: string;
@@ -39,15 +34,12 @@ export function App() {
     const [newIngredient, setNewIngredient] = useState<{ name: string; category: string; price: string; parts: string; expiryDate: string }>({ name: '', category: '', price: '', parts: '', expiryDate: '' });
     const [newRecipe, setNewRecipe] = useState<RecipeType>({ nom: '', categorie: '', ingredients: [] });
     const [editingCategory, setEditingCategory] = useState<{ original: string; name: string } | null>(null);
-    // Mode courses en magasin
     const [shoppingMode, setShoppingMode] = useState(false);
     const [shoppingSelected, setShoppingSelected] = useState<Set<string>>(new Set());
-    // Type déplacé dans exportImport.ts pour réutilisation
     const [shoppingHistory, setShoppingHistory] = useState<ShoppingSession[]>(() => {
         const saved = localStorage.getItem('shoppingHistory');
         return saved ? JSON.parse(saved) : [];
     });
-    // Import / Export state
     const [importError, setImportError] = useState<string | null>(null);
     const handleExport = () => {
         const data = buildExportData(ingredients, categories, recettes, shoppingHistory);
@@ -96,9 +88,7 @@ export function App() {
         if (file) handleImportFile(file);
         e.target.value = '';
     };
-    // shoppingHistory utilise aussi le hook persistent pour cohérence
     useEffect(() => { /* conservé pour rétro compat éventuelle */ }, []);
-    // Gestion suppression multiple historique
     const [historySelectMode, setHistorySelectMode] = useState(false);
     const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
     const toggleHistorySelect = (id: string) => {
@@ -123,7 +113,6 @@ export function App() {
         }
     };
 
-    // CRUD Ingrédients
     const addIngredient = () => {
         const name = newIngredient.name.trim();
         const category = newIngredient.category;
@@ -178,7 +167,6 @@ export function App() {
         })).filter((recipe: RecipeType) => recipe.ingredients.length > 0)); // Supprimer les recettes qui n'ont plus d'ingrédients
     };
 
-    // CRUD Recettes
     const addRecipe = () => {
         if (!newRecipe.nom.trim() || !newRecipe.categorie || newRecipe.ingredients.length === 0) return;
 
@@ -202,22 +190,30 @@ export function App() {
     };
 
 
-    // Données dérivées mémoïsées pour limiter le travail sur mobile (render fréquent, listes potentiellement longues)
     const recettesPossibles = useMemo(() => {
         return recettes.filter(recette =>
             recette.ingredients.every((ing: string) => ingredients[ing].inStock)
         );
     }, [recettes, ingredients]);
 
+    const recettesPossiblesTriees = useMemo(() => {
+        return recettesPossibles.slice().sort((a, b) => {
+            const ea = earliestExpiryDays(a, ingredients);
+            const eb = earliestExpiryDays(b, ingredients);
+            const va = ea === null ? Infinity : ea;
+            const vb = eb === null ? Infinity : eb;
+            return va - vb;
+        });
+    }, [recettesPossibles, ingredients]);
+
     const recettesGroupees = useMemo(() => {
-        return recettesPossibles.reduce<{ [key: string]: RecipeType[] }>((acc, recette) => {
+        return recettesPossiblesTriees.reduce<{ [key: string]: RecipeType[] }>((acc, recette) => {
             (acc[recette.categorie] ||= []).push(recette);
             return acc;
         }, {});
-    }, [recettesPossibles]);
+    }, [recettesPossiblesTriees]);
 
     const ingredientsManquants = useMemo(() => Object.keys(ingredients).filter((ing: string) => !ingredients[ing].inStock), [ingredients]);
-    // Ordre des catégories pour les courses: on veut frais et surgelés en dernier
     const shoppingCategoryOrder = useMemo(() => {
         const orderTail = ['🧀 Produits frais', '🥶 Surgelés', '🧊 Surgelés']; // inclure variantes éventuelles
         const allCats = Object.keys(categories);
@@ -282,7 +278,6 @@ export function App() {
     const shoppingProgress = useMemo(() => ingredientsManquants.length === 0 ? 0 : shoppingSelected.size / ingredientsManquants.length, [shoppingSelected, ingredientsManquants]);
     const allIngredients = useMemo(() => Object.keys(ingredients), [ingredients]);
     const categoriesRecettes = useMemo(() => [...new Set(recettes.map(r => r.categorie))], [recettes]);
-    // Structure pour regroupement dans la gestion (inclut index pour édition)
     const recettesParCategorie = useMemo(() => {
         const map: { [key: string]: { recette: RecipeType; index: number }[] } = {};
         recettes.forEach((r, idx) => {
@@ -291,7 +286,6 @@ export function App() {
         return map;
     }, [recettes]);
 
-    // Callbacks stables pour éviter de recréer les fonctions sur chaque rendu et réduire les rerenders dans les listes
     const toggleIngredient = useCallback((ingredient: string) => {
         setIngredients((prev: IngredientsType) => ({
             ...prev,
@@ -299,7 +293,6 @@ export function App() {
         }));
     }, []);
 
-    // ====== Gestion péremption & priorisation ======
     const expiringIngredients = useMemo(() => Object.entries(ingredients)
         .filter(([name, v]) => v.inStock && categories[FRESH_CATEGORY]?.includes(name))
         .map(([name, data]) => ({ name, ...computeExpiryStatus(data) }))

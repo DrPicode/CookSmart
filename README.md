@@ -1,202 +1,91 @@
 <div align="center">
-  <h1>🍽️ Recipe Manager (Mobile-first)</h1>
-  <p>Gérez vos ingrédients, recettes, listes de courses et historique d'achats – simple, rapide, optimisé mobile.</p>
+  <h1>🍽️ Recipe Manager</h1>
+  <p>Application mobile-first pour gérer vos ingrédients, prioriser vos recettes et optimiser vos courses.</p>
 </div>
 
-## ✨ Fonctionnalités principales
+## 1. Objectif
+Suivre ce que vous avez à la maison, savoir instantanément quels plats sont réalisables et consommer en priorité ce qui va périmer.
 
-- 📦 Gestion d'ingrédients (stock, prix, parts, renommage, changement de catégorie)
-- 🧾 Calcul automatique du prix estimé des courses & prix par part utilisé dans les recettes
-- 🧑‍🍳 Liste de recettes filtrées dynamiquement selon les ingrédients en stock
-- ✍️ CRUD complet recettes & ingrédients (édition inline, renommage catégories)
-- 🛒 Mode "Démarrer les courses" avec :
-  - Regroupement par catégorie
-  - Ordre optimisé (frais & surgelés à la fin)
-  - Sélection des articles achetés
-  - Sous-total dynamique + progression
-  - Saisie immédiate de la date de péremption pour les produits frais au moment où vous les cochez (si absente)
-- 🗂️ Historique des sessions de courses (persisté dans localStorage)
-  - Total dépensé / items achetés
-  - Suppression individuelle ou multiple
-  - Vidage complet
-- 💾 Export / Import JSON complet (sauvegarde / restauration)
+## 2. Fonctionnalités
+| Domaine | Détails |
+|---------|--------|
+| Stock | Ajout / édition / suppression d'ingrédients (prix, parts, date péremption frais) |
+| Catégories | Renommage dynamique, regroupement automatique des ingrédients & recettes |
+| Recettes | CRUD complet, filtrage automatique par disponibilité des ingrédients |
+| Priorisation | Tri des recettes par ingrédient frais le plus urgent (périmé ou J-n) + badge urgence |
+| Courses | Mode liste interactive (sélection, sous-total, progression, saisie péremption à l'achat) |
+| Historique | Journal des sessions (items, total, suppression simple ou multiple) |
+| Export/Import | Sauvegarde/restauration JSON versionnée (schéma 1.1.0) |
 
-## 🧱 Tech Stack
+## 3. Tri des recettes par péremption
+Processus :
+1. On conserve uniquement les recettes dont tous les ingrédients sont en stock.
+2. Pour chaque recette, on calcule le plus petit nombre de jours restants parmi ses ingrédients datés (`earliestExpiryDays`).
+3. Les valeurs négatives (ingrédient périmé) remontent tout en haut.
+4. Absence de date → tri après toutes les recettes urgentes.
 
-| Élément | Choix |
-|--------|-------|
-| Framework | React + TypeScript |
-| Bundler/Dev Server | Vite |
-| UI | Tailwind CSS |
+Affichage : badge `PÉRIMÉ`, `J0` ou `J-#`. L’ingrédient conducteur est marqué par un simple contour orange.
+
+## 4. Stack
+| Élément | Technologie |
+|---------|------------|
+| Langage | TypeScript |
+| Framework | React |
+| Build/dev | Vite |
+| Style | Tailwind CSS |
 | Icônes | lucide-react |
-| Persistance locale | localStorage (ingrédients, catégories, recettes, historique) |
+| Persistance | localStorage |
 
-## 🚀 Démarrage
-
-### Prérequis
-- Node.js >= 18
-- npm ou pnpm ou yarn
-
-### Installation & lancement
-
+## 5. Installation
 ```bash
+git clone <repo>
+cd Recipe-Manager
 npm install
 npm run dev
 ```
+Ouvrir http://localhost:5173
 
-Ouvrir ensuite: http://localhost:5173 (port Vite par défaut)
-
-### Build production
-
+Build production :
 ```bash
 npm run build
 npm run preview
 ```
 
-## 🗄️ Structure des données (localStorage)
+## 6. Structure des données
+| Clé localStorage | Forme |
+|------------------|-------|
+| ingredients | `{ [nom]: { inStock, price, parts, expiryDate? } }` |
+| categories | `{ [categorie]: string[] }` |
+| recettes | `[{ nom, categorie, ingredients[] }]` |
+| shoppingHistory | `[{ id, date, items[], total }]` |
 
-| Clé | Description | Exemple simplifié |
-|-----|-------------|-------------------|
-| `ingredients` | Dictionnaire des ingrédients | `{ "Riz": { inStock: true, price: 2.00, parts: 5 } }` |
-| `categories` | Mapping Catégorie → [Ingrédients] | `{ "🥫 Épicerie salée": ["Riz", "Thon"] }` |
-| `recettes` | Tableau de recettes | `[{ nom: "Riz au thon", categorie: "🍝 Pâtes / Riz / Crème", ingredients: ["Riz","Thon"] }]` |
-| `shoppingHistory` | Sessions de courses | `[{ id, date, items, total }]` |
+## 7. Export / Import
+Format JSON versionné (actuel: `1.1.0`). Validation : version, types, cohérence (filtrage ingrédients inexistants). Import = remplacement total des données.
 
-## 🔄 Cycle de vie & logique
+## 8. Historique des courses
+Chaque validation de liste crée une session (id, date ISO, items, total). Sélection multiple et purge globale possibles.
 
-1. Chargement initial: lecture localStorage sinon valeurs par défaut.
-2. Chaque mutation d'état (ingredients, categories, recettes, historique) ré-écrit la clé correspondante.
-3. Recettes disponibles = sous-ensemble dont tous les ingrédients sont `inStock`.
-4. Mode courses :
-   - On capture la liste des ingrédients manquants.
-   - On coche ce qui est acheté (Set éphémère `shoppingSelected`).
-   - En validation : mise à jour `inStock=true` + enregistrement de la session.
+## 9. Accessibilité & Mobile
+Interface monocolonne, zones clic larges, contraste renforcé, interactions minimales pour usage rapide en magasin.
 
-## 🛒 Détails du mode "Courses"
+## 10. Roadmap courte
+| Idée | Statut |
+|------|--------|
+| Virtualisation listes longues | À faire |
+| Mode sombre | À faire |
+| Stats mensuelles / filtres historique | À faire |
+| PWA / offline avancé | À faire |
+| Synchronisation multi-appareils | À faire |
+| Gestion parts consommées | À faire |
 
-| Aspect | Description |
-|--------|-------------|
-| Ordonnancement | Catégories réordonnées pour garder frais & surgelés en dernier |
-| Sous-total | Somme des prix des ingrédients cochés |
-| Progression | `cochés / total manquants` (barre animée) |
-| Péremption frais | Quand un produit frais est coché sans date existante, un champ date apparaît pour l'ajouter immédiatement. |
-| Annulation | Aucune modification persistée |
-| Terminer | Mise à jour du stock + log historique |
+## 11. Contributions
+PR bienvenues. Convention de commits suggérée : `feat:`, `fix:`, `refactor:`, `docs:`, `perf:`, `chore:`.
 
-## 🗂️ Historique
+## 12. Licence
+ISC (modifiable selon besoin).
 
-Chaque session contient :
-- `id` unique
-- `date` ISO (affichée en local format dd/mm/yyyy hh:mm)
-- `items` (liste des ingrédients achetés)
-- `total` arrondi à 2 décimales
-
-Fonctions disponibles :
-- Gérer → mode sélection avec cases à cocher
-- Suppression simple / multiple
-- Vider l'historique complet
-
-## 🧪 Idées d'amélioration (Roadmap)
-
-<!-- Retiré car implémenté -->
-<!-- - [ ] Export / import JSON (sauvegarde / restauration) -->
-
-### Optimisations récentes
-
-- Extraction des types, données par défaut et constantes vers `src/types.ts` pour réduire la taille de `App.tsx`.
-- Création d'un hook générique `usePersistentState` pour factoriser la persistance localStorage et éviter duplication (ingrédients, catégories, recettes).
-- Externalisation de la logique de péremption et scoring recette dans `src/utils/expiry.ts` (meilleure testabilité et réutilisation).
-- Découpage de la grosse liste d'affichage en composants mémorisés `CategoryIngredients` et `RecipeGroup` (réduction des rerenders inutiles sur mobile).
-- Réduction des imports inutilisés et allègement des calculs en utilisant `useMemo` et `useCallback` de manière ciblée.
-
-### Prochaines améliorations possibles
-
-- Virtualisation des listes d'ingrédients si le volume augmente (ex: `react-window`).
-- Gestion des parts consommées / ouverture des produits frais (ajout d'un hook dédié).
-- Alerte proactive visuelle quand un produit approche de la péremption dans l'écran Courses.
-- Ajout de tests unitaires (jest + react-testing-library) pour les utilitaires (expiry, export/import).
-- Mode offline sync via IndexedDB (ex: `idb`) si besoin multi-sessions.
-- Internationalisation (i18n) pour adapter les libellés.
-
-### Performance
-
-Le refactor diminue la taille du composant principal et isole des sous-composants mémorisés, ce qui réduit le temps de rendu lors des toggles d'ingrédients. La persistance est centralisée et plus robuste face aux erreurs de parsing.
-## 📤 Format d'export
-
-Fichier JSON versionné (actuellement `1.1.0`). Exemple minimal :
-
-```jsonc
-{
-  "version": "1.1.0",
-  "exportedAt": "2025-10-19T12:34:56.789Z",
-  "ingredients": {
-    "Riz": { "inStock": true, "price": 2.0, "parts": 5 },
-    "Crème fraîche": { "inStock": true, "price": 1.7, "parts": 3, "expiryDate": "2025-10-25" }
-  },
-  "categories": {
-    "🥫 Épicerie salée": ["Riz"]
-  },
-  "recettes": [
-    { "nom": "Riz au thon", "categorie": "🍝 Pâtes / Riz / Crème", "ingredients": ["Riz", "Thon"] }
-  ],
-  "shoppingHistory": [
-    { "id": "abc123", "date": "2025-10-18T10:00:00.000Z", "items": ["Riz"], "total": 2.0 }
-  ]
-}
-```
-
-### Import
-
-1. Cliquer sur "Importer" et sélectionner un fichier `.json` exporté.
-2. Validation basique : version + structure + types.
-3. Les catégories et recettes sont nettoyées si elles référencent des ingrédients absents.
-4. Remplacement complet des données existantes (fusion non disponible pour l'instant).
-
-En cas d'erreur, un message rouge s'affiche. Aucune donnée n'est remplacée tant que le fichier n'est pas validé et confirmé.
-
-- [ ] Détail modal d'une session (liste complète des ingrédients)
-- [ ] Ajout d'un champ "magasin" et "notes"
-- [ ] Filtre par période + stats (total mensuel, dépense moyenne)
-- [ ] Mode dark
-- [ ] Optimisation mémoire (compression dans localStorage)
-- [ ] PWA (installation sur écran d'accueil)
-- [ ] Synchronisation multi-appareils (backend léger / Firestore)
-
-## ♿ Accessibilité / Mobile
-
-- Layout single-column mobile-first.
-- Zones tactiles ≥ 40px.
-- Contrastes (gris vs accent) adaptables.
-- Focus management simplifié (autofocus sur champs d'édition).
-
-## ⚠️ Limitations actuelles
-
-- Pas de contrôle de concurrence (un seul navigateur à la fois).
-- Pas de distinction "prix réel en caisse" vs estimé.
-- Pas de variation de prix par quantité/format.
-
-## 🤝 Contribution
-
-1. Fork & branch
-2. Implémenter la fonctionnalité
-3. PR avec description claire
-
-Convention rapide commit (suggestion) :
-- `feat: ...`
-- `fix: ...`
-- `refactor: ...`
-- `docs: ...`
-- `perf: ...`
-- `chore: ...`
-
-## 📄 Licence
-
-ISC (modifiable selon vos besoins)
-
-## 🙌 Remerciements
-
-Icônes : [lucide](https://lucide.dev) · Générateur d'UX : votre usage réel 👨‍🍳
+## 13. Remarques
+Pas de backend, pas de multi-utilisateur concurrent. Les prix sont indicatifs (pas de gestion des formats). Optimisé pour usage personnel rapide.
 
 ---
-
-> Besoin d'ajouter une PWA, un export PDF ou la nutrition ? Ouvrez une issue / notez une idée dans la roadmap.
+Bonnes cuisines et zéro gaspillage 👨‍🍳

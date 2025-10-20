@@ -11,16 +11,14 @@ export function usePersistentState<T>(key: string, initial: T | (() => T), optio
         try {
             const raw = localStorage.getItem(key);
             if (raw !== null) return parse(raw);
-        } catch (e) {
-        }
+        } catch { }
         return typeof initial === 'function' ? (initial as () => T)() : initial;
     });
 
     useEffect(() => {
         try {
             localStorage.setItem(key, stringify(state));
-        } catch (e) {
-        }
+        } catch { }
     }, [key, state, stringify]);
 
     return [state, setState];
