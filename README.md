@@ -16,6 +16,8 @@ Suivre ce que vous avez à la maison, savoir instantanément quels plats sont r�
 | Courses | Mode liste interactive (sélection, sous-total, progression, saisie péremption à l'achat) |
 | Historique | Journal des sessions (items, total, suppression simple ou multiple) |
 | Export/Import | Sauvegarde/restauration JSON versionnée (schéma 1.1.0) |
+| Réinitialisation | Bouton pour effacer toutes les données (ingrédients, catégories, recettes, historique) et repartir de zéro |
+| Langue | Bascule instantanée FR/EN (persistée) |
 
 ## 3. Tri des recettes par péremption
 Processus :
@@ -58,6 +60,7 @@ npm run preview
 | categories | `{ [categorie]: string[] }` |
 | recettes | `[{ nom, categorie, ingredients[] }]` |
 | shoppingHistory | `[{ id, date, items[], total }]` |
+| lang | `'fr' | 'en'` |
 
 ## 7. Export / Import
 Format JSON versionné (actuel: `1.1.0`). Validation : version, types, cohérence (filtrage ingrédients inexistants). Import = remplacement total des données.
@@ -77,6 +80,7 @@ Interface monocolonne, zones clic larges, contraste renforcé, interactions mini
 | PWA / offline avancé | À faire |
 | Synchronisation multi-appareils | À faire |
 | Gestion parts consommées | À faire |
+| Internationalisation avancée (extraction fichiers, pluriels, date/heure locale) | À faire |
 
 ## 11. Contributions
 PR bienvenues. Convention de commits suggérée : `feat:`, `fix:`, `refactor:`, `docs:`, `perf:`, `chore:`.

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { buildExportData, validateExportData, sanitizeImport, ShoppingSession } from './exportImport';
-import { ChefHat, ShoppingCart, Plus, Trash2, Edit2, Save } from 'lucide-react';
+import { ChefHat, ShoppingCart, Plus, Trash2, Edit2, Save, RefreshCcw, Languages } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
@@ -20,6 +20,8 @@ export function App() {
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', defaultIngredients);
     const [categories, setCategories] = usePersistentState<CategoriesType>('categories', defaultCategories);
     const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', defaultRecettes);
+    // Langue persistée (fr/en)
+    const [lang, setLang] = usePersistentState<'fr' | 'en'>('lang', 'fr');
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion' | 'historique'>('courses');
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
@@ -40,6 +42,121 @@ export function App() {
         const saved = localStorage.getItem('shoppingHistory');
         return saved ? JSON.parse(saved) : [];
     });
+    // Persiste l'historique si modifié
+    useEffect(() => { try { localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory)); } catch { } }, [shoppingHistory]);
+
+    // Dictionnaire de traduction (peut être extrait ultérieurement)
+    const translations: Record<'fr' | 'en', Record<string, string>> = {
+        fr: {
+            appTitle: 'Gestionnaire de Courses',
+            appSubtitle: 'Gérez vos courses et découvrez les plats que vous pouvez cuisiner',
+            tabCourses: 'Courses', tabRecettes: 'Recettes', tabGestion: 'Gestion', tabHistorique: 'Hist.',
+            resetData: 'Réinitialiser', confirmReset: 'Effacer TOUTES les données ? (ingrédients, catégories, recettes, historique)',
+            langToggle: 'Langue',
+            startShopping: 'Démarrer les courses',
+            articles: 'articles',
+            tip: 'Astuce', tipCheckbox: 'Astuce : Cochez les ingrédients que vous avez à la maison.',
+            toBuy: 'À acheter',
+            shoppingListTitle: 'Liste des courses',
+            close: 'Fermer',
+            progressSelected: 'Sélectionnés',
+            progressSubtotal: 'Sous-total',
+            finish: 'Terminer',
+            cancel: 'Annuler',
+            totalEstimate: 'Total estimé :',
+            allInStock: 'Tout est en stock ! 🎉',
+            recipesNone: 'Aucune recette possible avec les ingrédients actuels.',
+            canCookIntro: '🎉 Super !', canCookMiddle: 'Vous pouvez préparer', dish: 'plat', dishes: 'plats',
+            consumeSoon: 'À consommer rapidement',
+            suggestedRecipes: 'Recettes suggérées en priorité :',
+            manageIngredients: 'Gestion des Ingrédients',
+            add: 'Ajouter', save: 'Enregistrer', saveVerb: 'Sauvegarder',
+            invalidCategoryName: 'Nom de catégorie invalide', categoryExists: 'Une catégorie avec ce nom existe déjà.',
+            rename: 'Renommer',
+            saveAction: 'Sauver',
+            importExportInfo: 'Sauvegardez ou restaurez toutes vos données (ingrédients, catégories, recettes, historique). Format JSON versionné.',
+            exportError: 'Erreur lors de l\'export des données.',
+            invalidFilePrefix: 'Fichier invalide:',
+            importAdjustmentsPrefix: 'Import avec ajustements:',
+            importConfirm: 'Importer ce fichier et remplacer les données actuelles ?',
+            readFail: 'Lecture ou parsing JSON échoué.',
+            cannotReadFile: 'Impossible de lire le fichier.',
+            ingredientsLabel: 'Ingrédients :',
+            manageRecipes: 'Gestion des Recettes',
+            importExport: 'Import / Export', export: 'Exporter', import: 'Importer',
+            historyIntro: 'Historique de vos sessions de courses.',
+            manage: 'Gérer', done: 'Terminer',
+            selectAll: 'Tout sélectionner', deselectAll: 'Tout désélectionner', deleteSelected: 'Supprimer sélection',
+            emptyHistory: 'Aucune session enregistrée pour l\'instant.',
+            clearHistory: 'Vider l\'historique', clearHistoryConfirm: 'Effacer tout l\'historique des courses ?',
+            deleteSessionConfirmOne: 'Supprimer cette session ?', deleteSessionConfirmMany: 'Supprimer {n} sessions ?',
+            deleteRecipeConfirm: 'Supprimer cette recette ?', deleteIngredientConfirm: 'Supprimer "{name}" ?',
+            priceMust: 'Le prix doit être ≥ 0 et les parts ≥ 1. La date est optionnelle et seulement pour les produits frais.',
+            nameUsed: 'Nom déjà utilisé.',
+            ingredientFormName: 'Nom de l\'ingrédient', chooseCategory: 'Choisir une catégorie', price: 'Prix', parts: 'Parts', expiryOptional: 'Date de péremption (optionnelle)',
+            dateExpiry: 'Date de péremption', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :'
+        },
+        en: {
+            appTitle: 'Shopping & Recipes Manager',
+            appSubtitle: 'Manage groceries and discover meals you can cook',
+            tabCourses: 'Groceries', tabRecettes: 'Recipes', tabGestion: 'Manage', tabHistorique: 'Hist.',
+            resetData: 'Reset', confirmReset: 'Delete ALL data? (ingredients, categories, recipes, history)',
+            langToggle: 'Language',
+            startShopping: 'Start shopping',
+            articles: 'items',
+            tip: 'Tip', tipCheckbox: 'Tip: Check ingredients you already have.',
+            toBuy: 'To buy',
+            shoppingListTitle: 'Shopping list',
+            close: 'Close',
+            progressSelected: 'Selected',
+            progressSubtotal: 'Subtotal',
+            finish: 'Finish',
+            cancel: 'Cancel',
+            totalEstimate: 'Estimated total:',
+            allInStock: 'Everything is in stock! 🎉',
+            recipesNone: 'No recipe possible with current ingredients.',
+            canCookIntro: '🎉 Great!', canCookMiddle: 'You can prepare', dish: 'dish', dishes: 'dishes',
+            consumeSoon: 'Consume soon',
+            suggestedRecipes: 'Suggested priority recipes:',
+            manageIngredients: 'Ingredients Management',
+            add: 'Add', save: 'Save', saveVerb: 'Save',
+            invalidCategoryName: 'Invalid category name', categoryExists: 'A category with that name already exists.',
+            rename: 'Rename',
+            saveAction: 'Save',
+            importExportInfo: 'Save or restore all your data (ingredients, categories, recipes, history). Versioned JSON format.',
+            exportError: 'Error while exporting data.',
+            invalidFilePrefix: 'Invalid file:',
+            importAdjustmentsPrefix: 'Import with adjustments:',
+            importConfirm: 'Import this file and replace current data?',
+            readFail: 'Reading or JSON parsing failed.',
+            cannotReadFile: 'Cannot read file.',
+            ingredientsLabel: 'Ingredients:',
+            manageRecipes: 'Recipes Management',
+            importExport: 'Import / Export', export: 'Export', import: 'Import',
+            historyIntro: 'History of your shopping sessions.',
+            manage: 'Manage', done: 'Done',
+            selectAll: 'Select all', deselectAll: 'Unselect all', deleteSelected: 'Delete selected',
+            emptyHistory: 'No session recorded yet.',
+            clearHistory: 'Clear history', clearHistoryConfirm: 'Clear all shopping history?',
+            deleteSessionConfirmOne: 'Delete this session?', deleteSessionConfirmMany: 'Delete {n} sessions?',
+            deleteRecipeConfirm: 'Delete this recipe?', deleteIngredientConfirm: 'Delete "{name}"?',
+            priceMust: 'Price must be ≥ 0 and parts ≥ 1. Date optional only for fresh products.',
+            nameUsed: 'Name already used.',
+            ingredientFormName: 'Ingredient name', chooseCategory: 'Choose a category', price: 'Price', parts: 'Parts', expiryOptional: 'Expiry date (optional)',
+            dateExpiry: 'Expiry date', perPart: '€/part', expired: 'EXPIRED', expiresPrefix: 'Expires', suggestedIngredients: 'Ingredients:'
+        }
+    };
+    const t = (k: string) => translations[lang][k] || k;
+
+    const resetAllData = () => {
+        if (!confirm(t('confirmReset'))) return;
+        try { ['ingredients', 'categories', 'recettes', 'shoppingHistory'].forEach(k => localStorage.removeItem(k)); } catch { }
+        setIngredients({});
+        setCategories({});
+        setRecettes([]);
+        setShoppingHistory([]);
+    };
+    const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
     const [importError, setImportError] = useState<string | null>(null);
     const handleExport = () => {
         const data = buildExportData(ingredients, categories, recettes, shoppingHistory);
@@ -52,7 +169,7 @@ export function App() {
             a.click();
             URL.revokeObjectURL(url);
         } catch (e) {
-            alert('Erreur lors de l\'export des données.');
+            alert(t('exportError'));
         }
     };
     const handleImportFile = (file: File) => {
@@ -64,23 +181,23 @@ export function App() {
                 const parsed = JSON.parse(text);
                 const { valid, errors, warnings } = validateExportData(parsed);
                 if (!valid) {
-                    setImportError('Fichier invalide: ' + (errors.join(' | ') || 'Raison inconnue'));
+                    setImportError(`${t('invalidFilePrefix')} ` + (errors.join(' | ') || (lang === 'fr' ? 'Raison inconnue' : 'Unknown reason')));
                     return;
                 }
                 const cleaned = sanitizeImport(parsed as any);
                 if (warnings.length) {
-                    alert('Import avec ajustements:\n' + warnings.join('\n'));
+                    alert(`${t('importAdjustmentsPrefix')}\n` + warnings.join('\n'));
                 }
-                if (!confirm('Importer ce fichier et remplacer les données actuelles ?')) return;
+                if (!confirm(t('importConfirm'))) return;
                 setIngredients(cleaned.ingredients);
                 setCategories(cleaned.categories);
                 setRecettes(cleaned.recettes);
                 setShoppingHistory(cleaned.shoppingHistory);
             } catch (err) {
-                setImportError('Lecture ou parsing JSON échoué.');
+                setImportError(t('readFail'));
             }
         };
-        reader.onerror = () => setImportError('Impossible de lire le fichier.');
+        reader.onerror = () => setImportError(t('cannotReadFile'));
         reader.readAsText(file, 'utf-8');
     };
     const onImportInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +217,7 @@ export function App() {
     };
     const deleteHistoryIds = (ids: string[]) => {
         if (ids.length === 0) return;
-        if (!confirm(ids.length === 1 ? 'Supprimer cette session ?' : `Supprimer ${ids.length} sessions ?`)) return;
+        if (!confirm(ids.length === 1 ? (lang === 'fr' ? 'Supprimer cette session ?' : 'Delete this session?') : (lang === 'fr' ? `Supprimer ${ids.length} sessions ?` : `Delete ${ids.length} sessions?`))) return;
         setShoppingHistory(prev => prev.filter(s => !ids.includes(s.id)));
         setHistorySelected(new Set());
         setHistorySelectMode(false);
@@ -145,7 +262,7 @@ export function App() {
     };
 
     const deleteIngredient = (ingredient: string, category: string) => {
-        if (!confirm(`Supprimer "${ingredient}" ?`)) return;
+        if (!confirm(t('deleteIngredientConfirm').replace('{name}', ingredient))) return;
 
         // Supprimer l'ingrédient de la liste des ingrédients
         setIngredients((prev: IngredientsType) => {
@@ -185,7 +302,7 @@ export function App() {
     };
 
     const deleteRecipe = (index: number) => {
-        if (!confirm('Supprimer cette recette ?')) return;
+        if (!confirm(t('deleteRecipeConfirm'))) return;
         setRecettes((prev: RecipeType[]) => prev.filter((_: RecipeType, i: number) => i !== index));
     };
 
@@ -335,29 +452,40 @@ export function App() {
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
             <div className="mx-auto bg-white shadow-md overflow-hidden">
                 <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white">
-                    <h1 className="text-xl font-bold flex items-center gap-2">
-                        <ChefHat className="w-6 h-6" />
-                        Gestionnaire de Courses
-                    </h1>
-                    <p className="mt-1 text-orange-100 text-xs">Gérez vos courses et découvrez les plats que vous pouvez cuisiner</p>
+                    <div className="flex items-start justify-between gap-3">
+                        <div>
+                            <h1 className="text-xl font-bold flex items-center gap-2">
+                                <ChefHat className="w-6 h-6" /> {t('appTitle')}
+                            </h1>
+                            <p className="mt-1 text-orange-100 text-xs">{t('appSubtitle')}</p>
+                        </div>
+                        <div className="flex flex-col gap-2 items-end">
+                            <button onClick={toggleLang} className="text-[10px] bg-white/15 hover:bg-white/25 px-2 py-1 rounded flex items-center gap-1">
+                                <Languages className="w-3 h-3" /> {t('langToggle')} ({lang.toUpperCase()})
+                            </button>
+                            <button onClick={resetAllData} className="text-[10px] bg-white/15 hover:bg-white/25 px-2 py-1 rounded flex items-center gap-1">
+                                <RefreshCcw className="w-3 h-3" /> {t('resetData')}
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Footer de navigation fixé en bas avec hauteur garantie + espace safe-area (iOS) */}
                 <div className="flex fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 pt-[env(safe-area-inset-bottom)]">
                     <button onClick={() => setActiveTab('courses')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'courses' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
                         <ShoppingCart className="w-6 h-6" />
-                        <span>Courses</span>
+                        <span>{t('tabCourses')}</span>
                     </button>
                     <button onClick={() => setActiveTab('recettes')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'recettes' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
                         <ChefHat className="w-6 h-6" />
-                        <span>Recettes ({recettesPossibles.length})</span>
+                        <span>{t('tabRecettes')} ({recettesPossibles.length})</span>
                     </button>
                     <button onClick={() => setActiveTab('gestion')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'gestion' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
                         <Edit2 className="w-6 h-6" />
-                        <span>Gestion</span>
+                        <span>{t('tabGestion')}</span>
                     </button>
                     <button onClick={() => setActiveTab('historique')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'historique' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
-                        <span className="text-sm font-semibold">Hist.</span>
+                        <span className="text-sm font-semibold">{t('tabHistorique')}</span>
                     </button>
                 </div>
 
@@ -366,7 +494,7 @@ export function App() {
                     {activeTab === 'courses' && (
                         <div className="space-y-4">
                             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                                <p className="text-xs text-orange-800"><strong>Astuce :</strong> Cochez les ingrédients que vous avez à la maison.</p>
+                                <p className="text-xs text-orange-800"><strong>{t('tip')} :</strong> {t('tipCheckbox').replace(/^.*?:\s*/, '')}</p>
                             </div>
 
                             {!shoppingMode && ingredientsManquants.length > 0 && (
@@ -375,7 +503,7 @@ export function App() {
                                     onClick={startShopping}
                                     className="w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium shadow hover:bg-green-700 active:scale-[.98] transition"
                                 >
-                                    Démarrer les courses ({ingredientsManquants.length} articles)
+                                    {t('startShopping')} ({ingredientsManquants.length} {t('articles')})
                                 </button>
                             )}
 
@@ -390,18 +518,18 @@ export function App() {
                             ))}
 
                             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
-                                <h3 className="font-semibold text-red-800 mb-2">À acheter ({ingredientsManquants.length} articles)</h3>
+                                <h3 className="font-semibold text-red-800 mb-2">{t('toBuy')} ({ingredientsManquants.length} {t('articles')})</h3>
                                 {shoppingMode && (
                                     <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-sm p-4 overflow-y-auto">
                                         <div className="max-w-md mx-auto space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <h2 className="text-lg font-semibold text-gray-800">Liste des courses</h2>
-                                                <button onClick={cancelShopping} className="text-sm text-gray-500 hover:text-gray-700">Fermer</button>
+                                                <h2 className="text-lg font-semibold text-gray-800">{t('shoppingListTitle')}</h2>
+                                                <button onClick={cancelShopping} className="text-sm text-gray-500 hover:text-gray-700">{t('close')}</button>
                                             </div>
                                             <p className="text-xs text-gray-500">Cochez au fur et à mesure. Les produits frais et surgelés apparaissent à la fin pour optimiser la chaîne du froid.</p>
                                             <div className="border rounded-lg p-3 bg-white flex flex-col gap-2 text-xs">
-                                                <div className="flex justify-between"><span>Sélectionnés :</span><span>{shoppingSelected.size} / {ingredientsManquants.length}</span></div>
-                                                <div className="flex justify-between"><span>Sous-total :</span><span>{shoppingSubtotal.toFixed(2)} €</span></div>
+                                                <div className="flex justify-between"><span>{t('progressSelected')} :</span><span>{shoppingSelected.size} / {ingredientsManquants.length}</span></div>
+                                                <div className="flex justify-between"><span>{t('progressSubtotal')} :</span><span>{shoppingSubtotal.toFixed(2)} €</span></div>
                                                 <div className="h-2 bg-gray-200 rounded overflow-hidden">
                                                     <div className="h-full bg-green-500 transition-all" style={{ width: `${(shoppingProgress * 100).toFixed(1)}%` }} />
                                                 </div>
@@ -467,11 +595,11 @@ export function App() {
                                                 <button
                                                     onClick={finishShopping}
                                                     className="flex-1 bg-green-600 text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-50"
-                                                >Terminer ({shoppingSubtotal.toFixed(2)} €)</button>
+                                                >{t('finish')} ({shoppingSubtotal.toFixed(2)} €)</button>
                                                 <button
                                                     onClick={cancelShopping}
                                                     className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg text-sm font-medium"
-                                                >Annuler</button>
+                                                >{t('cancel')}</button>
                                             </div>
                                         </div>
                                     </div>
@@ -488,13 +616,13 @@ export function App() {
                                         </ul>
                                         <div className="mt-4 pt-4 border-t border-red-200">
                                             <div className="flex justify-between items-center text-red-800 font-semibold">
-                                                <span>Total estimé :</span>
+                                                <span>{t('totalEstimate')}</span>
                                                 <span>{totalCourses.toFixed(2)} €</span>
                                             </div>
                                         </div>
                                     </>
                                 ) : (
-                                    <p className="text-sm text-red-700">Tout est en stock ! 🎉</p>
+                                    <p className="text-sm text-red-700">{t('allInStock')}</p>
                                 )}
                             </div>
                         </div>
@@ -505,19 +633,19 @@ export function App() {
                             {recettesPossibles.length === 0 ? (
                                 <div className="text-center py-8">
                                     <ChefHat className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-gray-500 text-sm">Aucune recette possible avec les ingrédients actuels.</p>
+                                    <p className="text-gray-500 text-sm">{t('recipesNone')}</p>
                                 </div>
                             ) : (
                                 <>
                                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                        <p className="text-green-800 text-sm"><strong>🎉 Super !</strong> Vous pouvez préparer {recettesPossibles.length} plat{recettesPossibles.length > 1 ? 's' : ''}.</p>
+                                        <p className="text-green-800 text-sm"><strong>{t('canCookIntro')}</strong> {t('canCookMiddle')} {recettesPossibles.length} {recettesPossibles.length > 1 ? t('dishes') : t('dish')}.</p>
                                     </div>
 
                                     {/* Priorités basées sur péremption */}
                                     {expiringIngredients.length > 0 && (
                                         <div className="border rounded-lg bg-red-50 border-red-200 p-3 space-y-2">
                                             <h3 className="text-sm font-semibold text-red-700 flex items-center gap-2">
-                                                <span>⚠️ À consommer rapidement</span>
+                                                <span>⚠️ {t('consumeSoon')}</span>
                                                 <span className="text-[10px] font-normal text-red-600">({expiringIngredients.length} ingrédient{expiringIngredients.length > 1 ? 's' : ''})</span>
                                             </h3>
                                             <div className="flex flex-wrap gap-1">
@@ -527,7 +655,7 @@ export function App() {
                                             </div>
                                             {recettesPrioritaires.length > 0 && (
                                                 <div className="pt-2">
-                                                    <h4 className="text-[11px] font-semibold text-red-700 mb-1">Recettes suggérées en priorité :</h4>
+                                                    <h4 className="text-[11px] font-semibold text-red-700 mb-1">{t('suggestedRecipes')}</h4>
                                                     <div className="flex flex-col gap-2">
                                                         {recettesPrioritaires.slice(0, 5).map((recette, idx) => (
                                                             <div key={idx} className="bg-white rounded border border-red-100 p-2 shadow-sm">
@@ -569,17 +697,17 @@ export function App() {
                             {/* Gestion Ingrédients */}
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 flex justify-between items-center sticky top-0">
-                                    <span className="text-sm">Gestion des Ingrédients</span>
+                                    <span className="text-sm">{t('manageIngredients')}</span>
                                     <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(!showAddIngredient)} className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 hover:bg-blue-600">
-                                        <Plus className="w-4 h-4" />Ajouter
+                                        <Plus className="w-4 h-4" />{t('add')}
                                     </button>
                                 </div>
 
                                 {showAddIngredient && (
                                     <div className="p-3 bg-blue-50 border-b space-y-3">
-                                        <input type="text" placeholder="Nom de l'ingrédient" value={newIngredient.name} onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" />
+                                        <input type="text" placeholder={t('ingredientFormName')} value={newIngredient.name} onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" />
                                         <select value={newIngredient.category} onChange={(e) => setNewIngredient({ ...newIngredient, category: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm">
-                                            <option value="">Choisir une catégorie</option>
+                                            <option value="">{t('chooseCategory')}</option>
                                             {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                         </select>
                                         <div className="flex items-center gap-2">
@@ -588,7 +716,7 @@ export function App() {
                                                     type="number"
                                                     step="0.01"
                                                     min="0"
-                                                    placeholder="Prix"
+                                                    placeholder={t('price')}
                                                     value={newIngredient.price}
                                                     onChange={(e) => setNewIngredient({ ...newIngredient, price: e.target.value })}
                                                     className="w-full px-3 py-2.5 border rounded-lg pr-8 text-sm"
@@ -599,7 +727,7 @@ export function App() {
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    placeholder="Parts"
+                                                    placeholder={t('parts')}
                                                     value={newIngredient.parts}
                                                     onChange={(e) => setNewIngredient({ ...newIngredient, parts: e.target.value })}
                                                     className="w-full px-3 py-2.5 border rounded-lg pr-12 text-sm"
@@ -609,7 +737,7 @@ export function App() {
                                         </div>
                                         {newIngredient.category === FRESH_CATEGORY && (
                                             <div>
-                                                <label className="block text-[11px] text-gray-600 mb-1">Date de péremption (optionnelle)</label>
+                                                <label className="block text-[11px] text-gray-600 mb-1">{t('expiryOptional')}</label>
                                                 <input
                                                     type="date"
                                                     value={newIngredient.expiryDate}
@@ -635,14 +763,14 @@ export function App() {
                                                 }
                                                 className="flex-1 bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 text-sm"
                                             >
-                                                <Save className="w-4 h-4" />Enregistrer
+                                                <Save className="w-4 h-4" />{t('save')}
                                             </button>
-                                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(false)} className="flex-1 bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-300 text-sm">Annuler</button>
+                                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(false)} className="flex-1 bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-300 text-sm">{t('cancel')}</button>
                                         </div>
                                         <div className="text-xs text-gray-600 space-y-1">
-                                            <p>Le prix doit être ≥ 0 et les parts ≥ 1. La date est optionnelle et seulement pour les produits frais.</p>
+                                            <p>{t('priceMust')}</p>
                                             {newIngredient.name && ingredients[newIngredient.name.trim()] && (
-                                                <p className="text-red-600">Nom déjà utilisé.</p>
+                                                <p className="text-red-600">{t('nameUsed')}</p>
                                             )}
                                         </div>
                                     </div>
@@ -664,10 +792,10 @@ export function App() {
                                                         className="px-2 py-1 bg-green-500 text-white rounded text-xs"
                                                         onClick={() => {
                                                             const newName = editingCategory.name.trim();
-                                                            if (!newName) { alert('Nom de catégorie invalide'); return; }
+                                                            if (!newName) { alert(t('invalidCategoryName')); return; }
                                                             setCategories(prev => {
                                                                 if (prev[newName] && newName !== editingCategory.original) {
-                                                                    alert('Une catégorie avec ce nom existe déjà.');
+                                                                    alert(t('categoryExists'));
                                                                     return prev;
                                                                 }
                                                                 const entries = Object.entries(prev).map(([cat, arr]) => {
@@ -686,11 +814,11 @@ export function App() {
                                                             setEditingRecipe(er => er ? { ...er, data: { ...er.data, categorie: er.data.categorie === editingCategory.original ? newName : er.data.categorie } } : er);
                                                             setEditingCategory(null);
                                                         }}
-                                                    >Sauver</button>
+                                                    >{t('saveAction')}</button>
                                                     <button
                                                         className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs"
                                                         onClick={() => setEditingCategory(null)}
-                                                    >Annuler</button>
+                                                    >{t('cancel')}</button>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-between mb-2">
@@ -698,7 +826,7 @@ export function App() {
                                                     <button
                                                         className="text-xs text-blue-600 hover:text-blue-800"
                                                         onClick={() => setEditingCategory({ original: categorie, name: categorie })}
-                                                    >Renommer</button>
+                                                    >{t('rename')}</button>
                                                 </div>
                                             )}
                                             <div className="space-y-1">
@@ -735,7 +863,7 @@ export function App() {
                                                                         ))}
                                                                     </select>
                                                                     <div>
-                                                                        <label className="block text-[11px] text-gray-600 mb-1">Date de péremption</label>
+                                                                        <label className="block text-[11px] text-gray-600 mb-1">{t('dateExpiry')}</label>
                                                                         <input
                                                                             type="date"
                                                                             value={ingredients[editingIngredient.originalName].expiryDate ? ingredients[editingIngredient.originalName].expiryDate!.slice(0, 10) : ''}
@@ -760,7 +888,7 @@ export function App() {
                                                                             onClick={(e) => e.stopPropagation()}
                                                                             onMouseDown={(e) => e.stopPropagation()}
                                                                             className="w-full px-3 py-2 border rounded-lg pr-8 text-sm"
-                                                                            placeholder="Prix"
+                                                                            placeholder={t('price')}
                                                                         />
                                                                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">€</span>
                                                                     </div>
@@ -773,7 +901,7 @@ export function App() {
                                                                             onClick={(e) => e.stopPropagation()}
                                                                             onMouseDown={(e) => e.stopPropagation()}
                                                                             className="w-full px-3 py-2 border rounded-lg text-sm"
-                                                                            placeholder="Parts"
+                                                                            placeholder={t('parts')}
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -786,7 +914,7 @@ export function App() {
                                                                             const priceNum = parseFloat(editingIngredient.price);
                                                                             const partsNum = parseInt(editingIngredient.parts, 10);
                                                                             if (!newName || isNaN(priceNum) || isNaN(partsNum) || partsNum < 1) {
-                                                                                alert('Veuillez entrer un nom, un prix et un nombre de parts valides.');
+                                                                                alert(lang === 'fr' ? 'Veuillez entrer un nom, un prix et un nombre de parts valides.' : 'Please enter valid name, price and parts.');
                                                                                 return;
                                                                             }
                                                                             const original = editingIngredient.originalName;
@@ -826,14 +954,14 @@ export function App() {
                                                                         }}
                                                                         className="flex-1 bg-green-500 text-white px-3 py-2 rounded-lg text-sm"
                                                                     >
-                                                                        Sauver
+                                                                        {t('save')}
                                                                     </button>
                                                                     <button
                                                                         onMouseDown={(e) => e.preventDefault()}
                                                                         onClick={() => setEditingIngredient(null)}
                                                                         className="flex-1 bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm"
                                                                     >
-                                                                        Annuler
+                                                                        {t('cancel')}
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -849,7 +977,7 @@ export function App() {
                                                                         {categories[FRESH_CATEGORY]?.includes(ing) && (() => {
                                                                             const s = computeExpiryStatus(ingredients[ing]);
                                                                             if (s.status === 'none' || s.status === 'out') return null;
-                                                                            return <div className={`mt-1 text-[10px] ${s.status === 'expired' ? 'text-red-600' : 'text-red-500'}`}>{s.status === 'expired' ? 'PÉRIMÉ' : `Expire J-${s.daysLeft}`}</div>;
+                                                                            return <div className={`mt-1 text-[10px] ${s.status === 'expired' ? 'text-red-600' : 'text-red-500'}`}>{s.status === 'expired' ? t('expired') : `${t('expiresPrefix')} J-${s.daysLeft}`}</div>;
                                                                         })()}
                                                                     </div>
                                                                 </div>
@@ -886,21 +1014,21 @@ export function App() {
                             {/* Gestion Recettes */}
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-4 py-3 font-semibold text-gray-800 flex justify-between items-center">
-                                    <span>Gestion des Recettes</span>
+                                    <span>{t('manageRecipes')}</span>
                                     <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(!showAddRecipe)} className="bg-purple-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2 hover:bg-purple-600">
-                                        <Plus className="w-4 h-4" />Ajouter
+                                        <Plus className="w-4 h-4" />{t('add')}
                                     </button>
                                 </div>
 
                                 {showAddRecipe && (
                                     <div className="p-4 bg-purple-50 border-b space-y-3">
-                                        <input type="text" placeholder="Nom de la recette" value={newRecipe.nom} onChange={(e) => setNewRecipe({ ...newRecipe, nom: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
+                                        <input type="text" placeholder={lang === 'fr' ? 'Nom de la recette' : 'Recipe name'} value={newRecipe.nom} onChange={(e) => setNewRecipe({ ...newRecipe, nom: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
                                         <select value={newRecipe.categorie} onChange={(e) => setNewRecipe({ ...newRecipe, categorie: e.target.value })} className="w-full px-3 py-2 border rounded-lg">
-                                            <option value="">Choisir une catégorie</option>
+                                            <option value="">{t('chooseCategory')}</option>
                                             {categoriesRecettes.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                         </select>
                                         <div className="border rounded-lg p-3 bg-white max-h-60 overflow-y-auto">
-                                            <p className="text-sm font-semibold mb-2">Sélectionner les ingrédients :</p>
+                                            <p className="text-sm font-semibold mb-2">{lang === 'fr' ? 'Sélectionner les ingrédients :' : 'Select ingredients:'}</p>
                                             <div className="space-y-1">
                                                 {allIngredients.map(ing => (
                                                     <label key={ing} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
@@ -912,9 +1040,9 @@ export function App() {
                                         </div>
                                         <div className="flex gap-2">
                                             <button onMouseDown={(e) => e.preventDefault()} onClick={addRecipe} className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600">
-                                                <Save className="w-4 h-4" />Enregistrer
+                                                <Save className="w-4 h-4" />{t('save')}
                                             </button>
-                                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(false)} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">Annuler</button>
+                                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(false)} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">{t('cancel')}</button>
                                         </div>
                                     </div>
                                 )}
@@ -932,7 +1060,7 @@ export function App() {
                                                                 {categoriesRecettes.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                                             </select>
                                                             <div className="border rounded-lg p-3 bg-white max-h-48 overflow-y-auto">
-                                                                <p className="text-sm font-semibold mb-2">Ingrédients :</p>
+                                                                <p className="text-sm font-semibold mb-2">{lang === 'fr' ? 'Ingrédients :' : 'Ingredients:'}</p>
                                                                 {allIngredients.map(ing => (
                                                                     <label key={ing} className="flex items-center gap-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
                                                                         <input type="checkbox" checked={editingRecipe.data.ingredients.includes(ing)} onChange={() => toggleIngredientInRecipe(ing, true)} className="w-4 h-4" />
@@ -942,9 +1070,9 @@ export function App() {
                                                             </div>
                                                             <div className="flex gap-2">
                                                                 <button onMouseDown={(e) => e.preventDefault()} onClick={updateRecipe} className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2 hover:bg-green-600">
-                                                                    <Save className="w-4 h-4" />Sauvegarder
+                                                                    <Save className="w-4 h-4" />{t('saveVerb')}
                                                                 </button>
-                                                                <button onMouseDown={(e) => e.preventDefault()} onClick={() => setEditingRecipe(null)} className="bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-sm hover:bg-gray-400">Annuler</button>
+                                                                <button onMouseDown={(e) => e.preventDefault()} onClick={() => setEditingRecipe(null)} className="bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-sm hover:bg-gray-400">{t('cancel')}</button>
                                                             </div>
                                                         </div>
                                                     ) : (
@@ -980,16 +1108,16 @@ export function App() {
                             {/* Import / Export */}
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="bg-gradient-to-r from-green-100 to-green-200 px-4 py-3 font-semibold text-gray-800 flex justify-between items-center">
-                                    <span>Import / Export</span>
+                                    <span>{t('importExport')}</span>
                                 </div>
                                 <div className="p-4 space-y-3">
-                                    <p className="text-xs text-gray-600">Sauvegardez ou restaurez toutes vos données (ingrédients, catégories, recettes, historique). Format JSON versionné.</p>
+                                    <p className="text-xs text-gray-600">{t('importExportInfo')}</p>
                                     <div className="flex flex-wrap gap-2">
                                         <button onMouseDown={(e) => e.preventDefault()} onClick={handleExport} className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 flex items-center gap-2">
-                                            <Save className="w-4 h-4" />Exporter
+                                            <Save className="w-4 h-4" />{t('export')}
                                         </button>
                                         <label className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 cursor-pointer flex items-center gap-2">
-                                            <Edit2 className="w-4 h-4" />Importer
+                                            <Edit2 className="w-4 h-4" />{t('import')}
                                             <input type="file" accept="application/json" className="hidden" onChange={onImportInputChange} />
                                         </label>
                                         {importError && (
@@ -1005,7 +1133,7 @@ export function App() {
                         <div className="space-y-4">
                             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                                 <div className="flex items-center justify-between gap-2">
-                                    <p className="text-xs text-orange-800">Historique de vos sessions de courses.</p>
+                                    <p className="text-xs text-orange-800">{t('historyIntro')}</p>
                                     {shoppingHistory.length > 0 && (
                                         <button
                                             onClick={() => {
@@ -1017,23 +1145,23 @@ export function App() {
                                                 }
                                             }}
                                             className="text-[10px] px-2 py-1 rounded bg-orange-200 text-orange-800 hover:bg-orange-300"
-                                        >{historySelectMode ? 'Terminer' : 'Gérer'}</button>
+                                        >{historySelectMode ? t('done') : t('manage')}</button>
                                     )}
                                 </div>
                             </div>
                             {shoppingHistory.length === 0 ? (
-                                <p className="text-center text-xs text-gray-500 py-8">Aucune session enregistrée pour l'instant.</p>
+                                <p className="text-center text-xs text-gray-500 py-8">{t('emptyHistory')}</p>
                             ) : (
                                 <div className="space-y-3">
                                     {historySelectMode && (
                                         <div className="flex items-center gap-2 text-[10px] bg-white border rounded p-2">
-                                            <button onClick={selectAllHistory} className="px-2 py-1 rounded bg-gray-200 text-gray-700">{historySelected.size === shoppingHistory.length ? 'Tout désélectionner' : 'Tout sélectionner'}</button>
+                                            <button onClick={selectAllHistory} className="px-2 py-1 rounded bg-gray-200 text-gray-700">{historySelected.size === shoppingHistory.length ? t('deselectAll') : t('selectAll')}</button>
                                             <span className="text-gray-500">{historySelected.size} sélectionné(s)</span>
                                             <button
                                                 disabled={historySelected.size === 0}
                                                 onClick={() => deleteHistoryIds(Array.from(historySelected))}
                                                 className="ml-auto px-2 py-1 rounded bg-red-500 disabled:opacity-40 text-white"
-                                            >Supprimer sélection</button>
+                                            >{t('deleteSelected')}</button>
                                         </div>
                                     )}
                                     {shoppingHistory.map(session => {
@@ -1068,7 +1196,7 @@ export function App() {
                                                         <button
                                                             onClick={() => deleteHistoryIds([session.id])}
                                                             className="text-[10px] px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded"
-                                                        >Supprimer</button>
+                                                        >{lang === 'fr' ? 'Supprimer' : 'Delete'}</button>
                                                     </div>
                                                 )}
                                             </div>
@@ -1079,11 +1207,9 @@ export function App() {
                             {shoppingHistory.length > 0 && (
                                 <div className="pt-2">
                                     <button
-                                        onClick={() => {
-                                            if (confirm('Effacer tout l\'historique des courses ?')) setShoppingHistory([]);
-                                        }}
+                                        onClick={() => { if (confirm(t('clearHistoryConfirm'))) setShoppingHistory([]); }}
                                         className="w-full text-xs bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded"
-                                    >Vider l'historique</button>
+                                    >{t('clearHistory')}</button>
                                 </div>
                             )}
                         </div>
