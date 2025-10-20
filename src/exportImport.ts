@@ -1,7 +1,8 @@
 // Utilitaires d'export / import pour Recipe Manager
 // Centralise le schéma afin de pouvoir évoluer (versionnage)
 
-import { IngredientsType, CategoriesType, RecipeType } from './App';
+// Importer maintenant depuis types.ts (éviter dépendance circulaire avec App)
+import { IngredientsType, CategoriesType, RecipeType } from './types';
 
 export type ShoppingSession = { id: string; date: string; items: string[]; total: number };
 
@@ -14,7 +15,12 @@ export interface ExportDataV1 {
     shoppingHistory: ShoppingSession[];
 }
 
-export type AnyExportData = ExportDataV1; // futures versions en union
+// Nouvelle version avec dates de péremption optionnelles (IngredientsType contient maintenant expiryDate?)
+export interface ExportDataV2 extends Omit<ExportDataV1, 'version'> {
+    version: '1.1.0';
+}
+
+export type AnyExportData = ExportDataV1 | ExportDataV2; // futures versions en union
 
 // Construit la structure d'export à partir des états courants
 export function buildExportData(
@@ -22,9 +28,9 @@ export function buildExportData(
     categories: CategoriesType,
     recettes: RecipeType[],
     shoppingHistory: ShoppingSession[]
-): ExportDataV1 {
+): ExportDataV2 {
     return {
-        version: '1.0.0',
+        version: '1.1.0',
         exportedAt: new Date().toISOString(),
         ingredients,
         categories,
@@ -44,7 +50,8 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
     if (raw && !raw.version) {
         raw.version = '1.0.0';
     }
-    if (raw && raw.version !== '1.0.0') fail(`Version non supportée: ${raw.version}`);
+    // Supporter v1.0.0 et v1.1.0
+    if (raw && !['1.0.0', '1.1.0'].includes(raw.version)) fail(`Version non supportée: ${raw.version}`);
     if (raw && typeof raw.exportedAt !== 'string') fail('Champ exportedAt manquant ou non-string.');
     if (raw && (!raw.ingredients || typeof raw.ingredients !== 'object')) fail('Champ ingredients manquant ou invalide.');
     if (raw && (!raw.categories || typeof raw.categories !== 'object')) fail('Champ categories manquant ou invalide.');
@@ -91,7 +98,7 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
             else if (!s.items.every((i: unknown) => typeof i === 'string')) fail(`Session historique index ${idx}: items contient non-string.`);
         }
     }
-    return { valid: errors.length === 0 && !!raw && raw.version === '1.0.0', errors, warnings };
+    return { valid: errors.length === 0 && !!raw && ['1.0.0', '1.1.0'].includes(raw.version), errors, warnings };
 }
 
 // Nettoie les incohérences possibles (ex: catégories listant un ingrédient absent)
@@ -125,5 +132,6 @@ export function sanitizeImport(data: AnyExportData): AnyExportData {
         ...s,
         total: typeof s.total === 'string' ? parseFloat(s.total) : s.total,
     }));
+    // Les champs nouveaux (expiryDate, openedAt, remainingParts) sont laissés tels quels s'ils existent
     return { ...data, categories, recettes, ingredients, shoppingHistory };
 }

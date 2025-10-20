@@ -98,6 +98,26 @@ Fonctions disponibles :
 
 <!-- Retiré car implémenté -->
 <!-- - [ ] Export / import JSON (sauvegarde / restauration) -->
+
+### Optimisations récentes
+
+- Extraction des types, données par défaut et constantes vers `src/types.ts` pour réduire la taille de `App.tsx`.
+- Création d'un hook générique `usePersistentState` pour factoriser la persistance localStorage et éviter duplication (ingrédients, catégories, recettes).
+- Externalisation de la logique de péremption et scoring recette dans `src/utils/expiry.ts` (meilleure testabilité et réutilisation).
+- Découpage de la grosse liste d'affichage en composants mémorisés `CategoryIngredients` et `RecipeGroup` (réduction des rerenders inutiles sur mobile).
+- Réduction des imports inutilisés et allègement des calculs en utilisant `useMemo` et `useCallback` de manière ciblée.
+
+### Prochaines améliorations possibles
+
+- Virtualisation des listes d'ingrédients si le volume augmente (ex: `react-window`).
+- Gestion des parts consommées / ouverture des produits frais (ajout d'un hook dédié).
+- Ajout de tests unitaires (jest + react-testing-library) pour les utilitaires (expiry, export/import).
+- Mode offline sync via IndexedDB (ex: `idb`) si besoin multi-sessions.
+- Internationalisation (i18n) pour adapter les libellés.
+
+### Performance
+
+Le refactor diminue la taille du composant principal et isole des sous-composants mémorisés, ce qui réduit le temps de rendu lors des toggles d'ingrédients. La persistance est centralisée et plus robuste face aux erreurs de parsing.
 ## 📤 Format d'export
 
 Fichier JSON versionné (actuellement `1.0.0`). Exemple minimal :
