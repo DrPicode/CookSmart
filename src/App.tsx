@@ -36,6 +36,7 @@ export function App() {
     const [newIngredient, setNewIngredient] = useState<{ name: string; category: string; price: string; parts: string; expiryDate: string }>({ name: '', category: '', price: '', parts: '', expiryDate: '' });
     const [newRecipe, setNewRecipe] = useState<RecipeType>({ nom: '', categorie: '', ingredients: [] });
     const [editingCategory, setEditingCategory] = useState<{ original: string; name: string } | null>(null);
+    const [editingRecipeCategory, setEditingRecipeCategory] = useState<{ original: string; name: string } | null>(null);
     const [shoppingMode, setShoppingMode] = useState(false);
     const [shoppingSelected, setShoppingSelected] = useState<Set<string>>(new Set());
     const [shoppingHistory, setShoppingHistory] = useState<ShoppingSession[]>(() => {
@@ -403,6 +404,25 @@ export function App() {
         return map;
     }, [recettes]);
 
+    const saveRecipeCategoryRename = () => {
+        if (!editingRecipeCategory) return;
+        const newName = editingRecipeCategory.name.trim();
+        if (!newName) { alert(t('invalidCategoryName')); return; }
+        // Prevent duplicate if category already exists (case sensitive baseline)
+        const existingCategories = Object.keys(recettesParCategorie);
+        if (existingCategories.includes(newName) && newName !== editingRecipeCategory.original) {
+            alert(t('categoryExists'));
+            return;
+        }
+        // Update recipes
+        setRecettes(prev => prev.map(r => r.categorie === editingRecipeCategory.original ? { ...r, categorie: newName } : r));
+        // Update new recipe draft if referencing old category
+        setNewRecipe(r => ({ ...r, categorie: r.categorie === editingRecipeCategory.original ? newName : r.categorie }));
+        // Update editing recipe if currently editing one with old category
+        setEditingRecipe(er => er ? { ...er, data: { ...er.data, categorie: er.data.categorie === editingRecipeCategory.original ? newName : er.data.categorie } } : er);
+        setEditingRecipeCategory(null);
+    };
+
     const toggleIngredient = useCallback((ingredient: string) => {
         setIngredients((prev: IngredientsType) => ({
             ...prev,
@@ -448,7 +468,6 @@ export function App() {
     }, [editingRecipe]);
 
     return (
-        // Layout optimisé pour mobile: containers simplifiés pour réduire la profondeur DOM
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
             <div className="mx-auto bg-white shadow-md overflow-hidden">
                 <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white">
@@ -1050,7 +1069,33 @@ export function App() {
                                 <div className="p-4 space-y-6">
                                     {Object.entries(recettesParCategorie).map(([cat, items]) => (
                                         <div key={cat} className="space-y-3">
-                                            <h3 className="text-sm font-semibold text-purple-700 px-2">{cat}</h3>
+                                            {editingRecipeCategory?.original === cat ? (
+                                                <div className="flex items-center gap-2 px-2 mb-1">
+                                                    <input
+                                                        type="text"
+                                                        value={editingRecipeCategory.name}
+                                                        onChange={(e) => setEditingRecipeCategory({ ...editingRecipeCategory, name: e.target.value })}
+                                                        className="flex-1 px-3 py-1.5 border rounded text-xs"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={saveRecipeCategoryRename}
+                                                        className="px-3 py-1.5 bg-green-500 text-white rounded text-xs"
+                                                    >{t('saveAction')}</button>
+                                                    <button
+                                                        onClick={() => setEditingRecipeCategory(null)}
+                                                        className="px-3 py-1.5 bg-gray-300 text-gray-700 rounded text-xs"
+                                                    >{t('cancel')}</button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-between px-2 mb-1">
+                                                    <h3 className="text-sm font-semibold text-purple-700">{cat}</h3>
+                                                    <button
+                                                        className="text-xs text-purple-600 hover:text-purple-800"
+                                                        onClick={() => setEditingRecipeCategory({ original: cat, name: cat })}
+                                                    >{t('rename')}</button>
+                                                </div>
+                                            )}
                                             {items.map(({ recette, index: idx }) => (
                                                 <div key={idx} className="border rounded-lg p-4 bg-gray-50">
                                                     {editingRecipe?.index === idx ? (
