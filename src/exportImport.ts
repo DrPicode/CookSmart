@@ -73,6 +73,7 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
             const inStock = (ing as any).inStock;
             const price = (ing as any).price;
             const parts = (ing as any).parts;
+            const expiryDate = (ing as any).expiryDate;
             if (!(typeof inStock === 'boolean' || (typeof inStock === 'string' && ['true', 'false'].includes(String(inStock).toLowerCase())))) {
                 warn(`Ingrédient '${name}': inStock valeur inattendue ('${inStock}'), forcé à false.`);
             }
@@ -81,6 +82,13 @@ export function validateExportData(raw: any): { valid: boolean; errors: string[]
             }
             if (!(typeof parts === 'number' || (typeof parts === 'string' && !isNaN(parseInt(String(parts), 10))))) {
                 warn(`Ingrédient '${name}': parts valeur '${parts}' non numérique, remplacé par 1.`);
+            }
+            if (expiryDate !== undefined && expiryDate !== null) {
+                if (typeof expiryDate !== 'string') {
+                    warn(`Ingrédient '${name}': expiryDate non-string ignorée.`);
+                } else if (!/^\d{4}-\d{2}-\d{2}$/.test(expiryDate)) {
+                    warn(`Ingrédient '${name}': expiryDate '${expiryDate}' format inattendu (aaaa-mm-jj), ignorée.`);
+                }
             }
         }
         // Catégories
@@ -126,7 +134,8 @@ export function sanitizeImport(data: AnyExportData): AnyExportData {
         }
         const price = typeof rawIng.price === 'string' && !isNaN(parseFloat(rawIng.price)) ? parseFloat(rawIng.price) : (typeof rawIng.price === 'number' ? rawIng.price : 0);
         const parts = typeof rawIng.parts === 'string' && !isNaN(parseInt(rawIng.parts, 10)) ? parseInt(rawIng.parts, 10) : (typeof rawIng.parts === 'number' && rawIng.parts > 0 ? rawIng.parts : 1);
-        return [name, { inStock, price, parts }];
+        const expiryDate: string | undefined = (typeof rawIng.expiryDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawIng.expiryDate)) ? rawIng.expiryDate : undefined;
+        return [name, { inStock, price, parts, ...(expiryDate ? { expiryDate } : {}) }];
     }));
     const shoppingHistory = data.shoppingHistory.map(s => ({
         ...s,

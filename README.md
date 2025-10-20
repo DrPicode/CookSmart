@@ -123,14 +123,15 @@ Fonctions disponibles :
 Le refactor diminue la taille du composant principal et isole des sous-composants mémorisés, ce qui réduit le temps de rendu lors des toggles d'ingrédients. La persistance est centralisée et plus robuste face aux erreurs de parsing.
 ## 📤 Format d'export
 
-Fichier JSON versionné (actuellement `1.0.0`). Exemple minimal :
+Fichier JSON versionné (actuellement `1.1.0`). Exemple minimal :
 
 ```jsonc
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "exportedAt": "2025-10-19T12:34:56.789Z",
   "ingredients": {
-    "Riz": { "inStock": true, "price": 2.0, "parts": 5 }
+    "Riz": { "inStock": true, "price": 2.0, "parts": 5 },
+    "Crème fraîche": { "inStock": true, "price": 1.7, "parts": 3, "expiryDate": "2025-10-25" }
   },
   "categories": {
     "🥫 Épicerie salée": ["Riz"]
