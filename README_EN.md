@@ -82,7 +82,7 @@ Single-column layout, large touch targets, high contrast, minimal friction for i
 PRs welcome. Suggested commit prefixes: `feat:`, `fix:`, `refactor:`, `docs:`, `perf:`, `chore:`.
 
 ## 12. License
-ISC (adjust as needed).
+ISC.
 
 ## 13. Notes
 No backend / multi-user concurrency. Prices are indicative, no package size management. Personal, fast usage focus.
