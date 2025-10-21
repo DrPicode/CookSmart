@@ -4,6 +4,55 @@ export const DAYS_WARNING = 3;
 
 export type ExpiryStatus = 'out' | 'none' | 'expired' | 'soon' | 'ok';
 
+/**
+ * Format a date string (YYYY-MM-DD) according to the language
+ * @param dateString - Date in YYYY-MM-DD format
+ * @param lang - Language ('fr' or 'en')
+ * @returns Formatted date string
+ */
+export function formatDate(dateString: string, lang: 'fr' | 'en'): string {
+    if (!dateString) return '';
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+
+    if (lang === 'fr') {
+        // DD-MM-YYYY for French
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    } else {
+        // YYYY-MM-DD for English
+        return dateString;
+    }
+}
+
+/**
+ * Format days left message
+ * @param daysLeft - Number of days left
+ * @param lang - Language ('fr' or 'en')
+ * @returns Formatted message
+ */
+export function formatDaysLeft(daysLeft: number, lang: 'fr' | 'en'): string {
+    if (daysLeft === Infinity) return '';
+
+    if (daysLeft < 0) {
+        const absDays = Math.abs(daysLeft);
+        if (lang === 'fr') {
+            return `Expiré il y a ${absDays} jour${absDays > 1 ? 's' : ''}`;
+        } else {
+            return `Expired ${absDays} day${absDays > 1 ? 's' : ''} ago`;
+        }
+    } else if (daysLeft === 0) {
+        return lang === 'fr' ? 'Expire aujourd\'hui' : 'Expires today';
+    } else if (daysLeft === 1) {
+        return lang === 'fr' ? 'Expire demain' : 'Expires tomorrow';
+    } else {
+        if (lang === 'fr') {
+            return `${daysLeft} jours restants`;
+        } else {
+            return `${daysLeft} days left`;
+        }
+    }
+}
+
 export function computeExpiryStatus(ing: { expiryDate?: string; inStock: boolean }) {
     if (!ing.inStock) return { status: 'out' as ExpiryStatus, daysLeft: Infinity };
     if (!ing.expiryDate) return { status: 'none' as ExpiryStatus, daysLeft: Infinity };

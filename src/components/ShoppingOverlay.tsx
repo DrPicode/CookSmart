@@ -85,7 +85,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                                 </div>
                                                 {showExpiry && (
                                                     <div className="mt-2 flex items-center gap-2">
-                                                        <label className="text-[10px] text-gray-600">Date de péremption :</label>
+                                                        <label className="text-[10px] text-gray-600">{t('dateExpiry')} :</label>
                                                         <input
                                                             type="date"
                                                             className="px-2 py-1 border rounded text-xs"

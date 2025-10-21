@@ -48,7 +48,8 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
         priceMust: 'Le prix doit être ≥ 0 et les parts ≥ 1. La date de péremption est optionnelle.',
         nameUsed: 'Nom déjà utilisé.',
         ingredientFormName: 'Nom de l\'ingrédient', chooseCategory: 'Choisir une catégorie', price: 'Prix', parts: 'Parts', expiryOptional: 'Date de péremption (optionnelle)',
-        dateExpiry: 'Date de péremption', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :',
+        dateExpiry: 'DLC', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :',
+        daysLeft: 'jours restants',
         help: 'Aide', tutorialTitle: 'Guide rapide', tutorialIntro: 'Voici les étapes pour utiliser l\'application au mieux :', tutorialGotIt: 'J\'ai compris', tutorialBackToTop: 'Retour en haut', tutorialFooterNote: 'Astuce : les données sont sauvegardées automatiquement dans votre navigateur.',
         tutorialStartWithDemo: 'Commencer avec les données démo', tutorialStartEmpty: 'Commencer avec aucune donnée',
         freshToggleLabel: 'Catégorie fraîche (suivi date péremption)', freshSectionTitle: 'Catégories fraîches'
@@ -101,6 +102,7 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
         nameUsed: 'Name already used.',
         ingredientFormName: 'Ingredient name', chooseCategory: 'Choose a category', price: 'Price', parts: 'Parts', expiryOptional: 'Expiry date (optional)',
         dateExpiry: 'Expiry date', perPart: '€/part', expired: 'EXPIRED', expiresPrefix: 'Expires', suggestedIngredients: 'Ingredients:',
+        daysLeft: 'days left',
         help: 'Help', tutorialTitle: 'Quick tutorial', tutorialIntro: 'Follow these steps to get the best out of the app:', tutorialGotIt: 'Got it', tutorialBackToTop: 'Back to top', tutorialFooterNote: 'Tip: data is saved automatically in your browser.',
         tutorialStartWithDemo: 'Start with demo data', tutorialStartEmpty: 'Start with no data',
         freshToggleLabel: 'Fresh category (expiry tracking)', freshSectionTitle: 'Fresh categories'

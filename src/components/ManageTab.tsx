@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, X, Edit2, Trash2, Save, Snowflake } from 'lucide-react';
 import { IngredientsType, CategoriesType, FreshCategoriesType } from '../types';
 import { UseManagementReturn } from '../hooks/useManagement';
+import { formatDate, formatDaysLeft, computeExpiryStatus } from '../utils/expiry';
 
 interface ManageTabProps {
     t: (k: string) => string;
@@ -371,7 +372,17 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                                                             {ingredients[ing].price.toFixed(2)} € · {ingredients[ing].parts} parts
                                                         </div>
                                                         <div className="text-[10px] text-blue-600">{(ingredients[ing].price / ingredients[ing].parts).toFixed(2)} €/part</div>
-                                                        {ingredients[ing].expiryDate && <div className="mt-1 text-[10px] text-red-600">{t('dateExpiry')}: {ingredients[ing].expiryDate.slice(0, 10)}</div>}
+                                                        {ingredients[ing].expiryDate && (() => {
+                                                            const { daysLeft } = computeExpiryStatus({ expiryDate: ingredients[ing].expiryDate!, inStock: true });
+                                                            const formattedDate = formatDate(ingredients[ing].expiryDate!.slice(0, 10), lang);
+                                                            const daysMsg = formatDaysLeft(daysLeft, lang);
+                                                            return (
+                                                                <div className="mt-1 text-[10px] text-red-600">
+                                                                    {t('dateExpiry')}: {formattedDate}
+                                                                    {daysMsg && <span className="ml-2 font-semibold">({daysMsg})</span>}
+                                                                </div>
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
