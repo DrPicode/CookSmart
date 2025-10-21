@@ -95,7 +95,7 @@ export function App() {
             clearHistory: 'Vider l\'historique', clearHistoryConfirm: 'Effacer tout l\'historique des courses ?',
             deleteSessionConfirmOne: 'Supprimer cette session ?', deleteSessionConfirmMany: 'Supprimer {n} sessions ?',
             deleteRecipeConfirm: 'Supprimer cette recette ?', deleteIngredientConfirm: 'Supprimer "{name}" ?',
-            priceMust: 'Le prix doit être ≥ 0 et les parts ≥ 1. La date est optionnelle et seulement pour les produits frais.',
+            priceMust: 'Le prix doit être ≥ 0 et les parts ≥ 1. La date de péremption est optionnelle.',
             nameUsed: 'Nom déjà utilisé.',
             ingredientFormName: 'Nom de l\'ingrédient', chooseCategory: 'Choisir une catégorie', price: 'Prix', parts: 'Parts', expiryOptional: 'Date de péremption (optionnelle)',
             dateExpiry: 'Date de péremption', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :',
@@ -146,7 +146,7 @@ export function App() {
             clearHistory: 'Clear history', clearHistoryConfirm: 'Clear all shopping history?',
             deleteSessionConfirmOne: 'Delete this session?', deleteSessionConfirmMany: 'Delete {n} sessions?',
             deleteRecipeConfirm: 'Delete this recipe?', deleteIngredientConfirm: 'Delete "{name}"?',
-            priceMust: 'Price must be ≥ 0 and parts ≥ 1. Date optional only for fresh products.',
+            priceMust: 'Price must be ≥ 0 and parts ≥ 1. Expiry date is optional.',
             nameUsed: 'Name already used.',
             ingredientFormName: 'Ingredient name', chooseCategory: 'Choose a category', price: 'Price', parts: 'Parts', expiryOptional: 'Expiry date (optional)',
             dateExpiry: 'Expiry date', perPart: '€/part', expired: 'EXPIRED', expiresPrefix: 'Expires', suggestedIngredients: 'Ingredients:',
@@ -277,8 +277,8 @@ export function App() {
         }
         setIngredients((prev: IngredientsType) => {
             const base = { inStock: false, price: priceNum, parts: partsNum, remainingParts: partsNum } as any;
-            if (freshCategories.includes(category) && newIngredient.expiryDate) {
-                base.expiryDate = newIngredient.expiryDate;
+            if (newIngredient.expiryDate) {
+                base.expiryDate = newIngredient.expiryDate; // Accept expiry for any category
             }
             return { ...prev, [name]: base };
         });
@@ -467,11 +467,11 @@ export function App() {
     }, []);
 
     const expiringIngredients = useMemo(() => Object.entries(ingredients)
-        .filter(([name, v]) => v.inStock && freshCategories.some(cat => categories[cat]?.includes(name)))
+        .filter(([_, v]) => v.inStock && v.expiryDate)
         .map(([name, data]) => ({ name, ...computeExpiryStatus(data) }))
         .filter(e => ['soon', 'expired'].includes(e.status))
         .sort((a, b) => a.daysLeft - b.daysLeft)
-        , [ingredients, categories, freshCategories]);
+        , [ingredients]);
 
     const recettesPrioritaires = useMemo(() => {
         return recettesPossibles
@@ -1066,13 +1066,12 @@ export function App() {
                                                                                 const next = { ...prev };
                                                                                 if (newName !== original) delete next[original];
                                                                                 const prevIng = prev[original];
-                                                                                const freshExpiry = freshCategories.includes(newCategory) ? prevIng.expiryDate : undefined;
                                                                                 next[newName] = {
                                                                                     inStock: prevIng.inStock,
                                                                                     price: priceNum,
                                                                                     parts: partsNum,
                                                                                     remainingParts: prevIng.remainingParts ?? partsNum,
-                                                                                    ...(freshExpiry ? { expiryDate: freshExpiry } : {})
+                                                                                    ...(prevIng.expiryDate ? { expiryDate: prevIng.expiryDate } : {})
                                                                                 };
                                                                                 return next;
                                                                             });
@@ -1113,7 +1112,7 @@ export function App() {
                                                                             {ingredients[ing].price.toFixed(2)} € · {ingredients[ing].parts} parts
                                                                         </div>
                                                                         <div className="text-[10px] text-blue-600">{(ingredients[ing].price / ingredients[ing].parts).toFixed(2)} €/part</div>
-                                                                        {freshCategories.some(cat => categories[cat]?.includes(ing)) && (() => {
+                                                                        {ingredients[ing].expiryDate && (() => {
                                                                             const s = computeExpiryStatus(ingredients[ing]);
                                                                             if (s.status === 'none' || s.status === 'out') return null;
                                                                             return <div className={`mt-1 text-[10px] ${s.status === 'expired' ? 'text-red-600' : 'text-red-500'}`}>{s.status === 'expired' ? t('expired') : `${t('expiresPrefix')} J-${s.daysLeft}`}</div>;
