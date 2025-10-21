@@ -7,32 +7,33 @@ export interface HelpTutorialProps {
     onClose: () => void;
     lang: 'fr' | 'en';
     t: (k: string) => string;
+    isFirstTime?: boolean;
+    onStartWithDemo?: () => void;
+    onStartEmpty?: () => void;
 }
 
-export function HelpTutorial({ open, onClose, lang, t }: HelpTutorialProps) {
+export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty }: HelpTutorialProps) {
     const steps: { id: number; title: string; detail: string }[] = lang === 'fr'
         ? [
-            { id: 1, title: 'Créer des catégories d\'ingrédients', detail: 'Dans l\'onglet Gestion, ajoutez vos catégories (ex: Produits frais, Épicerie...). Cliquez sur le flocon ❄️ pour indiquer qu\'une catégorie est fraîche (suivi de péremption).' },
-            { id: 2, title: 'Ajouter les ingrédients', detail: 'Toujours dans Gestion, ajoutez chaque ingrédient avec le prix, les parts et la date de péremption si sa catégorie est marquée fraîche.' },
-            { id: 3, title: 'Créer les catégories de recettes', detail: 'Ajoutez vos catégories de recettes (ex: Salade, Pâtes...). Cela aide à regrouper vos idées.' },
-            { id: 4, title: 'Créer les recettes', detail: 'Définissez le nom et sélectionnez les ingrédients nécessaires. Le coût par personne est calculé automatiquement.' },
-            { id: 5, title: 'Faire les courses', detail: 'Dans l\'onglet Courses, démarrez une session. Cochez ce que vous mettez dans le panier. Pour les produits frais, renseignez la date de péremption juste après achat.' },
-            { id: 6, title: 'Voir les recettes possibles', detail: 'L\'onglet Recettes liste ce que vous pouvez cuisiner avec ce qui est en stock et met en avant les ingrédients qui périment bientôt.' },
-            { id: 7, title: 'Sauvegarder / Restaurer', detail: 'Utilisez Import / Export dans Gestion pour sauvegarder toutes vos données (incluant le statut frais) ou les restaurer sur un autre appareil.' }
+            { id: 1, title: 'Catégories d\'ingrédients', detail: 'Dans Gestion, ajoutez vos catégories. Le flocon ❄️ active le suivi de péremption.' },
+            { id: 2, title: 'Ajouter les ingrédients', detail: 'Ajoutez chaque ingrédient avec prix et parts. Date de péremption pour les catégories fraîches.' },
+            { id: 3, title: 'Catégories de recettes', detail: 'Créez vos catégories de recettes (Salade, Pâtes...).' },
+            { id: 4, title: 'Créer les recettes', detail: 'Nommez la recette et sélectionnez les ingrédients. Le coût est calculé automatiquement.' },
+            { id: 5, title: 'Faire les courses', detail: 'Dans Courses, démarrez une session et cochez vos achats.' },
+            { id: 6, title: 'Voir les recettes possibles', detail: 'L\'onglet Recettes affiche ce que vous pouvez cuisiner et les produits à consommer en priorité.' }
         ]
         : [
-            { id: 1, title: 'Create ingredient categories', detail: 'In the Manage tab, add your categories (e.g. Fresh products, Pantry...). Click the ❄️ snowflake to mark a category as fresh (expiry tracking).' },
-            { id: 2, title: 'Add ingredients', detail: 'Still in Manage, add each ingredient with price, parts and an expiry date if its category is marked fresh.' },
-            { id: 3, title: 'Create recipe categories', detail: 'Add recipe categories (e.g. Salad, Pasta...). This groups your ideas.' },
-            { id: 4, title: 'Create recipes', detail: 'Set the name and select needed ingredients. Cost per person is computed automatically.' },
-            { id: 5, title: 'Go shopping', detail: 'In the Groceries tab, start a session. Check items as you put them in the cart. For fresh items, enter the expiry date right after purchase.' },
-            { id: 6, title: 'See possible recipes', detail: 'The Recipes tab lists meals you can cook now and highlights soon-expiring ingredients.' },
-            { id: 7, title: 'Save / Restore', detail: 'Use Import / Export (Manage tab) to backup all your data (including fresh status) or move it to another device.' }
+            { id: 1, title: 'Ingredient categories', detail: 'In Manage, add categories. Click ❄️ to enable expiry tracking.' },
+            { id: 2, title: 'Add ingredients', detail: 'Add ingredients with price and parts. Expiry date for fresh categories.' },
+            { id: 3, title: 'Recipe categories', detail: 'Create recipe categories (Salad, Pasta...).' },
+            { id: 4, title: 'Create recipes', detail: 'Name the recipe and select ingredients. Cost is computed automatically.' },
+            { id: 5, title: 'Go shopping', detail: 'In Groceries, start a session and check your purchases.' },
+            { id: 6, title: 'See possible recipes', detail: 'Recipes tab shows what you can cook and items to consume soon.' }
         ];
 
     return (
         <Transition.Root show={open} as={Fragment}>
-            <Dialog as="div" className="relative z-[100]" onClose={onClose}>
+            <Dialog as="div" className="relative z-[100]" onClose={isFirstTime ? () => { } : onClose}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
@@ -52,9 +53,11 @@ export function HelpTutorial({ open, onClose, lang, t }: HelpTutorialProps) {
                                     <Dialog.Title className="flex items-center gap-2 font-semibold text-sm">
                                         <BookOpen className="w-5 h-5" /> {t('tutorialTitle')}
                                     </Dialog.Title>
-                                    <button onClick={onClose} className="p-1 rounded hover:bg-white/20" aria-label={t('close')}>
-                                        <X className="w-4 h-4" />
-                                    </button>
+                                    {!isFirstTime && (
+                                        <button onClick={onClose} className="p-1 rounded hover:bg-white/20" aria-label={t('close')}>
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="p-4 space-y-4">
                                     <p className="text-xs text-gray-600 leading-relaxed">
@@ -74,22 +77,31 @@ export function HelpTutorial({ open, onClose, lang, t }: HelpTutorialProps) {
                                             </li>
                                         ))}
                                     </ol>
-                                    <div className="pt-2 flex flex-col sm:flex-row gap-2">
-                                        <button
-                                            onClick={() => {
-                                                onClose();
-                                            }}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg shadow"
-                                        >{t('tutorialGotIt')}</button>
-                                        <button
-                                            onClick={() => {
-                                                onClose();
-                                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                                            }}
-                                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 rounded-lg"
-                                        >{t('tutorialBackToTop')}</button>
-                                    </div>
-                                    <p className="text-[10px] text-gray-400 text-center">{t('tutorialFooterNote')}</p>
+                                    {isFirstTime ? (
+                                        <>
+                                            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        onStartWithDemo?.();
+                                                        onClose();
+                                                    }}
+                                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg shadow"
+                                                >{t('tutorialStartWithDemo')}</button>
+                                                <button
+                                                    onClick={() => {
+                                                        onStartEmpty?.();
+                                                        onClose();
+                                                    }}
+                                                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg shadow"
+                                                >{t('tutorialStartEmpty')}</button>
+                                            </div>
+                                            <p className="text-[10px] text-gray-400 text-center">{t('tutorialFooterNote')}</p>
+                                        </>
+                                    ) : (
+                                        <div className="pt-2">
+                                            <p className="text-[10px] text-gray-400 text-center">{t('tutorialFooterNote')}</p>
+                                        </div>
+                                    )}
                                 </div>
                             </Dialog.Panel>
                         </Transition.Child>

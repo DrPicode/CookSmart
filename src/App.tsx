@@ -100,6 +100,7 @@ export function App() {
             ingredientFormName: 'Nom de l\'ingrédient', chooseCategory: 'Choisir une catégorie', price: 'Prix', parts: 'Parts', expiryOptional: 'Date de péremption (optionnelle)',
             dateExpiry: 'Date de péremption', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :',
             help: 'Aide', tutorialTitle: 'Guide rapide', tutorialIntro: 'Voici les étapes pour utiliser l\'application au mieux :', tutorialGotIt: 'J\'ai compris', tutorialBackToTop: 'Retour en haut', tutorialFooterNote: 'Astuce : les données sont sauvegardées automatiquement dans votre navigateur.',
+            tutorialStartWithDemo: 'Commencer avec les données démo', tutorialStartEmpty: 'Commencer avec aucune donnée',
             freshToggleLabel: 'Catégorie fraîche (suivi date péremption)', freshSectionTitle: 'Catégories fraîches'
         },
         en: {
@@ -151,6 +152,7 @@ export function App() {
             ingredientFormName: 'Ingredient name', chooseCategory: 'Choose a category', price: 'Price', parts: 'Parts', expiryOptional: 'Expiry date (optional)',
             dateExpiry: 'Expiry date', perPart: '€/part', expired: 'EXPIRED', expiresPrefix: 'Expires', suggestedIngredients: 'Ingredients:',
             help: 'Help', tutorialTitle: 'Quick tutorial', tutorialIntro: 'Follow these steps to get the best out of the app:', tutorialGotIt: 'Got it', tutorialBackToTop: 'Back to top', tutorialFooterNote: 'Tip: data is saved automatically in your browser.',
+            tutorialStartWithDemo: 'Start with demo data', tutorialStartEmpty: 'Start with no data',
             freshToggleLabel: 'Fresh category (expiry tracking)', freshSectionTitle: 'Fresh categories'
         }
     };
@@ -239,6 +241,20 @@ export function App() {
             setHasSeenTutorial(true);
             try { localStorage.setItem('tutorialSeen', '1'); } catch { }
         }
+    };
+    const startWithDemoData = () => {
+        setIngredients(defaultIngredients);
+        setCategories(defaultCategories);
+        setRecettes(defaultRecettes);
+        setRecipeCategories(Array.from(new Set(defaultRecettes.map(r => r.categorie))));
+        setFreshCategories(INITIAL_FRESH_CATEGORIES);
+    };
+    const startWithEmptyData = () => {
+        setIngredients({});
+        setCategories({});
+        setRecettes([]);
+        setRecipeCategories([]);
+        setFreshCategories([]);
     };
     const toggleHistorySelect = (id: string) => {
         setHistorySelected(prev => {
@@ -1435,7 +1451,15 @@ export function App() {
             {!showHelp && (
                 <FloatingHelpButton onClick={openHelp} label={t('help')} />
             )}
-            <HelpTutorial open={showHelp} onClose={closeHelp} lang={lang} t={t} />
+            <HelpTutorial
+                open={showHelp}
+                onClose={closeHelp}
+                lang={lang}
+                t={t}
+                isFirstTime={!hasSeenTutorial}
+                onStartWithDemo={startWithDemoData}
+                onStartEmpty={startWithEmptyData}
+            />
         </div>
     );
 }
