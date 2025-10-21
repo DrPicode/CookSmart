@@ -1,16 +1,17 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { buildExportData, validateExportData, sanitizeImport, ShoppingSession } from './exportImport';
-import { ChefHat, ShoppingCart, Plus, Trash2, Edit2, Save, RefreshCcw, Languages, X, HelpCircle } from 'lucide-react';
+import { ChefHat, ShoppingCart, Plus, Trash2, Edit2, Save, RefreshCcw, Languages, X, HelpCircle, Snowflake } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
     CategoriesType,
     RecipeType,
     EditingRecipeType,
-    FRESH_CATEGORY,
+    INITIAL_FRESH_CATEGORIES,
     defaultIngredients,
     defaultCategories,
-    defaultRecettes
+    defaultRecettes,
+    FreshCategoriesType
 } from './types';
 import { computeExpiryStatus, scoreRecette, earliestExpiryDays } from './utils/expiry';
 import { CategoryIngredients } from './components/CategoryIngredients';
@@ -21,6 +22,7 @@ export function App() {
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', defaultIngredients);
     const [categories, setCategories] = usePersistentState<CategoriesType>('categories', defaultCategories);
     const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', defaultRecettes);
+    const [freshCategories, setFreshCategories] = usePersistentState<FreshCategoriesType>('freshCategories', INITIAL_FRESH_CATEGORIES);
     const [recipeCategories, setRecipeCategories] = usePersistentState<string[]>('recipeCategories', () => Array.from(new Set(defaultRecettes.map(r => r.categorie))));
     // Langue persistée (fr/en)
     const [lang, setLang] = usePersistentState<'fr' | 'en'>('lang', 'fr');
@@ -100,7 +102,8 @@ export function App() {
             nameUsed: 'Nom déjà utilisé.',
             ingredientFormName: 'Nom de l\'ingrédient', chooseCategory: 'Choisir une catégorie', price: 'Prix', parts: 'Parts', expiryOptional: 'Date de péremption (optionnelle)',
             dateExpiry: 'Date de péremption', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :',
-            help: 'Aide', tutorialTitle: 'Guide rapide', tutorialIntro: 'Voici les étapes pour utiliser l\'application au mieux :', tutorialGotIt: 'J\'ai compris', tutorialBackToTop: 'Retour en haut', tutorialFooterNote: 'Astuce : les données sont sauvegardées automatiquement dans votre navigateur.'
+            help: 'Aide', tutorialTitle: 'Guide rapide', tutorialIntro: 'Voici les étapes pour utiliser l\'application au mieux :', tutorialGotIt: 'J\'ai compris', tutorialBackToTop: 'Retour en haut', tutorialFooterNote: 'Astuce : les données sont sauvegardées automatiquement dans votre navigateur.',
+            freshToggleLabel: 'Catégorie fraîche (suivi date péremption)', freshSectionTitle: 'Catégories fraîches'
         },
         en: {
             appTitle: 'Shopping & Recipes Manager',
@@ -150,7 +153,8 @@ export function App() {
             nameUsed: 'Name already used.',
             ingredientFormName: 'Ingredient name', chooseCategory: 'Choose a category', price: 'Price', parts: 'Parts', expiryOptional: 'Expiry date (optional)',
             dateExpiry: 'Expiry date', perPart: '€/part', expired: 'EXPIRED', expiresPrefix: 'Expires', suggestedIngredients: 'Ingredients:',
-            help: 'Help', tutorialTitle: 'Quick tutorial', tutorialIntro: 'Follow these steps to get the best out of the app:', tutorialGotIt: 'Got it', tutorialBackToTop: 'Back to top', tutorialFooterNote: 'Tip: data is saved automatically in your browser.'
+            help: 'Help', tutorialTitle: 'Quick tutorial', tutorialIntro: 'Follow these steps to get the best out of the app:', tutorialGotIt: 'Got it', tutorialBackToTop: 'Back to top', tutorialFooterNote: 'Tip: data is saved automatically in your browser.',
+            freshToggleLabel: 'Fresh category (expiry tracking)', freshSectionTitle: 'Fresh categories'
         }
     };
     const t = (k: string) => translations[lang][k] || k;
@@ -167,7 +171,7 @@ export function App() {
     const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
     const [importError, setImportError] = useState<string | null>(null);
     const handleExport = () => {
-        const data = buildExportData(ingredients, categories, recettes, shoppingHistory, recipeCategories);
+        const data = buildExportData(ingredients, categories, recettes, shoppingHistory, recipeCategories, freshCategories);
         try {
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -203,6 +207,9 @@ export function App() {
                 setShoppingHistory(cleaned.shoppingHistory);
                 const importedRecipeCats: string[] = (cleaned as any).recipeCategories || Array.from(new Set(cleaned.recettes.map((r: RecipeType) => r.categorie)));
                 setRecipeCategories(importedRecipeCats);
+                if ((cleaned as any).freshCategories && Array.isArray((cleaned as any).freshCategories)) {
+                    setFreshCategories((cleaned as any).freshCategories.filter((c: any) => typeof c === 'string'));
+                }
             } catch (err) {
                 setImportError(t('readFail'));
             }
@@ -273,7 +280,7 @@ export function App() {
         }
         setIngredients((prev: IngredientsType) => {
             const base = { inStock: false, price: priceNum, parts: partsNum, remainingParts: partsNum } as any;
-            if (category === FRESH_CATEGORY && newIngredient.expiryDate) {
+            if (freshCategories.includes(category) && newIngredient.expiryDate) {
                 base.expiryDate = newIngredient.expiryDate;
             }
             return { ...prev, [name]: base };
@@ -472,11 +479,11 @@ export function App() {
     }, []);
 
     const expiringIngredients = useMemo(() => Object.entries(ingredients)
-        .filter(([name, v]) => v.inStock && categories[FRESH_CATEGORY]?.includes(name))
+        .filter(([name, v]) => v.inStock && freshCategories.some(cat => categories[cat]?.includes(name)))
         .map(([name, data]) => ({ name, ...computeExpiryStatus(data) }))
         .filter(e => ['soon', 'expired'].includes(e.status))
         .sort((a, b) => a.daysLeft - b.daysLeft)
-        , [ingredients, categories]);
+        , [ingredients, categories, freshCategories]);
 
     const recettesPrioritaires = useMemo(() => {
         return recettesPossibles
@@ -619,7 +626,7 @@ export function App() {
                                                             <div className="divide-y">
                                                                 {missingByCategory[cat].map(ing => {
                                                                     const checked = shoppingSelected.has(ing);
-                                                                    const isFresh = categories[FRESH_CATEGORY]?.includes(ing);
+                                                                    const isFresh = freshCategories.some(cat => categories[cat]?.includes(ing));
                                                                     const showExpiry = isFresh && checked; // toujours afficher pour modification
                                                                     // Déterminer statut pour style (uniquement si frais et stocké après achat ou déjà en stock)
                                                                     let statusClass = '';
@@ -848,7 +855,7 @@ export function App() {
                                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">parts</span>
                                             </div>
                                         </div>
-                                        {newIngredient.category === FRESH_CATEGORY && (
+                                        {freshCategories.includes(newIngredient.category) && (
                                             <div>
                                                 <label className="block text-[11px] text-gray-600 mb-1">{t('expiryOptional')}</label>
                                                 <input
@@ -890,6 +897,7 @@ export function App() {
                                 )}
 
                                 <div className="p-4">
+                                    {/* Removed bulk fresh category panel; using per-category toggle buttons */}
                                     {Object.entries(categories).map(([categorie, items]) => (
                                         <div key={categorie} className="mb-4">
                                             {editingCategory?.original === categorie ? (
@@ -917,6 +925,12 @@ export function App() {
                                                                 });
                                                                 return Object.fromEntries(entries);
                                                             });
+                                                            // If original category was marked fresh, update freshCategories
+                                                            setFreshCategories(prev => prev.includes(editingCategory.original)
+                                                                ? (prev.includes(newName)
+                                                                    ? prev.filter(c => c !== editingCategory.original) // already added manually
+                                                                    : prev.map(c => c === editingCategory.original ? newName : c))
+                                                                : prev);
                                                             // Update any ingredient being added or edited referencing old category
                                                             setNewIngredient(ni => ({ ...ni, category: ni.category === editingCategory.original ? newName : ni.category }));
                                                             if (editingIngredient && editingIngredient.category === editingCategory.original) {
@@ -939,6 +953,13 @@ export function App() {
                                                         {categorie}
                                                     </h4>
                                                     <div className="flex items-center gap-1">
+                                                        <button
+                                                            className={`p-1 rounded hover:bg-blue-100 ${freshCategories.includes(categorie) ? 'bg-blue-50' : ''}`}
+                                                            title={freshCategories.includes(categorie) ? (lang === 'fr' ? 'Retirer statut frais' : 'Unset fresh') : (lang === 'fr' ? 'Marquer frais' : 'Mark fresh')}
+                                                            onClick={() => setFreshCategories(prev => prev.includes(categorie) ? prev.filter(c => c !== categorie) : [...prev, categorie])}
+                                                        >
+                                                            <Snowflake className={`w-3.5 h-3.5 ${freshCategories.includes(categorie) ? 'text-blue-600' : 'text-gray-400'}`} />
+                                                        </button>
                                                         <button
                                                             className="p-1 rounded hover:bg-blue-100"
                                                             title={t('rename')}
@@ -1074,7 +1095,7 @@ export function App() {
                                                                                 // If name changed, remove old key
                                                                                 if (newName !== original) delete next[original];
                                                                                 const prevIng = prev[original];
-                                                                                const freshExpiry = (newCategory === FRESH_CATEGORY) ? prevIng.expiryDate : undefined;
+                                                                                const freshExpiry = freshCategories.includes(newCategory) ? prevIng.expiryDate : undefined;
                                                                                 next[newName] = {
                                                                                     inStock: prevIng.inStock,
                                                                                     price: priceNum,
@@ -1123,7 +1144,7 @@ export function App() {
                                                                             {ingredients[ing].price.toFixed(2)} € · {ingredients[ing].parts} parts
                                                                         </div>
                                                                         <div className="text-[10px] text-blue-600">{(ingredients[ing].price / ingredients[ing].parts).toFixed(2)} €/part</div>
-                                                                        {categories[FRESH_CATEGORY]?.includes(ing) && (() => {
+                                                                        {freshCategories.some(cat => categories[cat]?.includes(ing)) && (() => {
                                                                             const s = computeExpiryStatus(ingredients[ing]);
                                                                             if (s.status === 'none' || s.status === 'out') return null;
                                                                             return <div className={`mt-1 text-[10px] ${s.status === 'expired' ? 'text-red-600' : 'text-red-500'}`}>{s.status === 'expired' ? t('expired') : `${t('expiresPrefix')} J-${s.daysLeft}`}</div>;

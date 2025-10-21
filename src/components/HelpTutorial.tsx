@@ -13,22 +13,22 @@ export interface HelpTutorialProps {
 export function HelpTutorial({ open, onClose, lang, t }: HelpTutorialProps) {
     const steps: { id: number; title: string; detail: string }[] = lang === 'fr'
         ? [
-            { id: 1, title: 'Créer des catégories d\'ingrédients', detail: 'Dans l\'onglet Gestion, ajoutez vos catégories (ex: Produits frais, Épicerie...).' },
-            { id: 2, title: 'Ajouter les ingrédients', detail: 'Toujours dans Gestion, ajoutez chaque ingrédient avec le prix, les parts (nombre de portions) et la date de péremption si c\'est un produit frais.' },
+            { id: 1, title: 'Créer des catégories d\'ingrédients', detail: 'Dans l\'onglet Gestion, ajoutez vos catégories (ex: Produits frais, Épicerie...). Cliquez sur le flocon ❄️ pour indiquer qu\'une catégorie est fraîche (suivi de péremption).' },
+            { id: 2, title: 'Ajouter les ingrédients', detail: 'Toujours dans Gestion, ajoutez chaque ingrédient avec le prix, les parts et la date de péremption si sa catégorie est marquée fraîche.' },
             { id: 3, title: 'Créer les catégories de recettes', detail: 'Ajoutez vos catégories de recettes (ex: Salade, Pâtes...). Cela aide à regrouper vos idées.' },
             { id: 4, title: 'Créer les recettes', detail: 'Définissez le nom et sélectionnez les ingrédients nécessaires. Le coût par personne est calculé automatiquement.' },
             { id: 5, title: 'Faire les courses', detail: 'Dans l\'onglet Courses, démarrez une session. Cochez ce que vous mettez dans le panier. Pour les produits frais, renseignez la date de péremption juste après achat.' },
             { id: 6, title: 'Voir les recettes possibles', detail: 'L\'onglet Recettes liste ce que vous pouvez cuisiner avec ce qui est en stock et met en avant les ingrédients qui périment bientôt.' },
-            { id: 7, title: 'Sauvegarder / Restaurer', detail: 'Utilisez Import / Export dans Gestion pour sauvegarder toutes vos données ou les restaurer sur un autre appareil.' }
+            { id: 7, title: 'Sauvegarder / Restaurer', detail: 'Utilisez Import / Export dans Gestion pour sauvegarder toutes vos données (incluant le statut frais) ou les restaurer sur un autre appareil.' }
         ]
         : [
-            { id: 1, title: 'Create ingredient categories', detail: 'In the Manage tab, add your categories (e.g. Fresh products, Pantry...).' },
-            { id: 2, title: 'Add ingredients', detail: 'Still in Manage, add each ingredient with price, parts (portions) and expiry date if it\'s fresh.' },
+            { id: 1, title: 'Create ingredient categories', detail: 'In the Manage tab, add your categories (e.g. Fresh products, Pantry...). Click the ❄️ snowflake to mark a category as fresh (expiry tracking).' },
+            { id: 2, title: 'Add ingredients', detail: 'Still in Manage, add each ingredient with price, parts and an expiry date if its category is marked fresh.' },
             { id: 3, title: 'Create recipe categories', detail: 'Add recipe categories (e.g. Salad, Pasta...). This groups your ideas.' },
             { id: 4, title: 'Create recipes', detail: 'Set the name and select needed ingredients. Cost per person is computed automatically.' },
-            { id: 5, title: 'Go shopping', detail: 'In the Groceries tab, start a session. Check items as you put them in the cart. For fresh products, enter the expiry date right after purchase.' },
+            { id: 5, title: 'Go shopping', detail: 'In the Groceries tab, start a session. Check items as you put them in the cart. For fresh items, enter the expiry date right after purchase.' },
             { id: 6, title: 'See possible recipes', detail: 'The Recipes tab lists meals you can cook now and highlights soon-expiring ingredients.' },
-            { id: 7, title: 'Save / Restore', detail: 'Use Import / Export (Manage tab) to backup all data or move it to another device.' }
+            { id: 7, title: 'Save / Restore', detail: 'Use Import / Export (Manage tab) to backup all your data (including fresh status) or move it to another device.' }
         ];
 
     return (

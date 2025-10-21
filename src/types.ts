@@ -1,4 +1,7 @@
-export const FRESH_CATEGORY = '🧀 Produits frais';
+// Initial list of categories considered "fresh" (expiry dates managed).
+// Users can modify which categories are fresh dynamically in the UI now.
+export const INITIAL_FRESH_CATEGORIES: string[] = ['🧀 Produits frais'];
+export type FreshCategoriesType = string[];
 
 export type IngredientsType = { [key: string]: { inStock: boolean; price: number; parts: number; expiryDate?: string; remainingParts?: number } };
 export type CategoriesType = { [key: string]: string[] };
