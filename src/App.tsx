@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { buildExportData, validateExportData, sanitizeImport, ShoppingSession } from './exportImport';
-import { ChefHat, ShoppingCart, Plus, Trash2, Edit2, Save, RefreshCcw, Languages, X } from 'lucide-react';
+import { ChefHat, ShoppingCart, Plus, Trash2, Edit2, Save, RefreshCcw, Languages, X, HelpCircle } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
@@ -15,6 +15,7 @@ import {
 import { computeExpiryStatus, scoreRecette, earliestExpiryDays } from './utils/expiry';
 import { CategoryIngredients } from './components/CategoryIngredients';
 import { RecipeGroup } from './components/RecipeGroup';
+import { HelpTutorial, FloatingHelpButton } from './components/HelpTutorial';
 
 export function App() {
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', defaultIngredients);
@@ -98,7 +99,8 @@ export function App() {
             priceMust: 'Le prix doit être ≥ 0 et les parts ≥ 1. La date est optionnelle et seulement pour les produits frais.',
             nameUsed: 'Nom déjà utilisé.',
             ingredientFormName: 'Nom de l\'ingrédient', chooseCategory: 'Choisir une catégorie', price: 'Prix', parts: 'Parts', expiryOptional: 'Date de péremption (optionnelle)',
-            dateExpiry: 'Date de péremption', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :'
+            dateExpiry: 'Date de péremption', perPart: '€/part', expired: 'PÉRIMÉ', expiresPrefix: 'Expire', suggestedIngredients: 'Ingrédients :',
+            help: 'Aide', tutorialTitle: 'Guide rapide', tutorialIntro: 'Voici les étapes pour utiliser l\'application au mieux :', tutorialGotIt: 'J\'ai compris', tutorialBackToTop: 'Retour en haut', tutorialFooterNote: 'Astuce : les données sont sauvegardées automatiquement dans votre navigateur.'
         },
         en: {
             appTitle: 'Shopping & Recipes Manager',
@@ -147,7 +149,8 @@ export function App() {
             priceMust: 'Price must be ≥ 0 and parts ≥ 1. Date optional only for fresh products.',
             nameUsed: 'Name already used.',
             ingredientFormName: 'Ingredient name', chooseCategory: 'Choose a category', price: 'Price', parts: 'Parts', expiryOptional: 'Expiry date (optional)',
-            dateExpiry: 'Expiry date', perPart: '€/part', expired: 'EXPIRED', expiresPrefix: 'Expires', suggestedIngredients: 'Ingredients:'
+            dateExpiry: 'Expiry date', perPart: '€/part', expired: 'EXPIRED', expiresPrefix: 'Expires', suggestedIngredients: 'Ingredients:',
+            help: 'Help', tutorialTitle: 'Quick tutorial', tutorialIntro: 'Follow these steps to get the best out of the app:', tutorialGotIt: 'Got it', tutorialBackToTop: 'Back to top', tutorialFooterNote: 'Tip: data is saved automatically in your browser.'
         }
     };
     const t = (k: string) => translations[lang][k] || k;
@@ -215,6 +218,24 @@ export function App() {
     useEffect(() => { /* conservé pour rétro compat éventuelle */ }, []);
     const [historySelectMode, setHistorySelectMode] = useState(false);
     const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
+    const [showHelp, setShowHelp] = useState(false);
+    const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
+        try { return localStorage.getItem('tutorialSeen') === '1'; } catch { return false; }
+    });
+    useEffect(() => {
+        if (!hasSeenTutorial) {
+            const timer = setTimeout(() => setShowHelp(true), 800);
+            return () => clearTimeout(timer);
+        }
+    }, [hasSeenTutorial]);
+    const openHelp = () => setShowHelp(true);
+    const closeHelp = () => {
+        setShowHelp(false);
+        if (!hasSeenTutorial) {
+            setHasSeenTutorial(true);
+            try { localStorage.setItem('tutorialSeen', '1'); } catch { }
+        }
+    };
     const toggleHistorySelect = (id: string) => {
         setHistorySelected(prev => {
             const next = new Set(prev);
@@ -490,7 +511,7 @@ export function App() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
             <div className="mx-auto bg-white shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white">
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white relative">
                     <div className="flex items-start justify-between gap-3">
                         <div>
                             <h1 className="text-xl font-bold flex items-center gap-2">
@@ -499,11 +520,28 @@ export function App() {
                             <p className="mt-1 text-orange-100 text-xs">{t('appSubtitle')}</p>
                         </div>
                         <div className="flex flex-col gap-2 items-end">
-                            <button onClick={toggleLang} className="text-[10px] bg-white/15 hover:bg-white/25 px-2 py-1 rounded flex items-center gap-1">
-                                <Languages className="w-3 h-3" /> {t('langToggle')} ({lang.toUpperCase()})
-                            </button>
-                            <button onClick={resetAllData} className="text-[10px] bg-white/15 hover:bg-white/25 px-2 py-1 rounded flex items-center gap-1">
-                                <RefreshCcw className="w-3 h-3" /> {t('resetData')}
+                            <div className="flex gap-1.5">
+                                <button
+                                    onClick={toggleLang}
+                                    aria-label={t('langToggle')}
+                                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
+                                >
+                                    <Languages className="w-4 h-4" /> <span className="hidden sm:inline">{t('langToggle')}</span> {lang.toUpperCase()}
+                                </button>
+                                <button
+                                    onClick={openHelp}
+                                    aria-label={t('help')}
+                                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
+                                >
+                                    <HelpCircle className="w-4 h-4" /> <span className="hidden sm:inline">{t('help')}</span>
+                                </button>
+                            </div>
+                            <button
+                                onClick={resetAllData}
+                                aria-label={t('resetData')}
+                                className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
+                            >
+                                <RefreshCcw className="w-4 h-4" /> <span>{t('resetData')}</span>
                             </button>
                         </div>
                     </div>
@@ -1410,6 +1448,11 @@ export function App() {
                     )}
                 </div>
             </div>
+            {/* Floating help button for mobile quick access */}
+            {!showHelp && (
+                <FloatingHelpButton onClick={openHelp} label={t('help')} />
+            )}
+            <HelpTutorial open={showHelp} onClose={closeHelp} lang={lang} t={t} />
         </div>
     );
 }
