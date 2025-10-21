@@ -4,32 +4,18 @@ export const DAYS_WARNING = 3;
 
 export type ExpiryStatus = 'out' | 'none' | 'expired' | 'soon' | 'ok';
 
-/**
- * Format a date string (YYYY-MM-DD) according to the language
- * @param dateString - Date in YYYY-MM-DD format
- * @param lang - Language ('fr' or 'en')
- * @returns Formatted date string
- */
 export function formatDate(dateString: string, lang: 'fr' | 'en'): string {
     if (!dateString) return '';
     const parts = dateString.split('-');
     if (parts.length !== 3) return dateString;
 
     if (lang === 'fr') {
-        // DD-MM-YYYY for French
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
     } else {
-        // YYYY-MM-DD for English
-        return dateString;
+        return `${parts[1]}/${parts[2]}/${parts[0]}`;
     }
 }
 
-/**
- * Format days left message
- * @param daysLeft - Number of days left
- * @param lang - Language ('fr' or 'en')
- * @returns Formatted message
- */
 export function formatDaysLeft(daysLeft: number, lang: 'fr' | 'en'): string {
     if (daysLeft === Infinity) return '';
 
