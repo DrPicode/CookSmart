@@ -17,12 +17,12 @@ export interface ExportDataV2 extends Omit<ExportDataV1, 'version'> {
 
 export interface ExportDataV3 extends Omit<ExportDataV2, 'version'> {
     version: '1.2.0';
-    recipeCategories: string[]; // explicit list of recipe categories
+    recipeCategories: string[];
 }
 
 export interface ExportDataV4 extends Omit<ExportDataV3, 'version'> {
     version: '1.3.0';
-    freshCategories: string[]; // dynamic fresh category list
+    freshCategories: string[];
 }
 
 export type AnyExportData = ExportDataV1 | ExportDataV2 | ExportDataV3 | ExportDataV4;
@@ -142,7 +142,6 @@ export function sanitizeImport(data: AnyExportData): AnyExportData {
         ...s,
         total: typeof s.total === 'string' ? parseFloat(s.total) : s.total,
     }));
-    // recipeCategories backward compatibility: if missing (older export), derive from recettes
     const recipeCategories = (data as any).recipeCategories && Array.isArray((data as any).recipeCategories)
         ? (data as any).recipeCategories.filter((c: any) => typeof c === 'string')
         : Array.from(new Set(recettes.map(r => r.categorie)));

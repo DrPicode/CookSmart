@@ -24,7 +24,6 @@ export function App() {
     const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', defaultRecettes);
     const [freshCategories, setFreshCategories] = usePersistentState<FreshCategoriesType>('freshCategories', INITIAL_FRESH_CATEGORIES);
     const [recipeCategories, setRecipeCategories] = usePersistentState<string[]>('recipeCategories', () => Array.from(new Set(defaultRecettes.map(r => r.categorie))));
-    // Langue persistée (fr/en)
     const [lang, setLang] = usePersistentState<'fr' | 'en'>('lang', 'fr');
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion' | 'historique'>('courses');
     const [showAddIngredient, setShowAddIngredient] = useState(false);
@@ -49,10 +48,8 @@ export function App() {
         const saved = localStorage.getItem('shoppingHistory');
         return saved ? JSON.parse(saved) : [];
     });
-    // Persiste l'historique si modifié
     useEffect(() => { try { localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory)); } catch { } }, [shoppingHistory]);
 
-    // Dictionnaire de traduction (peut être extrait ultérieurement)
     const translations: Record<'fr' | 'en', Record<string, string>> = {
         fr: {
             appTitle: 'Gestionnaire de Courses',
@@ -299,24 +296,24 @@ export function App() {
     const deleteIngredient = (ingredient: string, category: string) => {
         if (!confirm(t('deleteIngredientConfirm').replace('{name}', ingredient))) return;
 
-        // Supprimer l'ingrédient de la liste des ingrédients
         setIngredients((prev: IngredientsType) => {
             const newIng = { ...prev };
             delete newIng[ingredient];
             return newIng;
         });
 
-        // Supprimer l'ingrédient de sa catégorie
         setCategories((prev: CategoriesType) => ({
             ...prev,
             [category]: prev[category].filter((i: string) => i !== ingredient)
         }));
 
-        // Mettre à jour les recettes qui contiennent cet ingrédient
-        setRecettes((prev: RecipeType[]) => prev.map((recipe: RecipeType) => ({
-            ...recipe,
-            ingredients: recipe.ingredients.filter((ing: string) => ing !== ingredient)
-        })).filter((recipe: RecipeType) => recipe.ingredients.length > 0)); // Supprimer les recettes qui n'ont plus d'ingrédients
+        setRecettes((prev: RecipeType[]) => prev
+            .map((recipe: RecipeType) => ({
+                ...recipe,
+                ingredients: recipe.ingredients.filter((ing: string) => ing !== ingredient)
+            }))
+            .filter((recipe: RecipeType) => recipe.ingredients.length > 0)
+        );
     };
 
     const addRecipe = () => {
@@ -344,7 +341,6 @@ export function App() {
         if (!confirm(t('deleteRecipeConfirm'))) return;
         const catDeleted = recettes[index].categorie;
         setRecettes((prev: RecipeType[]) => prev.filter((_: RecipeType, i: number) => i !== index));
-        // Remove category if no more recipes use it
         if (recettes.filter((r, i) => i !== index && r.categorie === catDeleted).length === 0) {
             setRecipeCategories(prev => prev.filter(c => c !== catDeleted));
         }
@@ -376,7 +372,7 @@ export function App() {
 
     const ingredientsManquants = useMemo(() => Object.keys(ingredients).filter((ing: string) => !ingredients[ing].inStock), [ingredients]);
     const shoppingCategoryOrder = useMemo(() => {
-        const orderTail = ['🧀 Produits frais', '🥶 Surgelés', '🧊 Surgelés']; // inclure variantes éventuelles
+        const orderTail = ['🧀 Produits frais', '🥶 Surgelés', '🧊 Surgelés'];
         const allCats = Object.keys(categories);
         const head = allCats.filter(c => !orderTail.includes(c));
         const tail = orderTail.filter(c => allCats.includes(c));
@@ -407,7 +403,6 @@ export function App() {
             setShoppingMode(false);
             return;
         }
-        // calculer le total avant mutation pour que les prix correspondent à l'achat
         let sessionTotal = 0;
         shoppingSelected.forEach(ing => { if (ingredients[ing]) sessionTotal += ingredients[ing].price; });
         setIngredients(prev => {
@@ -417,7 +412,6 @@ export function App() {
             });
             return next;
         });
-        // enregistrer l'historique
         setShoppingHistory(prev => [
             {
                 id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
@@ -438,7 +432,6 @@ export function App() {
     }, [shoppingSelected, ingredients]);
     const shoppingProgress = useMemo(() => ingredientsManquants.length === 0 ? 0 : shoppingSelected.size / ingredientsManquants.length, [shoppingSelected, ingredientsManquants]);
     const allIngredients = useMemo(() => Object.keys(ingredients), [ingredients]);
-    // Persistent list of recipe categories separate from existing recipes
     const categoriesRecettes = recipeCategories;
     const recettesParCategorie = useMemo(() => {
         const map: { [key: string]: { recette: RecipeType; index: number }[] } = {};
@@ -452,21 +445,16 @@ export function App() {
         if (!editingRecipeCategory) return;
         const newName = editingRecipeCategory.name.trim();
         if (!newName) { alert(t('invalidCategoryName')); return; }
-        // Prevent duplicate if category already exists
         if (recipeCategories.includes(newName) && newName !== editingRecipeCategory.original) {
             alert(t('categoryExists'));
             return;
         }
-        // Update recipes
         setRecettes(prev => prev.map(r => r.categorie === editingRecipeCategory.original ? { ...r, categorie: newName } : r));
-        // Update persistent category list
         setRecipeCategories(prev => {
             const withoutOld = prev.filter(c => c !== editingRecipeCategory.original);
             return withoutOld.includes(newName) ? withoutOld : [...withoutOld, newName];
         });
-        // Update new recipe draft if referencing old category
         setNewRecipe(r => ({ ...r, categorie: r.categorie === editingRecipeCategory.original ? newName : r.categorie }));
-        // Update editing recipe if currently editing one with old category
         setEditingRecipe(er => er ? { ...er, data: { ...er.data, categorie: er.data.categorie === editingRecipeCategory.original ? newName : er.data.categorie } } : er);
         setEditingRecipeCategory(null);
     };
@@ -554,7 +542,6 @@ export function App() {
                     </div>
                 </div>
 
-                {/* Footer de navigation fixé en bas avec hauteur garantie + espace safe-area (iOS) */}
                 <div className="flex fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 pt-[env(safe-area-inset-bottom)]">
                     <button onClick={() => setActiveTab('courses')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${activeTab === 'courses' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
                         <ShoppingCart className="w-6 h-6" />
@@ -573,7 +560,6 @@ export function App() {
                     </button>
                 </div>
 
-                {/* p-2 + pb-28 pour laisser l'espace du footer tab fixe, y compris safe-area éventuelle */}
                 <div className="p-2 pb-28">
                     {activeTab === 'courses' && (
                         <div className="space-y-4">
@@ -627,8 +613,7 @@ export function App() {
                                                                 {missingByCategory[cat].map(ing => {
                                                                     const checked = shoppingSelected.has(ing);
                                                                     const isFresh = freshCategories.some(cat => categories[cat]?.includes(ing));
-                                                                    const showExpiry = isFresh && checked; // toujours afficher pour modification
-                                                                    // Déterminer statut pour style (uniquement si frais et stocké après achat ou déjà en stock)
+                                                                    const showExpiry = isFresh && checked;
                                                                     let statusClass = '';
                                                                     if (isFresh && ingredients[ing].expiryDate) {
                                                                         const { status } = computeExpiryStatus({ expiryDate: ingredients[ing].expiryDate, inStock: true });
@@ -725,7 +710,6 @@ export function App() {
                                         <p className="text-green-800 text-sm"><strong>{t('canCookIntro')}</strong> {t('canCookMiddle')} {recettesPossibles.length} {recettesPossibles.length > 1 ? t('dishes') : t('dish')}.</p>
                                     </div>
 
-                                    {/* Priorités basées sur péremption */}
                                     {expiringIngredients.length > 0 && (
                                         <div className="border rounded-lg bg-red-50 border-red-200 p-3 space-y-2">
                                             <h3 className="text-sm font-semibold text-red-700 flex items-center gap-2">
@@ -778,12 +762,10 @@ export function App() {
 
                     {activeTab === 'gestion' && (
                         <div className="space-y-6">
-                            {/* Gestion Ingrédients */}
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sticky top-0">
                                     <span className="text-sm flex-shrink-0">{t('manageIngredients')}</span>
                                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                                        {/* Add new ingredient category inline */}
                                         <div className="flex items-center gap-1 w-full sm:w-auto" onMouseDown={(e) => e.stopPropagation()}>
                                             {newIngredientCategoryName !== '' && (
                                                 <button
@@ -897,7 +879,6 @@ export function App() {
                                 )}
 
                                 <div className="p-4">
-                                    {/* Removed bulk fresh category panel; using per-category toggle buttons */}
                                     {Object.entries(categories).map(([categorie, items]) => (
                                         <div key={categorie} className="mb-4">
                                             {editingCategory?.original === categorie ? (
@@ -925,18 +906,15 @@ export function App() {
                                                                 });
                                                                 return Object.fromEntries(entries);
                                                             });
-                                                            // If original category was marked fresh, update freshCategories
                                                             setFreshCategories(prev => prev.includes(editingCategory.original)
                                                                 ? (prev.includes(newName)
-                                                                    ? prev.filter(c => c !== editingCategory.original) // already added manually
+                                                                    ? prev.filter(c => c !== editingCategory.original)
                                                                     : prev.map(c => c === editingCategory.original ? newName : c))
                                                                 : prev);
-                                                            // Update any ingredient being added or edited referencing old category
                                                             setNewIngredient(ni => ({ ...ni, category: ni.category === editingCategory.original ? newName : ni.category }));
                                                             if (editingIngredient && editingIngredient.category === editingCategory.original) {
                                                                 setEditingIngredient({ ...editingIngredient, category: newName });
                                                             }
-                                                            // Update recipes category selection options
                                                             setRecettes(prev => prev.map(r => ({ ...r, categorie: r.categorie === editingCategory.original ? newName : r.categorie })));
                                                             setEditingRecipe(er => er ? { ...er, data: { ...er.data, categorie: er.data.categorie === editingCategory.original ? newName : er.data.categorie } } : er);
                                                             setEditingCategory(null);
@@ -972,25 +950,19 @@ export function App() {
                                                             title={lang === 'fr' ? 'Supprimer catégorie' : 'Delete category'}
                                                             onClick={() => {
                                                                 if (!confirm(lang === 'fr' ? `Supprimer la catégorie et tous ses ingrédients ?` : 'Delete category and all its ingredients?')) return;
-                                                                // Gather ingredients to delete
                                                                 const toDelete = [...(categories[categorie] || [])];
-                                                                // Remove ingredients from ingredient state
                                                                 setIngredients(prev => {
                                                                     const next = { ...prev } as IngredientsType;
                                                                     toDelete.forEach(i => { delete next[i]; });
                                                                     return next;
                                                                 });
-                                                                // Remove ingredients from recipes & drop recipes now missing ingredients
                                                                 setRecettes(prev => prev.map(r => ({ ...r, ingredients: r.ingredients.filter(i => !toDelete.includes(i)) }))
                                                                     .filter(r => r.ingredients.length > 0));
-                                                                // Remove category
                                                                 setCategories(prev => {
                                                                     const entries = Object.entries(prev).filter(([cat]) => cat !== categorie);
                                                                     return Object.fromEntries(entries);
                                                                 });
-                                                                // Clean new ingredient form if referencing
                                                                 setNewIngredient(ni => ({ ...ni, category: ni.category === categorie ? '' : ni.category }));
-                                                                // Close editing if open
                                                                 if (editingCategory?.original === categorie) setEditingCategory(null);
                                                             }}
                                                         >
@@ -1092,7 +1064,6 @@ export function App() {
                                                                             const oldCategory = categorie;
                                                                             setIngredients((prev) => {
                                                                                 const next = { ...prev };
-                                                                                // If name changed, remove old key
                                                                                 if (newName !== original) delete next[original];
                                                                                 const prevIng = prev[original];
                                                                                 const freshExpiry = freshCategories.includes(newCategory) ? prevIng.expiryDate : undefined;
@@ -1107,9 +1078,7 @@ export function App() {
                                                                             });
                                                                             setCategories((prev) => {
                                                                                 const next = { ...prev };
-                                                                                // Update old category list (rename or remove)
                                                                                 next[oldCategory] = next[oldCategory].filter(item => item !== original);
-                                                                                // Add to new category list
                                                                                 next[newCategory] = [
                                                                                     ...(next[newCategory] || []),
                                                                                     newName,
@@ -1181,7 +1150,6 @@ export function App() {
                                 </div>
                             </div>
 
-                            {/* Gestion Recettes */}
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-4 py-3 font-semibold text-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                                     <span className="flex-shrink-0">{t('manageRecipes')}</span>
@@ -1290,11 +1258,8 @@ export function App() {
                                                             title={lang === 'fr' ? 'Supprimer catégorie recette' : 'Delete recipe category'}
                                                             onClick={() => {
                                                                 if (!confirm(lang === 'fr' ? 'Supprimer la catégorie recette et toutes ses recettes ?' : 'Delete recipe category and all its recipes?')) return;
-                                                                // Remove recipes of that category
                                                                 setRecettes(prev => prev.filter(r => r.categorie !== cat));
-                                                                // If editing recipe references this category, cancel editing
                                                                 setEditingRecipe(er => er && er.data.categorie === cat ? null : er);
-                                                                // If new recipe form references this category, clear it
                                                                 setNewRecipe(r => ({ ...r, categorie: r.categorie === cat ? '' : r.categorie }));
                                                                 if (editingRecipeCategory?.original === cat) setEditingRecipeCategory(null);
                                                             }}
@@ -1358,7 +1323,6 @@ export function App() {
                                 </div>
                             </div>
 
-                            {/* Import / Export */}
                             <div className="border rounded-lg overflow-hidden">
                                 <div className="bg-gradient-to-r from-green-100 to-green-200 px-4 py-3 font-semibold text-gray-800 flex justify-between items-center">
                                     <span>{t('importExport')}</span>
@@ -1469,7 +1433,6 @@ export function App() {
                     )}
                 </div>
             </div>
-            {/* Floating help button for mobile quick access */}
             {!showHelp && (
                 <FloatingHelpButton onClick={openHelp} label={t('help')} />
             )}

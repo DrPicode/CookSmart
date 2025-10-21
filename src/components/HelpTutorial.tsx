@@ -9,7 +9,6 @@ export interface HelpTutorialProps {
     t: (k: string) => string;
 }
 
-// Simple responsive modal with focus trapping via Headless UI
 export function HelpTutorial({ open, onClose, lang, t }: HelpTutorialProps) {
     const steps: { id: number; title: string; detail: string }[] = lang === 'fr'
         ? [

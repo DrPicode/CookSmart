@@ -1,5 +1,3 @@
-// Initial list of categories considered "fresh" (expiry dates managed).
-// Users can modify which categories are fresh dynamically in the UI now.
 export const INITIAL_FRESH_CATEGORIES: string[] = ['🧀 Produits frais'];
 export type FreshCategoriesType = string[];
 
