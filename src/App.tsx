@@ -77,7 +77,7 @@ export function App() {
             consumeSoon: 'À consommer rapidement',
             suggestedRecipes: 'Recettes suggérées en priorité :',
             manageIngredients: 'Gestion des Ingrédients',
-            add: 'Ajouter', save: 'Enregistrer', saveVerb: 'Sauvegarder',
+            add: 'Ajouter', addIngredient: 'Ajouter ingrédient', addRecipe: 'Ajouter recette', save: 'Enregistrer', saveVerb: 'Sauvegarder',
             invalidCategoryName: 'Nom de catégorie invalide', categoryExists: 'Une catégorie avec ce nom existe déjà.',
             rename: 'Renommer',
             saveAction: 'Sauver',
@@ -128,7 +128,7 @@ export function App() {
             consumeSoon: 'Consume soon',
             suggestedRecipes: 'Suggested priority recipes:',
             manageIngredients: 'Ingredients Management',
-            add: 'Add', save: 'Save', saveVerb: 'Save',
+            add: 'Add', addIngredient: 'Add ingredient', addRecipe: 'Add recipe', save: 'Save', saveVerb: 'Save',
             invalidCategoryName: 'Invalid category name', categoryExists: 'A category with that name already exists.',
             rename: 'Rename',
             saveAction: 'Save',
@@ -818,7 +818,7 @@ export function App() {
                                             </button>
                                         </div>
                                         <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(!showAddIngredient)} className="bg-blue-500 text-white px-3 py-2 sm:py-1.5 rounded-lg text-xs flex items-center gap-1.5 hover:bg-blue-600 w-full sm:w-auto justify-center">
-                                            <Plus className="w-4 h-4" />{t('add')}
+                                            <Plus className="w-4 h-4" />{t('addIngredient')}
                                         </button>
                                     </div>
                                 </div>
@@ -1221,7 +1221,7 @@ export function App() {
                                             </button>
                                         </div>
                                         <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(!showAddRecipe)} className="bg-purple-500 text-white px-3 py-2 sm:py-1 rounded-lg text-sm flex items-center gap-2 hover:bg-purple-600 w-full sm:w-auto justify-center">
-                                            <Plus className="w-4 h-4" />{t('add')}
+                                            <Plus className="w-4 h-4" />{t('addRecipe')}
                                         </button>
                                     </div>
                                 </div>
