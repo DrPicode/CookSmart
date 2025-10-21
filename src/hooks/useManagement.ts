@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { buildExportData, validateExportData, sanitizeImport, ShoppingSession } from '../exportImport';
+import { buildExportData, validateExportData, sanitizeImport, ShoppingSession } from '../lib/exportImport';
 import { IngredientsType, CategoriesType, RecipeType, EditingRecipeType, FreshCategoriesType } from '../types';
 
 interface UseManagementParams {

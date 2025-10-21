@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { IngredientsType, CategoriesType, FreshCategoriesType } from '../types';
-import { ShoppingSession } from '../exportImport';
+import { ShoppingSession } from '../lib/exportImport';
 
 interface UseShoppingParams {
     ingredients: IngredientsType;

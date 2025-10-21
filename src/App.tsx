@@ -1,15 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ShoppingSession } from './exportImport';
+import { ShoppingSession, loadDemoData } from './lib/exportImport';
 import { ChefHat, RefreshCcw, Languages, HelpCircle } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
     CategoriesType,
     RecipeType,
-    INITIAL_FRESH_CATEGORIES,
-    defaultIngredients,
-    defaultCategories,
-    defaultRecettes,
     FreshCategoriesType
 } from './types';
 import { RecipesTab } from './components/RecipesTab';
@@ -24,11 +20,11 @@ import { useRecipes } from './hooks/useRecipes';
 import { useManagement } from './hooks/useManagement';
 
 export function App() {
-    const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', defaultIngredients);
-    const [categories, setCategories] = usePersistentState<CategoriesType>('categories', defaultCategories);
-    const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', defaultRecettes);
-    const [freshCategories, setFreshCategories] = usePersistentState<FreshCategoriesType>('freshCategories', INITIAL_FRESH_CATEGORIES);
-    const [recipeCategories, setRecipeCategories] = usePersistentState<string[]>('recipeCategories', () => Array.from(new Set(defaultRecettes.map(r => r.categorie))));
+    const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', {});
+    const [categories, setCategories] = usePersistentState<CategoriesType>('categories', {});
+    const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', []);
+    const [freshCategories, setFreshCategories] = usePersistentState<FreshCategoriesType>('freshCategories', []);
+    const [recipeCategories, setRecipeCategories] = usePersistentState<string[]>('recipeCategories', []);
     const [lang, setLang] = usePersistentState<'fr' | 'en'>('lang', 'fr');
     const { t } = useTranslations(lang);
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion' | 'historique'>('courses');
@@ -71,11 +67,13 @@ export function App() {
         }
     };
     const startWithDemoData = () => {
-        setIngredients(defaultIngredients);
-        setCategories(defaultCategories);
-        setRecettes(defaultRecettes);
-        setRecipeCategories(Array.from(new Set(defaultRecettes.map(r => r.categorie))));
-        setFreshCategories(INITIAL_FRESH_CATEGORIES);
+        const demoData = loadDemoData();
+        setIngredients(demoData.ingredients);
+        setCategories(demoData.categories);
+        setRecettes(demoData.recettes);
+        setRecipeCategories(demoData.recipeCategories);
+        setFreshCategories(demoData.freshCategories);
+        setShoppingHistory(demoData.shoppingHistory);
     };
     const startWithEmptyData = () => {
         setIngredients({});

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingSession } from '../exportImport';
+import { ShoppingSession } from '../lib/exportImport';
 
 interface HistoryTabProps {
     t: (k: string) => string;

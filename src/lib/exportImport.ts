@@ -1,5 +1,5 @@
-import { IngredientsType, CategoriesType, RecipeType } from './types';
-import demoDataJson from './data/demoData.json';
+import { IngredientsType, CategoriesType, RecipeType } from '../types';
+import demoDataJson from '../data/demoData.json';
 
 export type ShoppingSession = { id: string; date: string; items: string[]; total: number };
 

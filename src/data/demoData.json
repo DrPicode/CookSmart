@@ -1,0 +1,365 @@
+{
+    "version": "1.3.0",
+    "exportedAt": "2025-10-21T22:40:34.653Z",
+    "ingredients": {
+        "Tomates cerises": {
+            "inStock": true,
+            "price": 1.99,
+            "parts": 2,
+            "remainingParts": 2,
+            "expiryDate": "2025-10-24"
+        },
+        "Maïs": {
+            "inStock": true,
+            "price": 0.99,
+            "parts": 1
+        },
+        "Pâtes": {
+            "inStock": true,
+            "price": 0.9,
+            "parts": 4
+        },
+        "Riz": {
+            "inStock": true,
+            "price": 1.35,
+            "parts": 5
+        },
+        "Thon": {
+            "inStock": true,
+            "price": 3.75,
+            "parts": 6
+        },
+        "Sauce tomate": {
+            "inStock": true,
+            "price": 1.45,
+            "parts": 3
+        },
+        "Ketchup": {
+            "inStock": true,
+            "price": 1.15,
+            "parts": 10
+        },
+        "Biscottes": {
+            "inStock": true,
+            "price": 1.45,
+            "parts": 8
+        },
+        "Champignons en boîte": {
+            "inStock": true,
+            "price": 1,
+            "parts": 2
+        },
+        "Céréales": {
+            "inStock": true,
+            "price": 2.39,
+            "parts": 7
+        },
+        "Eau": {
+            "inStock": false,
+            "price": 0.8,
+            "parts": 6
+        },
+        "Yaourt à boire": {
+            "inStock": true,
+            "price": 1.55,
+            "parts": 1,
+            "expiryDate": "2025-11-09"
+        },
+        "Beurre": {
+            "inStock": true,
+            "price": 2.99,
+            "parts": 10,
+            "expiryDate": "2025-12-31"
+        },
+        "Lardons": {
+            "inStock": true,
+            "price": 2.35,
+            "parts": 2,
+            "expiryDate": "2026-02-07"
+        },
+        "Steaks hachés": {
+            "inStock": false,
+            "price": 3.99,
+            "parts": 2,
+            "expiryDate": "2025-12-07"
+        },
+        "Tortilla": {
+            "inStock": false,
+            "price": 2.59,
+            "parts": 2,
+            "expiryDate": "2025-11-07"
+        },
+        "Légumes poulet surgelés": {
+            "inStock": true,
+            "price": 2.19,
+            "parts": 1,
+            "remainingParts": 1,
+            "expiryDate": "2027-06-02"
+        },
+        "Jus de fruits": {
+            "inStock": true,
+            "price": 0.99,
+            "parts": 10
+        },
+        "Fromage en tranches": {
+            "inStock": true,
+            "price": 1.99,
+            "parts": 4,
+            "expiryDate": "2025-12-22"
+        },
+        "Huile d'olive": {
+            "inStock": true,
+            "price": 3.29,
+            "parts": 25
+        },
+        "Vinaigre balsamique": {
+            "inStock": false,
+            "price": 2.35,
+            "parts": 25
+        },
+        "Gnockis poulet surgelés": {
+            "inStock": true,
+            "price": 2.59,
+            "parts": 1,
+            "remainingParts": 1,
+            "expiryDate": "2027-03-01"
+        },
+        "Boite lentilles chorizo": {
+            "inStock": true,
+            "price": 1.39,
+            "parts": 1
+        },
+        "Chorizo": {
+            "inStock": true,
+            "price": 2.59,
+            "parts": 5,
+            "expiryDate": "2025-10-28"
+        },
+        "Fromage râpé x2": {
+            "inStock": true,
+            "price": 3.58,
+            "parts": 8,
+            "expiryDate": "2026-01-10"
+        },
+        "Crème fraîche en brique": {
+            "inStock": true,
+            "price": 1.89,
+            "parts": 3
+        }
+    },
+    "categories": {
+        "🥦 Fruits & Légumes frais": [
+            "Tomates cerises"
+        ],
+        "🥫 Épicerie salée": [
+            "Maïs",
+            "Thon",
+            "Vinaigre balsamique",
+            "Huile d'olive",
+            "Boite lentilles chorizo",
+            "Champignons en boîte",
+            "Pâtes",
+            "Riz",
+            "Ketchup",
+            "Sauce tomate",
+            "Biscottes",
+            "Crème fraîche en brique"
+        ],
+        "🥣 Épicerie sucrée": [
+            "Céréales"
+        ],
+        "💧 Boissons": [
+            "Eau",
+            "Jus de fruits"
+        ],
+        "🧀 Produits frais": [
+            "Tortilla",
+            "Steaks hachés",
+            "Yaourt à boire",
+            "Fromage en tranches",
+            "Beurre",
+            "Lardons",
+            "Chorizo",
+            "Fromage râpé x2"
+        ],
+        "🥶 Surgelés": [
+            "Gnockis poulet surgelés",
+            "Légumes poulet surgelés"
+        ]
+    },
+    "recettes": [
+        {
+            "nom": "Salade maïs thon",
+            "categorie": "🥗 Salade",
+            "ingredients": [
+                "Maïs",
+                "Thon",
+                "Huile d'olive",
+                "Vinaigre balsamique"
+            ]
+        },
+        {
+            "nom": "Salade tomates cerises thon",
+            "categorie": "🥗 Salade",
+            "ingredients": [
+                "Tomates cerises",
+                "Thon",
+                "Huile d'olive",
+                "Vinaigre balsamique"
+            ]
+        },
+        {
+            "nom": "Riz champignons crème fraîche",
+            "categorie": "🍝 Pâtes / Riz",
+            "ingredients": [
+                "Riz",
+                "Champignons en boîte",
+                "Crème fraîche en brique"
+            ]
+        },
+        {
+            "nom": "Pâtes carbonara",
+            "categorie": "🍝 Pâtes / Riz",
+            "ingredients": [
+                "Lardons",
+                "Crème fraîche en brique",
+                "Pâtes",
+                "Fromage râpé x2"
+            ]
+        },
+        {
+            "nom": "Pâtes au thon sauce tomate",
+            "categorie": "🍝 Pâtes / Riz",
+            "ingredients": [
+                "Pâtes",
+                "Thon",
+                "Sauce tomate",
+                "Fromage râpé x2"
+            ]
+        },
+        {
+            "nom": "Pâtes bolognaise",
+            "categorie": "🍝 Pâtes / Riz",
+            "ingredients": [
+                "Pâtes",
+                "Steaks hachés",
+                "Sauce tomate",
+                "Fromage râpé x2"
+            ]
+        },
+        {
+            "nom": "Lentilles",
+            "categorie": "🥫 Conserves",
+            "ingredients": [
+                "Boite lentilles chorizo"
+            ]
+        },
+        {
+            "nom": "Gnockis poulet",
+            "categorie": "🧊 Surgelés",
+            "ingredients": [
+                "Gnockis poulet surgelés"
+            ]
+        },
+        {
+            "nom": "Légumes poulet",
+            "categorie": "🧊 Surgelés",
+            "ingredients": [
+                "Légumes poulet surgelés"
+            ]
+        },
+        {
+            "nom": "Tortilla",
+            "categorie": "🥔 Pomme de terre",
+            "ingredients": [
+                "Tortilla",
+                "Ketchup"
+            ]
+        },
+        {
+            "nom": "Salade pâtes composée",
+            "categorie": "🥗 Salade",
+            "ingredients": [
+                "Pâtes",
+                "Tomates cerises",
+                "Fromage en tranches",
+                "Thon",
+                "Huile d'olive",
+                "Vinaigre balsamique"
+            ]
+        },
+        {
+            "nom": "Pâtes chorizo",
+            "categorie": "🍝 Pâtes / Riz",
+            "ingredients": [
+                "Pâtes",
+                "Crème fraîche en brique",
+                "Chorizo",
+                "Fromage râpé x2"
+            ]
+        }
+    ],
+    "shoppingHistory": [
+        {
+            "id": "mgzeah3874zza8",
+            "date": "2025-10-10T17:14:06.980Z",
+            "items": [
+                "Tomates cerises",
+                "Riz"
+            ],
+            "total": 2.89
+        },
+        {
+            "id": "mgzeah3874zza9",
+            "date": "2025-10-20T17:14:06.980Z",
+            "items": [
+                "Tomates cerises",
+                "Riz",
+                "Thon",
+                "Sauce tomate",
+                "Champignons en boîte",
+                "Jus de fruits",
+                "Beurre",
+                "Céréales",
+                "Dés de jambon blanc",
+                "Tortilla",
+                "Yaourt à boire",
+                "Steaks hachés",
+                "Fromage râpé"
+            ],
+            "total": 27.58
+        },
+        {
+            "id": "mgzeah3874zza2",
+            "date": "2025-11-20T17:14:06.980Z",
+            "items": [
+                "Tomates cerises",
+                "Riz",
+                "Thon",
+                "Sauce tomate",
+                "Champignons en boîte",
+                "Jus de fruits",
+                "Beurre",
+                "Céréales",
+                "Dés de jambon blanc",
+                "Tortilla",
+                "Yaourt à boire",
+                "Steaks hachés",
+                "Fromage râpé"
+            ],
+            "total": 31.58
+        }
+    ],
+    "recipeCategories": [
+        "🥗 Salade",
+        "🥫 Conserves",
+        "🧊 Surgelés",
+        "🥔 Pomme de terre",
+        "🍝 Pâtes / Riz"
+    ],
+    "freshCategories": [
+        "🧀 Produits frais",
+        "🥦 Fruits & Légumes frais",
+        "🥶 Surgelés"
+    ]
+}
