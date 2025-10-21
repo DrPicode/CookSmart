@@ -1459,6 +1459,7 @@ export function App() {
                 isFirstTime={!hasSeenTutorial}
                 onStartWithDemo={startWithDemoData}
                 onStartEmpty={startWithEmptyData}
+                onToggleLang={toggleLang}
             />
         </div>
     );

@@ -10,9 +10,10 @@ export interface HelpTutorialProps {
     isFirstTime?: boolean;
     onStartWithDemo?: () => void;
     onStartEmpty?: () => void;
+    onToggleLang?: () => void;
 }
 
-export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty }: HelpTutorialProps) {
+export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty, onToggleLang }: HelpTutorialProps) {
     const steps: { id: number; title: string; detail: string }[] = lang === 'fr'
         ? [
             { id: 1, title: 'Catégories d\'ingrédients', detail: 'Dans Gestion, ajoutez vos catégories. Le flocon ❄️ active le suivi de péremption.' },
@@ -53,11 +54,22 @@ export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onSt
                                     <Dialog.Title className="flex items-center gap-2 font-semibold text-sm">
                                         <BookOpen className="w-5 h-5" /> {t('tutorialTitle')}
                                     </Dialog.Title>
-                                    {!isFirstTime && (
-                                        <button onClick={onClose} className="p-1 rounded hover:bg-white/20" aria-label={t('close')}>
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {isFirstTime && onToggleLang && (
+                                            <button
+                                                onClick={onToggleLang}
+                                                className="px-2 py-1 text-xs rounded bg-white/20 hover:bg-white/30 font-medium"
+                                                aria-label={t('langToggle')}
+                                            >
+                                                {lang === 'fr' ? '🇬🇧 EN' : '🇫🇷 FR'}
+                                            </button>
+                                        )}
+                                        {!isFirstTime && (
+                                            <button onClick={onClose} className="p-1 rounded hover:bg-white/20" aria-label={t('close')}>
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="p-4 space-y-4">
                                     <p className="text-xs text-gray-600 leading-relaxed">
