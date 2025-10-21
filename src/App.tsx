@@ -793,13 +793,13 @@ export function App() {
                                                     setCategories(prev => ({ ...prev, [raw]: [] }));
                                                     setNewIngredientCategoryName('');
                                                 }}
-                                                className="p-2 sm:p-1 rounded bg-green-500 disabled:opacity-40 text-white flex items-center justify-center"
+                                                className="p-1 rounded bg-green-500 disabled:opacity-40 text-white flex items-center justify-center"
                                                 title={lang === 'fr' ? 'Ajouter catégorie' : 'Add category'}
                                             >
                                                 <Plus className="w-3 h-3" />
                                             </button>
                                         </div>
-                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(!showAddIngredient)} className="bg-blue-500 text-white px-3 py-2 sm:py-1.5 rounded-lg text-xs flex items-center gap-1.5 hover:bg-blue-600 w-full sm:w-auto justify-center">
+                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(!showAddIngredient)} className="bg-blue-500 text-white px-3 py-2 sm:py-1.5 rounded-lg text-sm flex items-center gap-2 hover:bg-blue-600 w-full sm:w-auto sm:min-w-[170px] justify-center">
                                             <Plus className="w-4 h-4" />{t('addIngredient')}
                                         </button>
                                     </div>
@@ -1151,8 +1151,8 @@ export function App() {
                             </div>
 
                             <div className="border rounded-lg overflow-hidden">
-                                <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-4 py-3 font-semibold text-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                                    <span className="flex-shrink-0">{t('manageRecipes')}</span>
+                                <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-3 py-2.5 font-medium text-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sticky top-0">
+                                    <span className="text-sm flex-shrink-0">{t('manageRecipes')}</span>
                                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                                         <div className="flex items-center gap-1 w-full sm:w-auto" onMouseDown={(e) => e.stopPropagation()}>
                                             {newRecipeCategoryName !== '' && (
@@ -1166,7 +1166,7 @@ export function App() {
                                             )}
                                             <input
                                                 type="text"
-                                                placeholder={lang === 'fr' ? 'Catégorie recette' : 'Recipe category'}
+                                                placeholder={lang === 'fr' ? 'Nouvelle catégorie' : 'New category'}
                                                 value={newRecipeCategoryName}
                                                 onChange={(e) => setNewRecipeCategoryName(e.target.value)}
                                                 className="px-2 py-1 text-xs border rounded flex-1 sm:w-[140px]"
@@ -1182,13 +1182,13 @@ export function App() {
                                                     setNewRecipe(r => ({ ...r, categorie: r.categorie || raw }));
                                                     setNewRecipeCategoryName('');
                                                 }}
-                                                className="p-2 sm:p-1 rounded bg-green-500 disabled:opacity-40 text-white flex items-center justify-center"
-                                                title={lang === 'fr' ? 'Ajouter catégorie recette' : 'Add recipe category'}
+                                                className="p-1 rounded bg-green-500 disabled:opacity-40 text-white flex items-center justify-center"
+                                                title={lang === 'fr' ? 'Ajouter catégorie' : 'Add category'}
                                             >
                                                 <Plus className="w-3 h-3" />
                                             </button>
                                         </div>
-                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(!showAddRecipe)} className="bg-purple-500 text-white px-3 py-2 sm:py-1 rounded-lg text-sm flex items-center gap-2 hover:bg-purple-600 w-full sm:w-auto justify-center">
+                                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(!showAddRecipe)} className="bg-purple-500 text-white px-3 py-2 sm:py-1.5 rounded-lg text-sm flex items-center gap-2 hover:bg-purple-600 w-full sm:w-auto sm:min-w-[170px] justify-center">
                                             <Plus className="w-4 h-4" />{t('addRecipe')}
                                         </button>
                                     </div>
@@ -1255,9 +1255,9 @@ export function App() {
                                                         </button>
                                                         <button
                                                             className="p-1 rounded hover:bg-red-100"
-                                                            title={lang === 'fr' ? 'Supprimer catégorie recette' : 'Delete recipe category'}
+                                                            title={lang === 'fr' ? 'Supprimer catégorie' : 'Delete category'}
                                                             onClick={() => {
-                                                                if (!confirm(lang === 'fr' ? 'Supprimer la catégorie recette et toutes ses recettes ?' : 'Delete recipe category and all its recipes?')) return;
+                                                                if (!confirm(lang === 'fr' ? 'Supprimer la catégorie et toutes ses recettes ?' : 'Delete category and all its recipes?')) return;
                                                                 setRecettes(prev => prev.filter(r => r.categorie !== cat));
                                                                 setEditingRecipe(er => er && er.data.categorie === cat ? null : er);
                                                                 setNewRecipe(r => ({ ...r, categorie: r.categorie === cat ? '' : r.categorie }));
