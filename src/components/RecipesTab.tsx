@@ -34,13 +34,21 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
         const filtered: { [cat: string]: RecipeType[] } = {};
 
         for (const [categorie, recipes] of Object.entries(recettesGroupees)) {
+            // Check if category name matches the search query
+            const categoryMatches = categorie.toLowerCase().includes(query);
+            
+            // Filter recipes that match the search query
             const filteredRecs = recipes.filter(recipe => 
                 recipe.nom.toLowerCase().includes(query) ||
                 recipe.ingredients.some(ing => ing.toLowerCase().includes(query))
             );
             
-            if (filteredRecs.length > 0) {
-                filtered[categorie] = filteredRecs;
+            // Include the category if either:
+            // 1. The category name matches, or
+            // 2. At least one recipe matches
+            if (categoryMatches || filteredRecs.length > 0) {
+                // If category matches, show all recipes; otherwise show only filtered recipes
+                filtered[categorie] = categoryMatches ? recipes : filteredRecs;
             }
         }
 

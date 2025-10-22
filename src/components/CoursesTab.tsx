@@ -65,12 +65,20 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
         const filtered: [string, string[]][] = [];
 
         for (const [categorie, items] of orderedCategories) {
+            // Check if category name matches the search query
+            const categoryMatches = categorie.toLowerCase().includes(query);
+            
+            // Filter items that match the search query
             const filteredItems = items.filter(item => 
                 item.toLowerCase().includes(query)
             );
             
-            if (filteredItems.length > 0) {
-                filtered.push([categorie, filteredItems]);
+            // Include the category if either:
+            // 1. The category name matches, or
+            // 2. At least one ingredient matches
+            if (categoryMatches || filteredItems.length > 0) {
+                // If category matches, show all items; otherwise show only filtered items
+                filtered.push([categorie, categoryMatches ? items : filteredItems]);
             }
         }
 
