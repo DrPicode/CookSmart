@@ -257,10 +257,11 @@ export function App() {
                     active={activeTab}
                     onChange={setActiveTab}
                     recipesPossibleCount={recettesPossibles.length}
+                    hasPriorityRecipes={recettesPrioritaires.length > 0}
                     t={t}
                 />
 
-                <div className="p-2 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+                <div className="p-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
                     {activeTab === 'courses' && (
                         <CoursesTab
                             t={t}
@@ -338,7 +339,7 @@ export function App() {
             {!showHelp && activeTab === 'courses' && (
                 <button
                     onClick={() => setShowAddIngredientModal(true)}
-                    className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                    className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
                     aria-label={t('addIngredient')}
                 >
                     <Plus className="w-6 h-6" />
@@ -347,7 +348,7 @@ export function App() {
             {!showHelp && activeTab === 'recettes' && (
                 <button
                     onClick={() => setShowAddRecipeModal(true)}
-                    className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                    className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
                     aria-label={t('addRecipe')}
                 >
                     <Plus className="w-6 h-6" />

@@ -4,7 +4,7 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
     fr: {
         appTitle: 'CookSmart',
         appSubtitle: 'Gérez courses, recettes et dates de péremption',
-        tabCourses: 'Courses', tabRecettes: 'Recettes', tabGestion: 'Gestion', tabHistorique: 'Hist.',
+        tabCourses: 'Liste', tabRecettes: 'Recettes', tabGestion: 'Gestion', tabHistorique: 'Hist.',
         resetData: 'Réinitialiser', confirmReset: 'Effacer TOUTES les données ? (ingrédients, catégories, recettes, historique)',
         langToggle: 'Langue',
         startShopping: 'Démarrer les courses',
@@ -60,7 +60,7 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
     en: {
         appTitle: 'CookSmart',
         appSubtitle: 'Manage groceries, recipes & expiry dates',
-        tabCourses: 'Groceries', tabRecettes: 'Recipes', tabGestion: 'Manage', tabHistorique: 'Hist.',
+        tabCourses: 'List', tabRecettes: 'Recipes', tabGestion: 'Manage', tabHistorique: 'Hist.',
         resetData: 'Reset', confirmReset: 'Delete ALL data? (ingredients, categories, recipes, history)',
         langToggle: 'Language',
         startShopping: 'Start shopping',
