@@ -128,11 +128,19 @@ The most urgent ingredient in each recipe is highlighted with an orange outline.
 
 ---
 
-## 🗺️ Roadmap
+## � PWA (Progressive Web App)
 
-**✅ Recent**: Modular architecture, FR/EN i18n, Tutorial, Clean project structure, Demo data system  
-**📋 Next**: Dark mode, PWA support, Stats & charts, Advanced filters  
-**🔮 Future**: Multi-device sync, AI recipe suggestions, Meal planning
+This app is a **fully installable PWA**! You can:
+- **Install it** on your smartphone or desktop (Add to Home Screen)
+- **Use it offline** thanks to service workers
+- **Fast loading** with smart caching
+- **Native app experience** without going through an app store
+
+The PWA is automatically configured via `vite-plugin-pwa` with:
+- Automatic updates
+- Offline support for all resources
+- App manifest with icons
+- Service worker for caching
 
 ---
 

@@ -1,0 +1,5 @@
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#4F46E5" rx="32"/>
+  <text x="96" y="85" font-family="Arial, sans-serif" font-size="80" text-anchor="middle" dominant-baseline="middle">🍳</text>
+  <text x="96" y="155" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle">Recipes</text>
+</svg>
