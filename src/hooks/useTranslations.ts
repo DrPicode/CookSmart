@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 
 const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
     fr: {
-        appTitle: 'Gestionnaire de Courses',
-        appSubtitle: 'Gérez vos courses et découvrez les plats que vous pouvez cuisiner',
+        appTitle: 'CookSmart',
+        appSubtitle: 'Gérez courses, recettes et dates de péremption',
         tabCourses: 'Courses', tabRecettes: 'Recettes', tabGestion: 'Gestion', tabHistorique: 'Hist.',
         resetData: 'Réinitialiser', confirmReset: 'Effacer TOUTES les données ? (ingrédients, catégories, recettes, historique)',
         langToggle: 'Langue',
@@ -56,8 +56,8 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
         installPWA: 'Installer l\'app', installPWATitle: '📱 Installer l\'application', installPWADescription: 'Installez Recipe Manager sur votre téléphone pour un accès rapide et une utilisation hors ligne !', installPWAButton: 'Installer maintenant', installPWALater: 'Peut-être plus tard', installPWAAlreadyInstalled: '✓ Déjà installée'
     },
     en: {
-        appTitle: 'Shopping & Recipes Manager',
-        appSubtitle: 'Manage groceries and discover meals you can cook',
+        appTitle: 'CookSmart',
+        appSubtitle: 'Manage groceries, recipes & expiry dates',
         tabCourses: 'Groceries', tabRecettes: 'Recipes', tabGestion: 'Manage', tabHistorique: 'Hist.',
         resetData: 'Reset', confirmReset: 'Delete ALL data? (ingredients, categories, recipes, history)',
         langToggle: 'Language',

@@ -1,6 +1,6 @@
 <div align="center">
-  <h1>🍽️ Recipe Manager</h1>
-  <p><strong>Smart mobile-first app to manage ingredients, prioritize recipes by expiration, and optimize shopping.</strong></p>
+  <h1>� CookSmart</h1>
+  <p><strong>Your intelligent cooking companion - Manage ingredients, prioritize recipes by expiration, and shop smarter.</strong></p>
   
   ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)
   ![React](https://img.shields.io/badge/React-18.2-61DAFB?style=flat&logo=react&logoColor=black)
@@ -10,7 +10,7 @@
   
   <br/>
   
-  **📱 [Try the App Now](https://drpicode.github.io/Recipe-Manager/)** • **[Download as PWA](https://drpicode.github.io/Recipe-Manager/)**
+  **📱 [Try CookSmart Now](https://drpicode.github.io/CookSmart/)** • **[Install as PWA](https://drpicode.github.io/CookSmart/)**
   
 </div>
 
@@ -67,8 +67,8 @@ src/
 ### Quick Installation
 ```bash
 # Clone the repository
-git clone https://github.com/DrPicode/Recipe-Manager.git
-cd Recipe-Manager
+git clone https://github.com/DrPicode/CookSmart.git
+cd CookSmart
 
 # Install dependencies
 npm install

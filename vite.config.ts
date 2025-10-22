@@ -9,9 +9,9 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.svg'],
             manifest: {
-                name: 'Recipe Manager',
-                short_name: 'Recipes',
-                description: 'Manage your recipes and shopping lists easily',
+                name: 'CookSmart',
+                short_name: 'CookSmart',
+                description: 'Smart cooking assistant - Manage groceries, recipes & expiry dates',
                 theme_color: '#ffffff',
                 background_color: '#ffffff',
                 display: 'standalone',
