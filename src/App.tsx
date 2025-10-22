@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ShoppingSession, loadDemoData } from './lib/exportImport';
-import { ChefHat, RefreshCcw, Languages, HelpCircle, Plus } from 'lucide-react';
+import { ChefHat, Trash2, Languages, HelpCircle, Plus } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
@@ -34,6 +34,7 @@ export function App() {
     const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', []);
     const [freshCategories, setFreshCategories] = usePersistentState<FreshCategoriesType>('freshCategories', []);
     const [recipeCategories, setRecipeCategories] = usePersistentState<string[]>('recipeCategories', []);
+    const [categoryOrder, setCategoryOrder] = usePersistentState<string[]>('categoryOrder', []);
     const [lang, setLang] = usePersistentState<'fr' | 'en'>('lang', 'fr');
     const { t } = useTranslations(lang);
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion' | 'historique'>('courses');
@@ -60,7 +61,7 @@ export function App() {
     const resetAllData = () => {
         if (!confirm(t('confirmReset'))) return;
         try { 
-            const keys = ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen', 'notificationsEnabled'];
+            const keys = ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen', 'notificationsEnabled', 'categoryOrder'];
             for (const k of keys) {
                 localStorage.removeItem(k);
             }
@@ -70,6 +71,7 @@ export function App() {
         setRecettes([]);
         setShoppingHistory([]);
         setRecipeCategories([]);
+        setCategoryOrder([]);
         setHasSeenTutorial(false);
         setNotificationsEnabled(false);
         setShowHelp(true);
@@ -244,7 +246,7 @@ export function App() {
                                     aria-label={t('resetData')}
                                     className="flex items-center gap-1 px-3 py-2 rounded-full bg-red-500/80 active:bg-red-600 hover:bg-red-600 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
                                 >
-                                    <RefreshCcw className="w-4 h-4" /> <span className="hidden sm:inline">{t('resetData')}</span>
+                                    <Trash2 className="w-4 h-4" /> <span className="hidden sm:inline">{t('resetData')}</span>
                                 </button>
                             </div>
                         </div>
@@ -279,6 +281,7 @@ export function App() {
                             toggleIngredient={toggleIngredient}
                             setIngredients={setIngredients}
                             totalCourses={totalCourses}
+                            categoryOrder={categoryOrder}
                         />
                     )}
 
@@ -310,6 +313,8 @@ export function App() {
                                 ingredients={ingredients}
                                 freshCategories={freshCategories}
                                 management={management}
+                                categoryOrder={categoryOrder}
+                                setCategoryOrder={setCategoryOrder}
                             />
                         </>
                     )}

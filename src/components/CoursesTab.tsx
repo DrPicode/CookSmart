@@ -23,6 +23,7 @@ interface CoursesTabProps {
     toggleIngredient: (ing: string) => void;
     setIngredients: React.Dispatch<React.SetStateAction<IngredientsType>>;
     totalCourses: number;
+    categoryOrder: string[];
 }
 
 export const CoursesTab: React.FC<CoursesTabProps> = ({
@@ -43,30 +44,38 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
     toggleShoppingItem,
     toggleIngredient,
     setIngredients,
-    totalCourses
+    totalCourses,
+    categoryOrder
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Get ordered categories
+    const orderedCategories = useMemo(() => {
+        return categoryOrder
+            .filter(cat => categories[cat])
+            .map(cat => [cat, categories[cat]] as [string, string[]]);
+    }, [categoryOrder, categories]);
+
     const filteredCategories = useMemo(() => {
         if (!searchQuery.trim()) {
-            return categories;
+            return orderedCategories;
         }
 
         const query = searchQuery.toLowerCase().trim();
-        const filtered: CategoriesType = {};
+        const filtered: [string, string[]][] = [];
 
-        for (const [categorie, items] of Object.entries(categories)) {
+        for (const [categorie, items] of orderedCategories) {
             const filteredItems = items.filter(item => 
                 item.toLowerCase().includes(query)
             );
             
             if (filteredItems.length > 0) {
-                filtered[categorie] = filteredItems;
+                filtered.push([categorie, filteredItems]);
             }
         }
 
         return filtered;
-    }, [categories, searchQuery]);
+    }, [orderedCategories, searchQuery]);
 
     return (
         <div className="space-y-4">
@@ -90,7 +99,7 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
                 </button>
             )}
 
-            {Object.entries(filteredCategories).map(([categorie, items]) => (
+            {filteredCategories.map(([categorie, items]) => (
                 <CategoryIngredients
                     key={categorie}
                     categorie={categorie}

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Edit2, Trash2, Save, Snowflake } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Edit2, Trash2, Save, Snowflake, ChevronUp, ChevronDown } from 'lucide-react';
 import { IngredientsType, CategoriesType, FreshCategoriesType } from '../types';
 import { UseManagementReturn } from '../hooks/useManagement';
 import { formatDate, formatDaysLeft, computeExpiryStatus } from '../utils/expiry';
@@ -11,9 +11,48 @@ interface ManageTabProps {
     ingredients: IngredientsType;
     freshCategories: FreshCategoriesType;
     management: UseManagementReturn;
+    categoryOrder: string[];
+    setCategoryOrder: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingredients, freshCategories, management }) => {
+export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingredients, freshCategories, management, categoryOrder, setCategoryOrder }) => {
+    // Synchronize categoryOrder with categories
+    useEffect(() => {
+        const currentCategories = Object.keys(categories);
+        const needsUpdate = currentCategories.some(cat => !categoryOrder.includes(cat)) || 
+                            categoryOrder.some(cat => !currentCategories.includes(cat));
+        
+        if (needsUpdate) {
+            // Keep existing order and add new categories at the end
+            const newOrder = categoryOrder.filter(cat => currentCategories.includes(cat));
+            const newCategories = currentCategories.filter(cat => !newOrder.includes(cat));
+            setCategoryOrder([...newOrder, ...newCategories]);
+        }
+    }, [categories, categoryOrder, setCategoryOrder]);
+
+    // Get ordered categories
+    const orderedCategories = categoryOrder
+        .filter(cat => categories[cat])
+        .map(cat => [cat, categories[cat]] as [string, string[]]);
+
+    const moveCategoryUp = (categorie: string) => {
+        const index = categoryOrder.indexOf(categorie);
+        if (index > 0) {
+            const newOrder = [...categoryOrder];
+            [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+            setCategoryOrder(newOrder);
+        }
+    };
+
+    const moveCategoryDown = (categorie: string) => {
+        const index = categoryOrder.indexOf(categorie);
+        if (index < categoryOrder.length - 1) {
+            const newOrder = [...categoryOrder];
+            [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+            setCategoryOrder(newOrder);
+        }
+    };
+
     const {
         showAddIngredient, setShowAddIngredient,
         showAddRecipe, setShowAddRecipe,
@@ -147,7 +186,7 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                 )}
 
                 <div className="p-4">
-                    {Object.entries(categories).map(([categorie, items]) => (
+                    {orderedCategories.map(([categorie, items], index) => (
                         <div key={categorie} className="mb-4">
                             {editingCategory?.original === categorie ? (
                                 <div className="flex items-center gap-2 mb-2">
@@ -187,6 +226,23 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                                         {categorie}
                                     </h4>
                                     <div className="flex items-center gap-1">
+                                        <button
+                                            className="p-1.5 rounded hover:bg-gray-100 active:bg-gray-200"
+                                            title={lang === 'fr' ? 'Monter' : 'Move up'}
+                                            onClick={() => moveCategoryUp(categorie)}
+                                            disabled={index === 0}
+                                        >
+                                            <ChevronUp className={`w-4 h-4 ${index === 0 ? 'text-gray-300' : 'text-gray-600'}`} />
+                                        </button>
+                                        <button
+                                            className="p-1.5 rounded hover:bg-gray-100 active:bg-gray-200"
+                                            title={lang === 'fr' ? 'Descendre' : 'Move down'}
+                                            onClick={() => moveCategoryDown(categorie)}
+                                            disabled={index === orderedCategories.length - 1}
+                                        >
+                                            <ChevronDown className={`w-4 h-4 ${index === orderedCategories.length - 1 ? 'text-gray-300' : 'text-gray-600'}`} />
+                                        </button>
+                                        <div className="w-px h-4 bg-gray-300 mx-0.5"></div>
                                         <button
                                             className={`p-1 rounded hover:bg-blue-100 ${freshCategories.includes(categorie) ? 'bg-blue-50' : ''}`}
                                             title={freshCategories.includes(categorie) ? (lang === 'fr' ? 'Retirer statut frais' : 'Unset fresh') : (lang === 'fr' ? 'Marquer frais' : 'Mark fresh')}
