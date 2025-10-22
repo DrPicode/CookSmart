@@ -14,6 +14,8 @@ import { HistoryTab } from './components/HistoryTab';
 import { ManageTab } from './components/ManageTab';
 import { HelpTutorial } from './components/HelpTutorial';
 import { TabsBar } from './components/TabsBar';
+import { AddIngredientModal } from './components/AddIngredientModal';
+import { AddRecipeModal } from './components/AddRecipeModal';
 import { useTranslations } from './hooks/useTranslations';
 import { useShopping } from './hooks/useShopping';
 import { useRecipes } from './hooks/useRecipes';
@@ -49,6 +51,8 @@ export function App() {
     const [historySelectMode, setHistorySelectMode] = useState(false);
     const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
     const [showHelp, setShowHelp] = useState(false);
+    const [showAddIngredientModal, setShowAddIngredientModal] = useState(false);
+    const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
     const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
         try { return localStorage.getItem('tutorialSeen') === '1'; } catch { return false; }
     });
@@ -260,10 +264,7 @@ export function App() {
             </div>
             {!showHelp && activeTab === 'courses' && (
                 <button
-                    onClick={() => {
-                        setActiveTab('gestion');
-                        setTimeout(() => management.setShowAddIngredient(true), 100);
-                    }}
+                    onClick={() => setShowAddIngredientModal(true)}
                     className="fixed bottom-20 right-4 sm:right-6 z-[60] bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
                     aria-label={t('addIngredient')}
                 >
@@ -272,16 +273,33 @@ export function App() {
             )}
             {!showHelp && activeTab === 'recettes' && (
                 <button
-                    onClick={() => {
-                        setActiveTab('gestion');
-                        setTimeout(() => management.setShowAddRecipe(true), 100);
-                    }}
+                    onClick={() => setShowAddRecipeModal(true)}
                     className="fixed bottom-20 right-4 sm:right-6 z-[60] bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
                     aria-label={t('addRecipe')}
                 >
                     <Plus className="w-6 h-6" />
                 </button>
             )}
+
+            <AddIngredientModal
+                isOpen={showAddIngredientModal}
+                onClose={() => setShowAddIngredientModal(false)}
+                t={t}
+                lang={lang}
+                categories={categories}
+                ingredients={ingredients}
+                freshCategories={freshCategories}
+                management={management}
+            />
+
+            <AddRecipeModal
+                isOpen={showAddRecipeModal}
+                onClose={() => setShowAddRecipeModal(false)}
+                t={t}
+                lang={lang}
+                management={management}
+            />
+
             <HelpTutorial
                 open={showHelp}
                 onClose={closeHelp}
