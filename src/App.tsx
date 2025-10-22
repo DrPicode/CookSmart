@@ -16,10 +16,12 @@ import { HelpTutorial } from './components/HelpTutorial';
 import { TabsBar } from './components/TabsBar';
 import { AddIngredientModal } from './components/AddIngredientModal';
 import { AddRecipeModal } from './components/AddRecipeModal';
+import { PWAInstallButton } from './components/PWAInstallButton';
 import { useTranslations } from './hooks/useTranslations';
 import { useShopping } from './hooks/useShopping';
 import { useRecipes } from './hooks/useRecipes';
 import { useManagement } from './hooks/useManagement';
+import { usePWAInstall } from './hooks/usePWAInstall';
 
 export function App() {
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', {});
@@ -46,6 +48,9 @@ export function App() {
         setRecipeCategories([]);
     };
     const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
+
+    // PWA Install
+    const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
 
     useEffect(() => { }, []);
     const [historySelectMode, setHistorySelectMode] = useState(false);
@@ -166,14 +171,7 @@ export function App() {
                             <p className="mt-1 text-orange-100 text-xs">{t('appSubtitle')}</p>
                         </div>
                         <div className="flex flex-col gap-2 items-end">
-                            <div className="flex gap-1.5">
-                                <button
-                                    onClick={toggleLang}
-                                    aria-label={t('langToggle')}
-                                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
-                                >
-                                    <Languages className="w-4 h-4" /> <span className="hidden sm:inline">{t('langToggle')}</span> {lang.toUpperCase()}
-                                </button>
+                            <div className="flex flex-wrap gap-1.5 justify-end">
                                 <button
                                     onClick={openHelp}
                                     aria-label={t('help')}
@@ -181,14 +179,27 @@ export function App() {
                                 >
                                     <HelpCircle className="w-4 h-4" /> <span className="hidden sm:inline">{t('help')}</span>
                                 </button>
+                                <button
+                                    onClick={toggleLang}
+                                    aria-label={t('langToggle')}
+                                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
+                                >
+                                    <Languages className="w-4 h-4" /> <span className="hidden sm:inline">{lang.toUpperCase()}</span>
+                                </button>
+                                <PWAInstallButton
+                                    isInstallable={isInstallable}
+                                    isInstalled={isInstalled}
+                                    onInstall={promptInstall}
+                                    label={isInstalled ? t('installPWAAlreadyInstalled') : t('installPWA')}
+                                />
+                                <button
+                                    onClick={resetAllData}
+                                    aria-label={t('resetData')}
+                                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-red-500/80 active:bg-red-600 hover:bg-red-600 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
+                                >
+                                    <RefreshCcw className="w-4 h-4" /> <span className="hidden sm:inline">{t('resetData')}</span>
+                                </button>
                             </div>
-                            <button
-                                onClick={resetAllData}
-                                aria-label={t('resetData')}
-                                className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
-                            >
-                                <RefreshCcw className="w-4 h-4" /> <span>{t('resetData')}</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -309,6 +320,9 @@ export function App() {
                 onStartWithDemo={startWithDemoData}
                 onStartEmpty={startWithEmptyData}
                 onToggleLang={toggleLang}
+                isInstallable={isInstallable}
+                isInstalled={isInstalled}
+                onInstallPWA={promptInstall}
             />
         </div>
     );

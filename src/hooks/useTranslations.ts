@@ -52,7 +52,8 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
         daysLeft: 'jours restants',
         help: 'Aide', tutorialTitle: 'Guide rapide', tutorialIntro: 'Voici les étapes pour utiliser l\'application au mieux :', tutorialGotIt: 'J\'ai compris', tutorialBackToTop: 'Retour en haut', tutorialFooterNote: 'Astuce : les données sont sauvegardées automatiquement dans votre navigateur.',
         tutorialStartWithDemo: 'Commencer avec les données démo', tutorialStartEmpty: 'Commencer avec aucune donnée',
-        freshToggleLabel: 'Catégorie fraîche (suivi date péremption)', freshSectionTitle: 'Catégories fraîches'
+        freshToggleLabel: 'Catégorie fraîche (suivi date péremption)', freshSectionTitle: 'Catégories fraîches',
+        installPWA: 'Installer l\'app', installPWATitle: '📱 Installer l\'application', installPWADescription: 'Installez Recipe Manager sur votre téléphone pour un accès rapide et une utilisation hors ligne !', installPWAButton: 'Installer maintenant', installPWALater: 'Peut-être plus tard', installPWAAlreadyInstalled: '✓ Déjà installée'
     },
     en: {
         appTitle: 'Shopping & Recipes Manager',
@@ -105,7 +106,8 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
         daysLeft: 'days left',
         help: 'Help', tutorialTitle: 'Quick tutorial', tutorialIntro: 'Follow these steps to get the best out of the app:', tutorialGotIt: 'Got it', tutorialBackToTop: 'Back to top', tutorialFooterNote: 'Tip: data is saved automatically in your browser.',
         tutorialStartWithDemo: 'Start with demo data', tutorialStartEmpty: 'Start with no data',
-        freshToggleLabel: 'Fresh category (expiry tracking)', freshSectionTitle: 'Fresh categories'
+        freshToggleLabel: 'Fresh category (expiry tracking)', freshSectionTitle: 'Fresh categories',
+        installPWA: 'Install app', installPWATitle: '📱 Install the app', installPWADescription: 'Install Recipe Manager on your phone for quick access and offline use!', installPWAButton: 'Install now', installPWALater: 'Maybe later', installPWAAlreadyInstalled: '✓ Already installed'
     }
 };
 

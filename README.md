@@ -6,6 +6,12 @@
   ![React](https://img.shields.io/badge/React-18.2-61DAFB?style=flat&logo=react&logoColor=black)
   ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
   ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
+  ![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=flat&logo=pwa&logoColor=white)
+  
+  <br/>
+  
+  **📱 [Try the App Now](https://drpicode.github.io/Recipe-Manager/)** • **[Download as PWA](https://drpicode.github.io/Recipe-Manager/)**
+  
 </div>
 
 ---

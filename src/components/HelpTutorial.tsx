@@ -11,9 +11,12 @@ export interface HelpTutorialProps {
     onStartWithDemo?: () => void;
     onStartEmpty?: () => void;
     onToggleLang?: () => void;
+    isInstallable?: boolean;
+    isInstalled?: boolean;
+    onInstallPWA?: () => void;
 }
 
-export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty, onToggleLang }: HelpTutorialProps) {
+export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty, onToggleLang, isInstallable, isInstalled, onInstallPWA }: HelpTutorialProps) {
     const steps: { id: number; title: string; detail: string }[] = lang === 'fr'
         ? [
             { id: 1, title: 'Catégories d\'ingrédients', detail: 'Dans Gestion, ajoutez vos catégories. Le flocon ❄️ active le suivi de péremption.' },
@@ -91,6 +94,23 @@ export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onSt
                                     </ol>
                                     {isFirstTime ? (
                                         <>
+                                            {isInstallable && !isInstalled && (
+                                                <div className="pt-2 pb-2 px-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="text-2xl">📱</div>
+                                                        <div className="flex-1">
+                                                            <h4 className="text-sm font-semibold text-gray-800 mb-1">{t('installPWATitle')}</h4>
+                                                            <p className="text-xs text-gray-600 mb-2">{t('installPWADescription')}</p>
+                                                            <button
+                                                                onClick={() => {
+                                                                    onInstallPWA?.();
+                                                                }}
+                                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-md shadow-sm"
+                                                            >{t('installPWAButton')}</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div className="pt-2 flex flex-col sm:flex-row gap-2">
                                                 <button
                                                     onClick={() => {
