@@ -62,31 +62,13 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                             <option value="__NEW_CATEGORY__">{lang === 'fr' ? '➕ Nouvelle catégorie...' : '➕ New category...'}</option>
                         </select>
                         {management.showNewIngredientCategoryField && (
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    placeholder={lang === 'fr' ? 'Nom de la catégorie' : 'Category name'}
-                                    value={management.newIngredientCategoryInput}
-                                    onChange={(e) => management.setNewIngredientCategoryInput(e.target.value)}
-                                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={management.createIngredientCategory}
-                                    className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
-                                >
-                                    {t('saveAction')}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        management.setNewIngredientCategoryInput('');
-                                        management.handleIngredientCategoryChange('');
-                                    }}
-                                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-400"
-                                >
-                                    {t('cancel')}
-                                </button>
-                            </div>
+                            <input
+                                type="text"
+                                placeholder={lang === 'fr' ? 'Nom de la nouvelle catégorie' : 'New category name'}
+                                value={management.newIngredientCategoryInput}
+                                onChange={(e) => management.setNewIngredientCategoryInput(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                            />
                         )}
                         <div className="flex items-center gap-2">
                             <div className="flex-1 relative">
@@ -130,7 +112,7 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                                 onClick={addIngredient}
                                 disabled={
                                     !newIngredient.name.trim() ||
-                                    !newIngredient.category ||
+                                    (!newIngredient.category && !management.newIngredientCategoryInput.trim()) ||
                                     newIngredient.price === '' ||
                                     newIngredient.parts === '' ||
                                     isNaN(parseFloat(newIngredient.price)) ||
@@ -436,31 +418,13 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                             <option value="__NEW_CATEGORY__">{lang === 'fr' ? '➕ Nouvelle catégorie...' : '➕ New category...'}</option>
                         </select>
                         {management.showNewRecipeCategoryField && (
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    placeholder={lang === 'fr' ? 'Nom de la catégorie' : 'Category name'}
-                                    value={management.newRecipeCategoryInput}
-                                    onChange={(e) => management.setNewRecipeCategoryInput(e.target.value)}
-                                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={management.createRecipeCategory}
-                                    className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
-                                >
-                                    {t('saveAction')}
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        management.setNewRecipeCategoryInput('');
-                                        management.handleRecipeCategoryChange('');
-                                    }}
-                                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-400"
-                                >
-                                    {t('cancel')}
-                                </button>
-                            </div>
+                            <input
+                                type="text"
+                                placeholder={lang === 'fr' ? 'Nom de la nouvelle catégorie' : 'New category name'}
+                                value={management.newRecipeCategoryInput}
+                                onChange={(e) => management.setNewRecipeCategoryInput(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                            />
                         )}
                         <div className="border rounded-lg p-3 bg-white max-h-60 overflow-y-auto">
                             <p className="text-sm font-semibold mb-2">{lang === 'fr' ? 'Sélectionner les ingrédients :' : 'Select ingredients:'}</p>
@@ -474,7 +438,16 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                             </div>
                         </div>
                         <div className="flex gap-2">
-                            <button onMouseDown={(e) => e.preventDefault()} onClick={addRecipe} className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600">
+                            <button 
+                                onMouseDown={(e) => e.preventDefault()} 
+                                onClick={addRecipe}
+                                disabled={
+                                    !newRecipe.nom.trim() ||
+                                    (!newRecipe.categorie && !management.newRecipeCategoryInput.trim()) ||
+                                    newRecipe.ingredients.length === 0
+                                }
+                                className="bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600"
+                            >
                                 <Save className="w-4 h-4" />{t('save')}
                             </button>
                             <button 

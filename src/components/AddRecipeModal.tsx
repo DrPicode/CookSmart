@@ -103,30 +103,13 @@ export function AddRecipeModal({
                                     </select>
 
                                     {management.showNewRecipeCategoryField && (
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                placeholder={lang === 'fr' ? 'Nom de la catégorie' : 'Category name'}
-                                                value={management.newRecipeCategoryInput}
-                                                onChange={(e) => management.setNewRecipeCategoryInput(e.target.value)}
-                                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
-                                            />
-                                            <button
-                                                onClick={management.createRecipeCategory}
-                                                className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
-                                            >
-                                                {t('saveAction')}
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    management.setNewRecipeCategoryInput('');
-                                                    management.handleRecipeCategoryChange('');
-                                                }}
-                                                className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-400"
-                                            >
-                                                {t('cancel')}
-                                            </button>
-                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder={lang === 'fr' ? 'Nom de la nouvelle catégorie' : 'New category name'}
+                                            value={management.newRecipeCategoryInput}
+                                            onChange={(e) => management.setNewRecipeCategoryInput(e.target.value)}
+                                            className="w-full px-3 py-2 border rounded-lg text-sm"
+                                        />
                                     )}
 
                                     <div className="border rounded-lg p-3 bg-white max-h-60 overflow-y-auto">
@@ -159,7 +142,7 @@ export function AddRecipeModal({
                                             onClick={handleAdd}
                                             disabled={
                                                 !newRecipe.nom.trim() ||
-                                                !newRecipe.categorie ||
+                                                (!newRecipe.categorie && !management.newRecipeCategoryInput.trim()) ||
                                                 newRecipe.ingredients.length === 0
                                             }
                                             className="flex-1 bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-600"

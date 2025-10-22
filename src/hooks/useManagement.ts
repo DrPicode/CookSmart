@@ -60,7 +60,15 @@ export function useManagement({
 
     const addIngredient = useCallback(() => {
         const name = newIngredient.name.trim();
-        const category = newIngredient.category;
+        let category = newIngredient.category;
+        if (showNewIngredientCategoryField && newIngredientCategoryInput.trim()) {
+            category = newIngredientCategoryInput.trim();
+            if (categories[category]) {
+                alert(t('categoryExists'));
+                return;
+            }
+        }
+        
         const priceNum = parseFloat(newIngredient.price);
         const partsNum = parseInt(newIngredient.parts, 10);
         if (!name || !category || isNaN(priceNum) || isNaN(partsNum) || partsNum < 1 || priceNum < 0) {
@@ -78,8 +86,10 @@ export function useManagement({
         });
         setCategories(prev => ({ ...prev, [category]: [...(prev[category] || []), name] }));
         setNewIngredient({ name: '', category: '', price: '', parts: '', expiryDate: '' });
+        setShowNewIngredientCategoryField(false);
+        setNewIngredientCategoryInput('');
         setShowAddIngredient(false);
-    }, [newIngredient, ingredients, lang, setIngredients, setCategories]);
+    }, [newIngredient, ingredients, lang, setIngredients, setCategories, showNewIngredientCategoryField, newIngredientCategoryInput, categories, t]);
 
     const deleteIngredient = useCallback((ingredient: string, category: string) => {
         if (!confirm(t('deleteIngredientConfirm').replace('{name}', ingredient))) return;
@@ -89,14 +99,29 @@ export function useManagement({
     }, [t, setIngredients, setCategories, setRecettes]);
 
     const addRecipe = useCallback(() => {
-        if (!newRecipe.nom.trim() || !newRecipe.categorie || newRecipe.ingredients.length === 0) return;
-        setRecettes(prev => [...prev, { ...newRecipe }]);
-        if (!recipeCategories.includes(newRecipe.categorie)) {
-            setRecipeCategories(prev => [...prev, newRecipe.categorie]);
+        // Si on est en train de créer une nouvelle catégorie, utiliser le nom de la nouvelle catégorie
+        let categorie = newRecipe.categorie;
+        if (showNewRecipeCategoryField && newRecipeCategoryInput.trim()) {
+            categorie = newRecipeCategoryInput.trim();
+            // Vérifier si la catégorie existe déjà
+            if (recipeCategories.includes(categorie)) {
+                alert(t('categoryExists'));
+                return;
+            }
+        }
+        
+        if (!newRecipe.nom.trim() || !categorie || newRecipe.ingredients.length === 0) return;
+        
+        const recipeToAdd = { ...newRecipe, categorie };
+        setRecettes(prev => [...prev, recipeToAdd]);
+        if (!recipeCategories.includes(categorie)) {
+            setRecipeCategories(prev => [...prev, categorie]);
         }
         setNewRecipe({ nom: '', categorie: '', ingredients: [] });
+        setShowNewRecipeCategoryField(false);
+        setNewRecipeCategoryInput('');
         setShowAddRecipe(false);
-    }, [newRecipe, recipeCategories, setRecettes, setRecipeCategories]);
+    }, [newRecipe, recipeCategories, setRecettes, setRecipeCategories, showNewRecipeCategoryField, newRecipeCategoryInput, t]);
 
     const updateRecipe = useCallback(() => {
         if (!editingRecipe) return;

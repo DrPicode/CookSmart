@@ -107,30 +107,13 @@ export function AddIngredientModal({
                                     </select>
 
                                     {management.showNewIngredientCategoryField && (
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                placeholder={lang === 'fr' ? 'Nom de la catégorie' : 'Category name'}
-                                                value={management.newIngredientCategoryInput}
-                                                onChange={(e) => management.setNewIngredientCategoryInput(e.target.value)}
-                                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
-                                            />
-                                            <button
-                                                onClick={management.createIngredientCategory}
-                                                className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
-                                            >
-                                                {t('saveAction')}
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    management.setNewIngredientCategoryInput('');
-                                                    management.handleIngredientCategoryChange('');
-                                                }}
-                                                className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-400"
-                                            >
-                                                {t('cancel')}
-                                            </button>
-                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder={lang === 'fr' ? 'Nom de la nouvelle catégorie' : 'New category name'}
+                                            value={management.newIngredientCategoryInput}
+                                            onChange={(e) => management.setNewIngredientCategoryInput(e.target.value)}
+                                            className="w-full px-3 py-2 border rounded-lg text-sm"
+                                        />
                                     )}
 
                                     <div className="flex items-center gap-2">
@@ -160,7 +143,7 @@ export function AddIngredientModal({
                                     </div>
 
                                     {freshCategories.includes(newIngredient.category) && (
-                                        <div>
+                                        <div className="w-full">
                                             <label className="block text-[11px] text-gray-600 mb-1">
                                                 {t('expiryOptional')}
                                             </label>
@@ -168,7 +151,7 @@ export function AddIngredientModal({
                                                 type="date"
                                                 value={newIngredient.expiryDate}
                                                 onChange={(e) => setNewIngredient({ ...newIngredient, expiryDate: e.target.value })}
-                                                className="w-full px-3 py-2 border rounded-lg text-sm"
+                                                className="w-full px-3 py-2 border rounded-lg text-sm max-w-full"
                                             />
                                         </div>
                                     )}
@@ -185,7 +168,7 @@ export function AddIngredientModal({
                                             onClick={handleAdd}
                                             disabled={
                                                 !newIngredient.name.trim() ||
-                                                !newIngredient.category ||
+                                                (!newIngredient.category && !management.newIngredientCategoryInput.trim()) ||
                                                 newIngredient.price === '' ||
                                                 newIngredient.parts === '' ||
                                                 Number.isNaN(Number.parseFloat(newIngredient.price)) ||
