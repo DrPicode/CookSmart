@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, X, Edit2, Trash2, Save, Snowflake } from 'lucide-react';
+import { Edit2, Trash2, Save, Snowflake } from 'lucide-react';
 import { IngredientsType, CategoriesType, FreshCategoriesType } from '../types';
 import { UseManagementReturn } from '../hooks/useManagement';
 import { formatDate, formatDaysLeft, computeExpiryStatus } from '../utils/expiry';
@@ -22,9 +22,7 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
         newIngredient, setNewIngredient,
         newRecipe, setNewRecipe,
         editingCategory, setEditingCategory,
-        newIngredientCategoryName, setNewIngredientCategoryName,
         editingRecipeCategory, setEditingRecipeCategory,
-        newRecipeCategoryName, setNewRecipeCategoryName,
         importError,
         allIngredients,
         recettesParCategorie,
@@ -47,55 +45,49 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
     return (
         <div className="space-y-6">
             <div className="border rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sticky top-0">
-                    <span className="text-sm flex-shrink-0">{t('manageIngredients')}</span>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                        <div className="flex items-center gap-1 w-full sm:w-auto" onMouseDown={(e) => e.stopPropagation()}>
-                            {newIngredientCategoryName !== '' && (
-                                <button
-                                    className="p-1 rounded bg-gray-200 hover:bg-gray-300"
-                                    title={lang === 'fr' ? 'Annuler' : 'Cancel'}
-                                    onClick={() => setNewIngredientCategoryName('')}
-                                >
-                                    <X className="w-3 h-3 text-gray-600" />
-                                </button>
-                            )}
-                            <input
-                                type="text"
-                                placeholder={lang === 'fr' ? 'Nouvelle catégorie' : 'New category'}
-                                value={newIngredientCategoryName}
-                                onChange={(e) => setNewIngredientCategoryName(e.target.value)}
-                                className="px-2 py-1 text-xs border rounded flex-1 sm:w-[140px]"
-                            />
-                            <button
-                                onMouseDown={(e) => e.preventDefault()}
-                                disabled={!newIngredientCategoryName.trim() || !!categories[newIngredientCategoryName.trim()]}
-                                onClick={() => {
-                                    const raw = newIngredientCategoryName.trim();
-                                    if (!raw) return;
-                                    if (categories[raw]) { alert(t('categoryExists')); return; }
-                                    setCategories(prev => ({ ...prev, [raw]: [] }));
-                                    setNewIngredientCategoryName('');
-                                }}
-                                className="p-1 rounded bg-green-500 disabled:opacity-40 text-white flex items-center justify-center"
-                                title={lang === 'fr' ? 'Ajouter catégorie' : 'Add category'}
-                            >
-                                <Plus className="w-3 h-3" />
-                            </button>
-                        </div>
-                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(!showAddIngredient)} className="bg-blue-500 text-white px-3 py-2 sm:py-1.5 rounded-lg text-sm flex items-center gap-2 hover:bg-blue-600 w-full sm:w-auto sm:min-w-[170px] justify-center">
-                            <Plus className="w-4 h-4" />{t('addIngredient')}
-                        </button>
-                    </div>
+                <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 flex justify-between items-center sticky top-0">
+                    <span className="text-sm">{t('manageIngredients')}</span>
                 </div>
 
                 {showAddIngredient && (
                     <div className="p-3 bg-blue-50 border-b space-y-3">
                         <input type="text" placeholder={t('ingredientFormName')} value={newIngredient.name} onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm" />
-                        <select value={newIngredient.category} onChange={(e) => setNewIngredient({ ...newIngredient, category: e.target.value })} className="w-full px-3 py-2.5 border rounded-lg text-sm">
+                        <select 
+                            value={management.showNewIngredientCategoryField ? '__NEW_CATEGORY__' : newIngredient.category} 
+                            onChange={(e) => management.handleIngredientCategoryChange(e.target.value)} 
+                            className="w-full px-3 py-2.5 border rounded-lg text-sm"
+                        >
                             <option value="">{t('chooseCategory')}</option>
                             {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            <option value="__NEW_CATEGORY__">{lang === 'fr' ? '➕ Nouvelle catégorie...' : '➕ New category...'}</option>
                         </select>
+                        {management.showNewIngredientCategoryField && (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    placeholder={lang === 'fr' ? 'Nom de la catégorie' : 'Category name'}
+                                    value={management.newIngredientCategoryInput}
+                                    onChange={(e) => management.setNewIngredientCategoryInput(e.target.value)}
+                                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                                    autoFocus
+                                />
+                                <button
+                                    onClick={management.createIngredientCategory}
+                                    className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
+                                >
+                                    {t('saveAction')}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        management.setNewIngredientCategoryInput('');
+                                        management.handleIngredientCategoryChange('');
+                                    }}
+                                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-400"
+                                >
+                                    {t('cancel')}
+                                </button>
+                            </div>
+                        )}
                         <div className="flex items-center gap-2">
                             <div className="flex-1 relative">
                                 <input
@@ -151,7 +143,17 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                             >
                                 <Save className="w-4 h-4" />{t('save')}
                             </button>
-                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddIngredient(false)} className="flex-1 bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-300 text-sm">{t('cancel')}</button>
+                            <button 
+                                onMouseDown={(e) => e.preventDefault()} 
+                                onClick={() => {
+                                    setShowAddIngredient(false);
+                                    management.setNewIngredientCategoryInput('');
+                                    management.handleIngredientCategoryChange('');
+                                }} 
+                                className="flex-1 bg-gray-200 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-300 text-sm"
+                            >
+                                {t('cancel')}
+                            </button>
                         </div>
                         <div className="text-xs text-gray-600 space-y-1">
                             <p>{t('priceMust')}</p>
@@ -417,56 +419,49 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
 
             {/* RECIPES MANAGEMENT */}
             <div className="border rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-3 py-2.5 font-medium text-gray-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sticky top-0">
-                    <span className="text-sm flex-shrink-0">{t('manageRecipes')}</span>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                        <div className="flex items-center gap-1 w-full sm:w-auto" onMouseDown={(e) => e.stopPropagation()}>
-                            {newRecipeCategoryName !== '' && (
-                                <button
-                                    className="p-1 rounded bg-gray-200 hover:bg-gray-300"
-                                    title={lang === 'fr' ? 'Annuler' : 'Cancel'}
-                                    onClick={() => setNewRecipeCategoryName('')}
-                                >
-                                    <X className="w-3 h-3 text-gray-600" />
-                                </button>
-                            )}
-                            <input
-                                type="text"
-                                placeholder={lang === 'fr' ? 'Nouvelle catégorie' : 'New category'}
-                                value={newRecipeCategoryName}
-                                onChange={(e) => setNewRecipeCategoryName(e.target.value)}
-                                className="px-2 py-1 text-xs border rounded flex-1 sm:w-[140px]"
-                            />
-                            <button
-                                onMouseDown={(e) => e.preventDefault()}
-                                disabled={!newRecipeCategoryName.trim() || recipeCategories.includes(newRecipeCategoryName.trim())}
-                                onClick={() => {
-                                    const raw = newRecipeCategoryName.trim();
-                                    if (!raw) return;
-                                    if (recipeCategories.includes(raw)) { alert(t('categoryExists')); return; }
-                                    setRecipeCategories(prev => [...prev, raw]);
-                                    setNewRecipe(r => ({ ...r, categorie: r.categorie || raw }));
-                                    setNewRecipeCategoryName('');
-                                }}
-                                className="p-1 rounded bg-green-500 disabled:opacity-40 text-white flex items-center justify-center"
-                                title={lang === 'fr' ? 'Ajouter catégorie' : 'Add category'}
-                            >
-                                <Plus className="w-3 h-3" />
-                            </button>
-                        </div>
-                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(!showAddRecipe)} className="bg-purple-500 text-white px-3 py-2 sm:py-1.5 rounded-lg text-sm flex items-center gap-2 hover:bg-purple-600 w-full sm:w-auto sm:min-w-[170px] justify-center">
-                            <Plus className="w-4 h-4" />{t('addRecipe')}
-                        </button>
-                    </div>
+                <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-3 py-2.5 font-medium text-gray-800 flex justify-between items-center sticky top-0">
+                    <span className="text-sm">{t('manageRecipes')}</span>
                 </div>
 
                 {showAddRecipe && (
                     <div className="p-4 bg-purple-50 border-b space-y-3">
                         <input type="text" placeholder={lang === 'fr' ? 'Nom de la recette' : 'Recipe name'} value={newRecipe.nom} onChange={(e) => setNewRecipe({ ...newRecipe, nom: e.target.value })} className="w-full px-3 py-2 border rounded-lg" />
-                        <select value={newRecipe.categorie} onChange={(e) => setNewRecipe({ ...newRecipe, categorie: e.target.value })} className="w-full px-3 py-2 border rounded-lg">
+                        <select 
+                            value={management.showNewRecipeCategoryField ? '__NEW_CATEGORY__' : newRecipe.categorie} 
+                            onChange={(e) => management.handleRecipeCategoryChange(e.target.value)} 
+                            className="w-full px-3 py-2 border rounded-lg"
+                        >
                             <option value="">{t('chooseCategory')}</option>
                             {recipeCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            <option value="__NEW_CATEGORY__">{lang === 'fr' ? '➕ Nouvelle catégorie...' : '➕ New category...'}</option>
                         </select>
+                        {management.showNewRecipeCategoryField && (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    placeholder={lang === 'fr' ? 'Nom de la catégorie' : 'Category name'}
+                                    value={management.newRecipeCategoryInput}
+                                    onChange={(e) => management.setNewRecipeCategoryInput(e.target.value)}
+                                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                                    autoFocus
+                                />
+                                <button
+                                    onClick={management.createRecipeCategory}
+                                    className="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600"
+                                >
+                                    {t('saveAction')}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        management.setNewRecipeCategoryInput('');
+                                        management.handleRecipeCategoryChange('');
+                                    }}
+                                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-400"
+                                >
+                                    {t('cancel')}
+                                </button>
+                            </div>
+                        )}
                         <div className="border rounded-lg p-3 bg-white max-h-60 overflow-y-auto">
                             <p className="text-sm font-semibold mb-2">{lang === 'fr' ? 'Sélectionner les ingrédients :' : 'Select ingredients:'}</p>
                             <div className="space-y-1">
@@ -482,7 +477,17 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                             <button onMouseDown={(e) => e.preventDefault()} onClick={addRecipe} className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600">
                                 <Save className="w-4 h-4" />{t('save')}
                             </button>
-                            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setShowAddRecipe(false)} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">{t('cancel')}</button>
+                            <button 
+                                onMouseDown={(e) => e.preventDefault()} 
+                                onClick={() => {
+                                    setShowAddRecipe(false);
+                                    management.setNewRecipeCategoryInput('');
+                                    management.handleRecipeCategoryChange('');
+                                }} 
+                                className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+                            >
+                                {t('cancel')}
+                            </button>
                         </div>
                     </div>
                 )}

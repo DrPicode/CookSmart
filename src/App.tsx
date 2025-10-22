@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ShoppingSession, loadDemoData } from './lib/exportImport';
-import { ChefHat, RefreshCcw, Languages, HelpCircle } from 'lucide-react';
+import { ChefHat, RefreshCcw, Languages, HelpCircle, Plus } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
@@ -12,7 +12,7 @@ import { RecipesTab } from './components/RecipesTab';
 import { CoursesTab } from './components/CoursesTab';
 import { HistoryTab } from './components/HistoryTab';
 import { ManageTab } from './components/ManageTab';
-import { HelpTutorial, FloatingHelpButton } from './components/HelpTutorial';
+import { HelpTutorial } from './components/HelpTutorial';
 import { TabsBar } from './components/TabsBar';
 import { useTranslations } from './hooks/useTranslations';
 import { useShopping } from './hooks/useShopping';
@@ -258,8 +258,29 @@ export function App() {
                     )}
                 </div>
             </div>
-            {!showHelp && (
-                <FloatingHelpButton onClick={openHelp} label={t('help')} />
+            {!showHelp && activeTab === 'courses' && (
+                <button
+                    onClick={() => {
+                        setActiveTab('gestion');
+                        setTimeout(() => management.setShowAddIngredient(true), 100);
+                    }}
+                    className="fixed bottom-20 right-4 sm:right-6 z-[60] bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                    aria-label={t('addIngredient')}
+                >
+                    <Plus className="w-6 h-6" />
+                </button>
+            )}
+            {!showHelp && activeTab === 'recettes' && (
+                <button
+                    onClick={() => {
+                        setActiveTab('gestion');
+                        setTimeout(() => management.setShowAddRecipe(true), 100);
+                    }}
+                    className="fixed bottom-20 right-4 sm:right-6 z-[60] bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                    aria-label={t('addRecipe')}
+                >
+                    <Plus className="w-6 h-6" />
+                </button>
             )}
             <HelpTutorial
                 open={showHelp}

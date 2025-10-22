@@ -44,10 +44,12 @@ export function useManagement({
     const [newIngredient, setNewIngredient] = useState<{ name: string; category: string; price: string; parts: string; expiryDate: string }>({ name: '', category: '', price: '', parts: '', expiryDate: '' });
     const [newRecipe, setNewRecipe] = useState<RecipeType>({ nom: '', categorie: '', ingredients: [] });
     const [editingCategory, setEditingCategory] = useState<{ original: string; name: string } | null>(null);
-    const [newIngredientCategoryName, setNewIngredientCategoryName] = useState('');
     const [editingRecipeCategory, setEditingRecipeCategory] = useState<{ original: string; name: string } | null>(null);
-    const [newRecipeCategoryName, setNewRecipeCategoryName] = useState('');
     const [importError, setImportError] = useState<string | null>(null);
+    const [showNewIngredientCategoryField, setShowNewIngredientCategoryField] = useState(false);
+    const [newIngredientCategoryInput, setNewIngredientCategoryInput] = useState('');
+    const [showNewRecipeCategoryField, setShowNewRecipeCategoryField] = useState(false);
+    const [newRecipeCategoryInput, setNewRecipeCategoryInput] = useState('');
 
     const allIngredients = useMemo(() => Object.keys(ingredients), [ingredients]);
     const recettesParCategorie = useMemo(() => {
@@ -207,6 +209,60 @@ export function useManagement({
         e.target.value = '';
     }, [handleImportFile]);
 
+    const handleIngredientCategoryChange = useCallback((value: string) => {
+        if (value === '__NEW_CATEGORY__') {
+            setShowNewIngredientCategoryField(true);
+            setNewIngredient({ ...newIngredient, category: '' });
+        } else {
+            setShowNewIngredientCategoryField(false);
+            setNewIngredientCategoryInput('');
+            setNewIngredient({ ...newIngredient, category: value });
+        }
+    }, [newIngredient]);
+
+    const handleRecipeCategoryChange = useCallback((value: string) => {
+        if (value === '__NEW_CATEGORY__') {
+            setShowNewRecipeCategoryField(true);
+            setNewRecipe({ ...newRecipe, categorie: '' });
+        } else {
+            setShowNewRecipeCategoryField(false);
+            setNewRecipeCategoryInput('');
+            setNewRecipe({ ...newRecipe, categorie: value });
+        }
+    }, [newRecipe]);
+
+    const createIngredientCategory = useCallback(() => {
+        const categoryName = newIngredientCategoryInput.trim();
+        if (!categoryName) {
+            alert(lang === 'fr' ? 'Veuillez entrer un nom de catégorie.' : 'Please enter a category name.');
+            return;
+        }
+        if (categories[categoryName]) {
+            alert(t('categoryExists'));
+            return;
+        }
+        setCategories(prev => ({ ...prev, [categoryName]: [] }));
+        setNewIngredient({ ...newIngredient, category: categoryName });
+        setShowNewIngredientCategoryField(false);
+        setNewIngredientCategoryInput('');
+    }, [newIngredientCategoryInput, categories, newIngredient, lang, t, setCategories]);
+
+    const createRecipeCategory = useCallback(() => {
+        const categoryName = newRecipeCategoryInput.trim();
+        if (!categoryName) {
+            alert(lang === 'fr' ? 'Veuillez entrer un nom de catégorie.' : 'Please enter a category name.');
+            return;
+        }
+        if (recipeCategories.includes(categoryName)) {
+            alert(t('categoryExists'));
+            return;
+        }
+        setRecipeCategories(prev => [...prev, categoryName]);
+        setNewRecipe({ ...newRecipe, categorie: categoryName });
+        setShowNewRecipeCategoryField(false);
+        setNewRecipeCategoryInput('');
+    }, [newRecipeCategoryInput, recipeCategories, newRecipe, t, setRecipeCategories]);
+
     return {
         showAddIngredient, setShowAddIngredient,
         showAddRecipe, setShowAddRecipe,
@@ -215,9 +271,7 @@ export function useManagement({
         newIngredient, setNewIngredient,
         newRecipe, setNewRecipe,
         editingCategory, setEditingCategory,
-        newIngredientCategoryName, setNewIngredientCategoryName,
         editingRecipeCategory, setEditingRecipeCategory,
-        newRecipeCategoryName, setNewRecipeCategoryName,
         importError,
         categories, setCategories,
         ingredients, setIngredients,
@@ -234,7 +288,17 @@ export function useManagement({
         saveRecipeCategoryRename,
         toggleIngredientInRecipe,
         handleExport,
-        onImportInputChange
+        onImportInputChange,
+        showNewIngredientCategoryField,
+        newIngredientCategoryInput,
+        setNewIngredientCategoryInput,
+        showNewRecipeCategoryField,
+        newRecipeCategoryInput,
+        setNewRecipeCategoryInput,
+        handleIngredientCategoryChange,
+        handleRecipeCategoryChange,
+        createIngredientCategory,
+        createRecipeCategory
     };
 }
 
