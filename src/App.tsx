@@ -13,6 +13,7 @@ import { CoursesTab } from './components/CoursesTab';
 import { HistoryTab } from './components/HistoryTab';
 import { ManageTab } from './components/ManageTab';
 import { HelpTutorial } from './components/HelpTutorial';
+import { InteractiveTutorial } from './components/InteractiveTutorial';
 import { TabsBar } from './components/TabsBar';
 import { AddIngredientModal } from './components/AddIngredientModal';
 import { AddRecipeModal } from './components/AddRecipeModal';
@@ -105,6 +106,7 @@ export function App() {
     const [historySelectMode, setHistorySelectMode] = useState(false);
     const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
     const [showHelp, setShowHelp] = useState(false);
+    const [showInteractiveTutorial, setShowInteractiveTutorial] = useState(false);
     const [showAddIngredientModal, setShowAddIngredientModal] = useState(false);
     const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
     const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
@@ -139,6 +141,15 @@ export function App() {
         setRecettes([]);
         setRecipeCategories([]);
         setFreshCategories([]);
+    };
+    const startInteractiveTutorial = () => {
+        // Clear any existing data first
+        setIngredients({});
+        setCategories({});
+        setRecettes([]);
+        setRecipeCategories([]);
+        setFreshCategories([]);
+        setShowInteractiveTutorial(true);
     };
     const toggleHistorySelect = (id: string) => {
         setHistorySelected(prev => {
@@ -382,10 +393,26 @@ export function App() {
                 isFirstTime={!hasSeenTutorial}
                 onStartWithDemo={startWithDemoData}
                 onStartEmpty={startWithEmptyData}
+                onStartInteractiveTutorial={startInteractiveTutorial}
                 onToggleLang={toggleLang}
                 isInstallable={isInstallable}
                 isInstalled={isInstalled}
                 onInstallPWA={promptInstall}
+            />
+
+            <InteractiveTutorial
+                open={showInteractiveTutorial}
+                onClose={() => setShowInteractiveTutorial(false)}
+                lang={lang}
+                t={t}
+                ingredients={ingredients}
+                recettes={recettes}
+                setActiveTab={setActiveTab}
+                management={management}
+                setShowAddIngredientModal={setShowAddIngredientModal}
+                setShowAddRecipeModal={setShowAddRecipeModal}
+                shoppingHistory={shoppingHistory}
+                setShoppingHistory={setShoppingHistory}
             />
 
             <ToastContainer toasts={toasts} onClose={removeToast} />

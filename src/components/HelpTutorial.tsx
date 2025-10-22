@@ -10,13 +10,14 @@ export interface HelpTutorialProps {
     isFirstTime?: boolean;
     onStartWithDemo?: () => void;
     onStartEmpty?: () => void;
+    onStartInteractiveTutorial?: () => void;
     onToggleLang?: () => void;
     isInstallable?: boolean;
     isInstalled?: boolean;
     onInstallPWA?: () => void;
 }
 
-export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty, onToggleLang, isInstallable, isInstalled, onInstallPWA }: HelpTutorialProps) {
+export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty, onStartInteractiveTutorial, onToggleLang, isInstallable, isInstalled, onInstallPWA }: HelpTutorialProps) {
     const steps: { id: number; title: string; detail: string }[] = lang === 'fr'
         ? [
             { id: 1, title: 'Ajouter les ingrédients', detail: 'Cliquez sur le bouton + dans l\'onglet Courses. Ajoutez vos catégories et ingrédients (activez le ❄️ sur les catégories produits frais)' },
@@ -106,21 +107,32 @@ export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onSt
                                                     </div>
                                                 </div>
                                             )}
-                                            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                                            <div className="pt-2 flex flex-col gap-2">
                                                 <button
                                                     onClick={() => {
-                                                        onStartWithDemo?.();
+                                                        onStartInteractiveTutorial?.();
                                                         onClose();
                                                     }}
-                                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg shadow"
-                                                >{t('tutorialStartWithDemo')}</button>
-                                                <button
-                                                    onClick={() => {
-                                                        onStartEmpty?.();
-                                                        onClose();
-                                                    }}
-                                                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg shadow"
-                                                >{t('tutorialStartEmpty')}</button>
+                                                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm font-semibold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2"
+                                                >
+                                                    🍝 {lang === 'fr' ? 'Tutoriel interactif (Pâtes Bolognaise)' : 'Interactive Tutorial (Pasta Bolognese)'}
+                                                </button>
+                                                <div className="flex flex-col sm:flex-row gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            onStartWithDemo?.();
+                                                            onClose();
+                                                        }}
+                                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg shadow"
+                                                    >{t('tutorialStartWithDemo')}</button>
+                                                    <button
+                                                        onClick={() => {
+                                                            onStartEmpty?.();
+                                                            onClose();
+                                                        }}
+                                                        className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded-lg shadow"
+                                                    >{t('tutorialStartEmpty')}</button>
+                                                </div>
                                             </div>
                                             <p className="text-[10px] text-gray-400 text-center">{t('tutorialFooterNote')}</p>
                                         </>
