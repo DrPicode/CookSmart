@@ -72,9 +72,7 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
         handleIngredientCategoryChange,
         addIngredient,
         deleteIngredient,
-        importError,
-        handleExport,
-        onImportInputChange,
+    /* import/export moved to SettingsModal */
         freshCategories: _freshCategories, setFreshCategories,
         setCategories,
         setIngredients: setIngredientsFromHook
@@ -531,26 +529,6 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-                    <div className="border rounded-lg overflow-hidden">
-                        <div className="bg-gradient-to-r from-green-100 to-green-200 px-4 py-3 font-semibold text-gray-800 flex justify-between items-center">
-                            <span>{t('importExport')}</span>
-                        </div>
-                        <div className="p-4 space-y-3">
-                            <p className="text-xs text-gray-600">{t('importExportInfo')}</p>
-                            <div className="flex flex-wrap gap-2">
-                                <button onMouseDown={(e) => e.preventDefault()} onClick={handleExport} className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 flex items-center gap-2">
-                                    <Save className="w-4 h-4" />{t('export')}
-                                </button>
-                                <label className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 cursor-pointer flex items-center gap-2">
-                                    <Edit2 className="w-4 h-4" />{t('import')}
-                                    <input type="file" accept="application/json" className="hidden" onChange={onImportInputChange} />
-                                </label>
-                                {importError && (
-                                    <span className="text-xs text-red-600">{importError}</span>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>

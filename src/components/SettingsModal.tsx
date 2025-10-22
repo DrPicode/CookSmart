@@ -17,6 +17,13 @@ interface SettingsModalProps {
   isInstallable: boolean;
   isInstalled: boolean;
   onInstallPWA: () => void;
+  onRequestNotificationPermission?: () => Promise<NotificationPermission | void>;
+  onNotifyInfo?: (msg: string) => void;
+  onNotifySuccess?: (msg: string) => void;
+  onNotifyError?: (msg: string) => void;
+  onExportData?: () => void;
+  onImportData?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  importError?: string | null;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -32,8 +39,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleNotifications,
   isInstallable,
   isInstalled,
-  onInstallPWA
+  onInstallPWA,
+  onRequestNotificationPermission,
+  onNotifyInfo,
+  onNotifySuccess,
+  onNotifyError,
+  onExportData,
+  onImportData,
+  importError,
 }) => {
+  const requestPermission = async () => {
+    if (!onRequestNotificationPermission) return;
+    const before = permission;
+    let finalPerm: NotificationPermission | undefined;
+    try {
+      finalPerm = (await onRequestNotificationPermission()) || permission;
+    } catch {
+      onNotifyError?.(lang === 'fr' ? 'Erreur permission notifications' : 'Notification permission error');
+      return;
+    }
+    if (before !== 'default') return; // only notify on first ask
+    if (finalPerm === 'granted') {
+      onNotifySuccess?.(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled');
+    } else if (finalPerm === 'denied') {
+      onNotifyError?.(lang === 'fr' ? 'Notifications refusées' : 'Notifications denied');
+    } else {
+      onNotifyInfo?.(lang === 'fr' ? 'Autorisation inchangée' : 'Permission unchanged');
+    }
+  };
   return (
     <Dialog open={open} onClose={onClose} className="relative z-[250]">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />
@@ -100,6 +133,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   permission={permission}
                   isEnabled={notificationsEnabled}
                   onToggle={onToggleNotifications}
+                  onRequestPermission={requestPermission}
                   lang={lang}
                 />
               </div>
@@ -135,6 +169,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   >{lang === 'fr' ? 'Installer' : 'Install'}</button>
                 </div>
               )}
+
+              {/* IMPORT / EXPORT */}
+              <div className="space-y-2 pt-2 border-t">
+                <div className="flex items-center gap-3">
+                  <Info className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium">{t('importExport')}</p>
+                    <p className="text-xs text-gray-500">{t('importExportInfo')}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <button
+                    type="button"
+                    onClick={onExportData}
+                    className="px-3 py-2 rounded-lg text-xs font-medium bg-green-600 text-white hover:bg-green-700 active:scale-[.97] flex items-center gap-2"
+                  >
+                    {lang === 'fr' ? 'Exporter' : 'Export'}
+                  </button>
+                  <label className="px-3 py-2 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 active:scale-[.97] flex items-center gap-2 cursor-pointer">
+                    {lang === 'fr' ? 'Importer' : 'Import'}
+                    <input type="file" accept="application/json" className="hidden" onChange={onImportData} />
+                  </label>
+                  {importError && (
+                    <span className="text-xs text-red-600">{importError}</span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

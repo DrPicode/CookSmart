@@ -5,6 +5,7 @@ interface NotificationBellToggleProps {
   permission: NotificationPermission;
   isEnabled: boolean;
   onToggle: () => void;
+  onRequestPermission?: () => Promise<NotificationPermission | void>;
   size?: number;
   lang: 'fr' | 'en';
 }
@@ -13,6 +14,7 @@ export const NotificationBellToggle: React.FC<NotificationBellToggleProps> = ({
   permission,
   isEnabled,
   onToggle,
+  onRequestPermission,
   size = 18,
   lang
 }) => {
@@ -32,10 +34,23 @@ export const NotificationBellToggle: React.FC<NotificationBellToggleProps> = ({
     return <BellOff size={size} className="text-gray-500" />;
   })();
 
+  const handleClick = async () => {
+    if (disabled) return;
+    if (permission === 'default') {
+      if (onRequestPermission) {
+        await onRequestPermission();
+      }
+      return; // after permission request user can click again if granted
+    }
+    if (permission === 'granted') {
+      onToggle();
+    }
+  };
+
   return (
     <button
       type="button"
-      onClick={() => !disabled && onToggle()}
+      onClick={handleClick}
       disabled={disabled}
       title={title}
       aria-label={title}

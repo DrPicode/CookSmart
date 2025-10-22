@@ -46,7 +46,7 @@ export function App() {
 
     const { toasts, removeToast, success } = useToast();
 
-    const { permission, sendNotification } = usePushNotifications();
+    const { permission, sendNotification, requestPermission } = usePushNotifications();
     const [notificationsEnabled, setNotificationsEnabled] = usePersistentState('notificationsEnabled', false);
 
     useExpiryNotifications({
@@ -214,7 +214,7 @@ export function App() {
                             <p className="mt-1 text-orange-100 text-xs">{t('appSubtitle')}</p>
                         </div>
                         <div className="flex flex-col gap-2 items-end">
-                            <div className="flex flex-wrap gap-1.5 justify-end">
+                            <div className="flex flex-nowrap gap-1.5 justify-end items-center">
                                 <button
                                     onClick={() => setShowSettings(true)}
                                     aria-label={lang === 'fr' ? 'Paramètres' : 'Settings'}
@@ -303,7 +303,7 @@ export function App() {
             {!showHelp && activeTab === 'courses' && (
                 <button
                     onClick={() => setShowAddIngredientModal(true)}
-                    className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                    className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
                     aria-label={t('addIngredient')}
                 >
                     <Plus className="w-6 h-6" />
@@ -312,7 +312,7 @@ export function App() {
             {!showHelp && activeTab === 'recettes' && (
                 <button
                     onClick={() => setShowAddRecipeModal(true)}
-                    className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                    className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
                     aria-label={t('addRecipe')}
                 >
                     <Plus className="w-6 h-6" />
@@ -383,6 +383,13 @@ export function App() {
                 isInstallable={isInstallable}
                 isInstalled={isInstalled}
                 onInstallPWA={promptInstall}
+                onRequestNotificationPermission={requestPermission}
+                onNotifyInfo={(m) => success(m, 2000)}
+                onNotifySuccess={(m) => success(m, 2000)}
+                onNotifyError={(m) => success(m, 2500)}
+                onExportData={management.handleExport}
+                onImportData={management.onImportInputChange}
+                importError={management.importError}
             />
         </div>
     );
