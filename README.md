@@ -10,7 +10,7 @@
   
   <br/>
   
-  **📱 [Try CookSmart Now](https://drpicode.github.io/CookSmart/)** • **[Install as PWA](https://drpicode.github.io/CookSmart/)**
+  **📱 [Try CookSmart Now](https://cook-smart-rosy.vercel.app/)**
   
 </div>
 
