@@ -19,20 +19,16 @@ export interface HelpTutorialProps {
 export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onStartWithDemo, onStartEmpty, onToggleLang, isInstallable, isInstalled, onInstallPWA }: HelpTutorialProps) {
     const steps: { id: number; title: string; detail: string }[] = lang === 'fr'
         ? [
-            { id: 1, title: 'Catégories d\'ingrédients', detail: 'Dans Gestion, ajoutez vos catégories. Le flocon ❄️ active le suivi de péremption.' },
-            { id: 2, title: 'Ajouter les ingrédients', detail: 'Ajoutez chaque ingrédient avec prix et parts. Date de péremption pour les catégories fraîches.' },
-            { id: 3, title: 'Catégories de recettes', detail: 'Créez vos catégories de recettes (Salade, Pâtes...).' },
-            { id: 4, title: 'Créer les recettes', detail: 'Nommez la recette et sélectionnez les ingrédients. Le coût est calculé automatiquement.' },
-            { id: 5, title: 'Faire les courses', detail: 'Dans Courses, démarrez une session et cochez vos achats.' },
-            { id: 6, title: 'Voir les recettes possibles', detail: 'L\'onglet Recettes affiche ce que vous pouvez cuisiner et les produits à consommer en priorité.' }
+            { id: 1, title: 'Ajouter les ingrédients', detail: 'Cliquez sur le bouton + dans l\'onglet Courses. Ajoutez vos ingrédients avec prix et parts. (le flocon ❄️ active le suivi de péremption).' },
+            { id: 2, title: 'Créer les recettes', detail: 'Cliquez sur le bouton + dans l\'onglet Recettes. Nommez la recette, créez une catégorie si besoin, et sélectionnez les ingrédients.' },
+            { id: 3, title: 'Faire les courses', detail: 'Dans Courses, démarrez une session et cochez vos achats au fur et à mesure. Renseignez les dates de péremption pour les produits frais.' },
+            { id: 4, title: 'Voir les recettes possibles', detail: 'L\'onglet Recettes affiche ce que vous pouvez cuisiner avec vos ingrédients en stock et les produits à consommer en priorité.' }
         ]
         : [
-            { id: 1, title: 'Ingredient categories', detail: 'In Manage, add categories. Click ❄️ to enable expiry tracking.' },
-            { id: 2, title: 'Add ingredients', detail: 'Add ingredients with price and parts. Expiry date for fresh categories.' },
-            { id: 3, title: 'Recipe categories', detail: 'Create recipe categories (Salad, Pasta...).' },
-            { id: 4, title: 'Create recipes', detail: 'Name the recipe and select ingredients. Cost is computed automatically.' },
-            { id: 5, title: 'Go shopping', detail: 'In Groceries, start a session and check your purchases.' },
-            { id: 6, title: 'See possible recipes', detail: 'Recipes tab shows what you can cook and items to consume soon.' }
+            { id: 1, title: 'Add ingredients', detail: 'Click the + button in the Groceries tab. Add your ingredients with price and parts. (❄️ enables expiry tracking).' },
+            { id: 2, title: 'Create recipes', detail: 'Click the + button in the Recipes tab. Name the recipe, create a category if needed, and select ingredients.' },
+            { id: 3, title: 'Go shopping', detail: 'In Groceries, start a session and check your purchases as you go. Enter expiry dates for fresh products.' },
+            { id: 4, title: 'See possible recipes', detail: 'Recipes tab shows what you can cook with your ingredients in stock and items to consume soon.' }
         ];
 
     return (
