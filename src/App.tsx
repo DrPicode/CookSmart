@@ -40,12 +40,14 @@ export function App() {
 
     const resetAllData = () => {
         if (!confirm(t('confirmReset'))) return;
-        try { ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories'].forEach(k => localStorage.removeItem(k)); } catch { }
+        try { ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen'].forEach(k => localStorage.removeItem(k)); } catch { }
         setIngredients({});
         setCategories({});
         setRecettes([]);
         setShoppingHistory([]);
         setRecipeCategories([]);
+        setHasSeenTutorial(false);
+        setShowHelp(true);
     };
     const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
 
