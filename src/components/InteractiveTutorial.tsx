@@ -12,7 +12,7 @@ interface InteractiveTutorialProps {
     t: (k: string) => string;
     ingredients: IngredientsType;
     recettes: RecipeType[];
-    setActiveTab: (tab: 'courses' | 'recettes' | 'gestion' | 'historique') => void;
+    setActiveTab: (tab: 'courses' | 'recettes' | 'historique') => void;
     management: UseManagementReturn;
     setShowAddIngredientModal: (show: boolean) => void;
     setShowAddRecipeModal: (show: boolean) => void;
@@ -127,12 +127,25 @@ export function InteractiveTutorial({
         {
             id: 3,
             title: {
-                fr: '4. Créer une recette 🍝',
-                en: '4. Create a recipe 🍝'
+                fr: '4. Surveiller les dates ⚠️',
+                en: '4. Watch expiry ⚠️'
             },
             description: {
-                fr: 'Maintenant, créons notre recette de Pâtes Bolognaise ! Cliquez sur le bouton ci-dessous pour l\'ajouter avec tous les ingrédients.',
-                en: 'Now, let\'s create our Pasta Bolognese recipe! Click the button below to add it with all ingredients.'
+                fr: 'Chaque ingrédient affiche sa date et les jours restants. Le symbole ⚠️ apparaît quand il va bientôt expirer (quelques jours) ou est déjà périmé.',
+                en: 'Each ingredient shows its date and remaining days. The ⚠️ symbol appears when it is near expiry or already expired.'
+            },
+            action: 'toggle',
+            data: {}
+        },
+        {
+            id: 4,
+            title: {
+                fr: '5. Créer une recette 🍝',
+                en: '5. Create a recipe 🍝'
+            },
+            description: {
+                fr: 'Créons maintenant la recette de Pâtes Bolognaise ! Cliquez ci-dessous pour l\'ajouter avec tous les ingrédients.',
+                en: 'Let\'s now create the Pasta Bolognese recipe! Click below to add it with all ingredients.'
             },
             action: 'recipe',
             data: {
@@ -144,27 +157,27 @@ export function InteractiveTutorial({
             }
         },
         {
-            id: 4,
+            id: 5,
             title: {
-                fr: '5. Faire les courses 🛒',
-                en: '5. Go shopping 🛒'
+                fr: '6. Faire les courses 🛒',
+                en: '6. Go shopping 🛒'
             },
             description: {
-                fr: 'Maintenant, faisons les courses ! Cochez tous les ingrédients dans la liste ci-dessous.',
-                en: 'Now, let\'s go shopping! Check all the ingredients in the list below.'
+                fr: 'Passez en mode courses : cochez les ingrédients à acheter puis validez pour enregistrer la session.',
+                en: 'Enter shopping mode: tick missing ingredients then validate to save your session.'
             },
             action: 'shoppingPopup',
             data: {}
         },
         {
-            id: 5,
+            id: 6,
             title: {
-                fr: '6. Voir la recette disponible ! 🎉',
-                en: '6. See the recipe available! 🎉'
+                fr: '7. Recette disponible 🎉',
+                en: '7. Recipe available 🎉'
             },
             description: {
-                fr: 'Félicitations ! Allez dans l\'onglet "Recettes" pour voir que votre recette de Pâtes Bolognaise est maintenant disponible car tous les ingrédients sont en stock !',
-                en: 'Congratulations! Go to the "Recipes" tab to see that your Pasta Bolognese recipe is now available because all ingredients are in stock!'
+                fr: 'Félicitations ! Ouvrez l\'onglet Recettes pour voir que votre recette est faisable et surveillez les badges d\'expiration.',
+                en: 'Congrats! Open the Recipes tab to see your recipe available and monitor expiry badges.'
             },
             action: 'complete',
             data: {}
@@ -558,7 +571,7 @@ export function InteractiveTutorial({
                                             <div className="text-6xl mb-4">🎉</div>
                                             <p className="text-sm text-gray-700 leading-relaxed">
                                                 {lang === 'fr' 
-                                                    ? 'Vous savez maintenant comment utiliser CookSmart ! Explorez les différents onglets pour gérer vos ingrédients, créer des recettes et voir ce que vous pouvez cuisiner.'
+                                                    ? 'Vous savez maintenant comment utiliser CookSmart ! Explorez les différents onglets pour modifier vos ingrédients, créer des recettes et voir ce que vous pouvez cuisiner.'
                                                     : 'You now know how to use CookSmart! Explore the different tabs to manage ingredients, create recipes and see what you can cook.'
                                                 }
                                             </p>

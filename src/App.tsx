@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ShoppingSession, loadDemoData } from './lib/exportImport';
-import { ChefHat, Trash2, Languages, HelpCircle, Plus } from 'lucide-react';
+import { ChefHat, Plus, Settings } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
@@ -11,7 +11,6 @@ import {
 import { RecipesTab } from './components/RecipesTab';
 import { CoursesTab } from './components/CoursesTab';
 import { HistoryTab } from './components/HistoryTab';
-import { ManageTab } from './components/ManageTab';
 import { HelpTutorial } from './components/HelpTutorial';
 import { InteractiveTutorial } from './components/InteractiveTutorial';
 import { TabsBar } from './components/TabsBar';
@@ -19,7 +18,7 @@ import { AddIngredientModal } from './components/AddIngredientModal';
 import { AddRecipeModal } from './components/AddRecipeModal';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { ToastContainer } from './components/Toast';
-import { NotificationSettings } from './components/NotificationSettings';
+import { SettingsModal } from './components/SettingsModal';
 import { useTranslations } from './hooks/useTranslations';
 import { useShopping } from './hooks/useShopping';
 import { useRecipes } from './hooks/useRecipes';
@@ -38,18 +37,16 @@ export function App() {
     const [categoryOrder, setCategoryOrder] = usePersistentState<string[]>('categoryOrder', []);
     const [lang, setLang] = usePersistentState<'fr' | 'en'>('lang', 'fr');
     const { t } = useTranslations(lang);
-    const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'gestion' | 'historique'>('courses');
+    const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'historique'>('courses');
     const [shoppingHistory, setShoppingHistory] = useState<ShoppingSession[]>(() => {
         const saved = localStorage.getItem('shoppingHistory');
         return saved ? JSON.parse(saved) : [];
     });
     useEffect(() => { try { localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory)); } catch { } }, [shoppingHistory]);
 
-    // Toast notifications
-    const { toasts, removeToast, success, error } = useToast();
+    const { toasts, removeToast, success } = useToast();
 
-    // Push notifications pour les produits périmés
-    const { permission, isSupported, requestPermission, sendNotification } = usePushNotifications();
+    const { permission, sendNotification } = usePushNotifications();
     const [notificationsEnabled, setNotificationsEnabled] = usePersistentState('notificationsEnabled', false);
 
     useExpiryNotifications({
@@ -80,26 +77,7 @@ export function App() {
     };
     const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
 
-    const handleNotificationToggle = async () => {
-        if (permission === 'denied') {
-            return;
-        }
-        
-        if (permission === 'default' || permission === 'granted' && !notificationsEnabled) {
-            const result = await requestPermission();
-            if (result === 'granted') {
-                setNotificationsEnabled(true);
-                success(lang === 'fr' ? 'Notifications activées !' : 'Notifications enabled!', 3000);
-            } else {
-                error(lang === 'fr' ? 'Permission refusée' : 'Permission denied', 3000);
-            }
-        } else {
-            setNotificationsEnabled(false);
-            success(lang === 'fr' ? 'Notifications désactivées' : 'Notifications disabled', 2000);
-        }
-    };
-
-    // PWA Install
+    
     const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
 
     useEffect(() => { }, []);
@@ -107,6 +85,7 @@ export function App() {
     const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
     const [showHelp, setShowHelp] = useState(false);
     const [showInteractiveTutorial, setShowInteractiveTutorial] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const [showAddIngredientModal, setShowAddIngredientModal] = useState(false);
     const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
     const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
@@ -143,7 +122,6 @@ export function App() {
         setFreshCategories([]);
     };
     const startInteractiveTutorial = () => {
-        // Clear any existing data first
         setIngredients({});
         setCategories({});
         setRecettes([]);
@@ -160,7 +138,14 @@ export function App() {
     };
     const deleteHistoryIds = (ids: string[]) => {
         if (ids.length === 0) return;
-        if (!confirm(ids.length === 1 ? (lang === 'fr' ? 'Supprimer cette session ?' : 'Delete this session?') : (lang === 'fr' ? `Supprimer ${ids.length} sessions ?` : `Delete ${ids.length} sessions?`))) return;
+        const singleMsgFr = 'Supprimer cette session ?';
+        const singleMsgEn = 'Delete this session?';
+        const multiMsgFr = `Supprimer ${ids.length} sessions ?`;
+        const multiMsgEn = `Delete ${ids.length} sessions?`;
+        const message = ids.length === 1
+            ? (lang === 'fr' ? singleMsgFr : singleMsgEn)
+            : (lang === 'fr' ? multiMsgFr : multiMsgEn);
+        if (!confirm(message)) return;
         setShoppingHistory(prev => prev.filter(s => !ids.includes(s.id)));
         setHistorySelected(new Set());
         setHistorySelectMode(false);
@@ -178,10 +163,10 @@ export function App() {
     const {
         shoppingMode,
         shoppingSelected,
+        shoppingActivePersisted,
         ingredientsManquants,
         shoppingCategoryOrder,
         missingByCategory,
-        totalCourses,
         shoppingSubtotal,
         shoppingProgress,
         startShopping,
@@ -233,18 +218,11 @@ export function App() {
                         <div className="flex flex-col gap-2 items-end">
                             <div className="flex flex-wrap gap-1.5 justify-end">
                                 <button
-                                    onClick={openHelp}
-                                    aria-label={t('help')}
+                                    onClick={() => setShowSettings(true)}
+                                    aria-label={lang === 'fr' ? 'Paramètres' : 'Settings'}
                                     className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
                                 >
-                                    <HelpCircle className="w-4 h-4" /> <span className="hidden sm:inline">{t('help')}</span>
-                                </button>
-                                <button
-                                    onClick={toggleLang}
-                                    aria-label={t('langToggle')}
-                                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-white/20 active:bg-white/30 hover:bg-white/30 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
-                                >
-                                    <Languages className="w-4 h-4" /> <span className="hidden sm:inline">{lang.toUpperCase()}</span>
+                                    <Settings className="w-4 h-4" /> <span className="hidden sm:inline">{lang === 'fr' ? 'Paramètres' : 'Settings'}</span>
                                 </button>
                                 <PWAInstallButton
                                     isInstallable={isInstallable}
@@ -252,13 +230,6 @@ export function App() {
                                     onInstall={promptInstall}
                                     label={isInstalled ? t('installPWAAlreadyInstalled') : t('installPWA')}
                                 />
-                                <button
-                                    onClick={resetAllData}
-                                    aria-label={t('resetData')}
-                                    className="flex items-center gap-1 px-3 py-2 rounded-full bg-red-500/80 active:bg-red-600 hover:bg-red-600 backdrop-blur-sm text-[11px] font-medium shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 min-h-[40px]"
-                                >
-                                    <Trash2 className="w-4 h-4" /> <span className="hidden sm:inline">{t('resetData')}</span>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -285,6 +256,7 @@ export function App() {
                             shoppingCategoryOrder={shoppingCategoryOrder}
                             missingByCategory={missingByCategory}
                             shoppingSelected={shoppingSelected}
+                            shoppingActivePersisted={shoppingActivePersisted}
                             shoppingSubtotal={shoppingSubtotal}
                             shoppingProgress={shoppingProgress}
                             finishShopping={finishShopping}
@@ -292,8 +264,10 @@ export function App() {
                             toggleShoppingItem={toggleShoppingItem}
                             toggleIngredient={toggleIngredient}
                             setIngredients={setIngredients}
-                            totalCourses={totalCourses}
                             categoryOrder={categoryOrder}
+                            setCategoryOrder={setCategoryOrder}
+                            management={management}
+                            lang={lang}
                         />
                     )}
 
@@ -306,30 +280,11 @@ export function App() {
                             recettesPrioritaires={recettesPrioritaires}
                             ingredients={ingredients}
                             lang={lang}
+                            management={management}
                         />
                     )}
 
-                    {activeTab === 'gestion' && (
-                        <>
-                            <NotificationSettings 
-                                isSupported={isSupported}
-                                permission={permission}
-                                isEnabled={notificationsEnabled}
-                                onToggle={handleNotificationToggle}
-                                t={t}
-                            />
-                            <ManageTab
-                                t={t}
-                                lang={lang}
-                                categories={categories}
-                                ingredients={ingredients}
-                                freshCategories={freshCategories}
-                                management={management}
-                                categoryOrder={categoryOrder}
-                                setCategoryOrder={setCategoryOrder}
-                            />
-                        </>
-                    )}
+                    
 
                     {activeTab === 'historique' && (
                         <HistoryTab
@@ -416,6 +371,21 @@ export function App() {
             />
 
             <ToastContainer toasts={toasts} onClose={removeToast} />
+            <SettingsModal
+                open={showSettings}
+                onClose={() => setShowSettings(false)}
+                t={t}
+                lang={lang}
+                onToggleLang={toggleLang}
+                onOpenHelp={openHelp}
+                onResetData={resetAllData}
+                permission={permission}
+                notificationsEnabled={notificationsEnabled}
+                onToggleNotifications={() => setNotificationsEnabled(prev => !prev)}
+                isInstallable={isInstallable}
+                isInstalled={isInstalled}
+                onInstallPWA={promptInstall}
+            />
         </div>
     );
 }

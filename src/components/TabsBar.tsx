@@ -1,7 +1,7 @@
 import React from 'react';
-import { ShoppingCart, ChefHat, Edit2, History } from 'lucide-react';
+import { ShoppingCart, ChefHat, History } from 'lucide-react';
 
-export type AppTab = 'courses' | 'recettes' | 'gestion' | 'historique';
+export type AppTab = 'courses' | 'recettes' | 'historique';
 
 interface TabsBarProps {
     active: AppTab;
@@ -14,7 +14,6 @@ interface TabsBarProps {
 export const TabsBar: React.FC<TabsBarProps> = ({ active, onChange, recipesPossibleCount, hasPriorityRecipes, t }) => {
     return (
         <div className="flex fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 pb-[env(safe-area-inset-bottom)]">
-            {/* List Tab */}
             <button 
                 onClick={() => onChange('courses')} 
                 className={`w-full px-1 py-2 font-medium transition-colors flex flex-col items-center justify-center gap-0.5 text-[10px] ${active === 'courses' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}
@@ -23,7 +22,6 @@ export const TabsBar: React.FC<TabsBarProps> = ({ active, onChange, recipesPossi
                 {active === 'courses' && <span>{t('tabCourses')}</span>}
             </button>
 
-            {/* Recipes Tab with Badge */}
             <button 
                 onClick={() => onChange('recettes')} 
                 className={`w-full px-1 py-2 font-medium transition-colors flex flex-col items-center justify-center gap-0.5 text-[10px] relative ${active === 'recettes' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}
@@ -39,16 +37,7 @@ export const TabsBar: React.FC<TabsBarProps> = ({ active, onChange, recipesPossi
                 {active === 'recettes' && <span>{t('tabRecettes')}</span>}
             </button>
 
-            {/* Management Tab */}
-            <button 
-                onClick={() => onChange('gestion')} 
-                className={`w-full px-1 py-2 font-medium transition-colors flex flex-col items-center justify-center gap-0.5 text-[10px] ${active === 'gestion' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}
-            >
-                <Edit2 className="w-5 h-5" />
-                {active === 'gestion' && <span>{t('tabGestion')}</span>}
-            </button>
 
-            {/* History Tab */}
             <button 
                 onClick={() => onChange('historique')} 
                 className={`w-full px-1 py-2 font-medium transition-colors flex flex-col items-center justify-center gap-0.5 text-[10px] ${active === 'historique' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}

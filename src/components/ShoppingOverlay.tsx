@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { computeExpiryStatus } from '../utils/expiry';
 import { IngredientsType, FreshCategoriesType, CategoriesType } from '../types';
 
@@ -38,25 +39,31 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
     setIngredients
 }) => {
     if (!visible) return null;
-    return (
-        <div className="fixed inset-0 z-[150] bg-white/98 backdrop-blur-xl p-4 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
-            <div className="max-w-md mx-auto space-y-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-800">{t('shoppingListTitle')}</h2>
-                    <button onClick={cancelShopping} className="text-sm text-gray-500 hover:text-gray-700">{t('close')}</button>
+    return createPortal(
+    <div className="fixed inset-0 z-[500] bg-black/55 backdrop-blur-sm flex items-start sm:items-center justify-center p-1 sm:p-2">
+            <div className="relative w-full max-w-4xl bg-white shadow-2xl rounded-2xl flex flex-col animate-fade-in min-h-[96vh] sm:min-h-[96vh] overflow-hidden">
+                <div className="px-5 pt-5 pb-2">
+                    <button
+                        onClick={cancelShopping}
+                        className="absolute top-4 right-5 text-gray-400 hover:text-gray-600 focus:outline-none"
+                        aria-label={t('close')}
+                    >×</button>
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-1">{t('shoppingListTitle')}</h2>
+                    <p className="text-xs text-gray-500 leading-relaxed max-w-2xl">Cochez au fur et à mesure. Les produits frais et surgelés apparaissent à la fin pour optimiser la chaîne du froid.</p>
                 </div>
-                <p className="text-xs text-gray-500">Cochez au fur et à mesure. Les produits frais et surgelés apparaissent à la fin pour optimiser la chaîne du froid.</p>
-                <div className="border rounded-lg p-3 bg-white flex flex-col gap-2 text-xs">
-                    <div className="flex justify-between"><span>{t('progressSelected')} :</span><span>{shoppingSelected.size} / {ingredientsManquantsCount}</span></div>
-                    <div className="flex justify-between"><span>{t('progressSubtotal')} :</span><span>{shoppingSubtotal.toFixed(2)} €</span></div>
-                    <div className="h-2 bg-gray-200 rounded overflow-hidden">
-                        <div className="h-full bg-green-500 transition-all" style={{ width: `${(shoppingProgress * 100).toFixed(1)}%` }} />
+                <div className="px-5">
+                    <div className="border rounded-lg p-3 bg-white flex flex-col gap-2 text-xs mb-4 max-w-md">
+                        <div className="flex justify-between"><span>{t('progressSelected')} :</span><span>{shoppingSelected.size} / {ingredientsManquantsCount}</span></div>
+                        <div className="flex justify-between"><span>{t('progressSubtotal')} :</span><span>{shoppingSubtotal.toFixed(2)} €</span></div>
+                        <div className="h-2 bg-gray-200 rounded overflow-hidden">
+                            <div className="h-full bg-green-500 transition-all" style={{ width: `${(shoppingProgress * 100).toFixed(1)}%` }} />
+                        </div>
                     </div>
                 </div>
-                <div className="space-y-5">
+                <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-6">
                     {shoppingCategoryOrder.map(cat => (
                         missingByCategory[cat] && missingByCategory[cat].length > 0 && (
-                            <div key={cat} className="border rounded-lg">
+                            <div key={cat} className="border rounded-lg max-w-xl">
                                 <div className="px-3 py-2 bg-gray-100 text-xs font-semibold text-gray-700 sticky top-0 z-10">{cat}</div>
                                 <div className="divide-y">
                                     {missingByCategory[cat].map(ing => {
@@ -70,13 +77,18 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                             else if (status === 'soon') statusClass = 'border border-orange-400 bg-orange-50';
                                         }
                                         return (
-                                            <div key={ing} className={`px-3 py-2 text-sm select-none active:bg-gray-50 ${statusClass}`}>
+                                            <button
+                                                type="button"
+                                                key={ing}
+                                                onClick={() => toggleShoppingItem(ing)}
+                                                className={`w-full text-left px-3 py-2 text-sm select-none active:bg-gray-50 ${statusClass}`}
+                                            >
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="checkbox"
                                                             checked={checked}
-                                                            onChange={() => toggleShoppingItem(ing)}
+                                                            onChange={(e) => { e.stopPropagation(); toggleShoppingItem(ing); }}
                                                             className="w-4 h-4 accent-green-600"
                                                         />
                                                         <span className={checked ? 'line-through text-gray-400' : 'text-gray-700'}>{ing}</span>
@@ -101,7 +113,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                                         />
                                                     </div>
                                                 )}
-                                            </div>
+                                            </button>
                                         );
                                     })}
                                 </div>
@@ -109,7 +121,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                         )
                     ))}
                 </div>
-                <div className="flex gap-2 pt-2">
+                <div className="px-5 pb-5 pt-2 flex gap-3 bg-gradient-to-t from-white via-white to-white/70 sticky bottom-0">
                     <button
                         onClick={finishShopping}
                         className="flex-1 bg-green-600 text-white py-3 rounded-lg text-sm font-semibold disabled:opacity-50"
@@ -120,6 +132,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                     >{t('cancel')}</button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

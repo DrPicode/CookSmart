@@ -31,9 +31,9 @@ Perfect for daily use on smartphone, fast and efficient even in-store.
 
 ## ✨ Key Features
 
-**Ingredients** � • Prices, portions, expiration dates • Customizable categories  
-**Recipes** 🍳 • Smart filtering (only doable recipes shown) • Auto-prioritization by expiration  
-**Shopping** � • Interactive checklist • Real-time subtotal • History tracking  
+**Ingredients (Courses)** 📦 • Prices, expiration dates, warning icon (⚠️) when soon/expired • Custom categories • Inline manage mode  
+**Recipes** 🍳 • Smart filtering (only doable recipes shown) • Auto-prioritization by earliest expiring ingredient  
+**Shopping** 🛒 • Interactive checklist • Real-time subtotal • History tracking  
 **Backup** 💾 • JSON export/import • Versioned schema with validation  
 **i18n** 🌐 • FR/EN support • Instant language toggle  
 **Tutorial** 🎓 • Interactive guide on first launch
@@ -94,9 +94,9 @@ Compiled files will be in the `dist/` folder.
 
 ## 📱 Usage
 
+**Ingredients** 📦 → Track stock, toggle availability, see expiry date + days remaining (⚠️ when soon / expired) → Tap "Modifier / Manage" to edit / import / export  
+**Recipes** 🍳 → View doable dishes → Sorted by expiration urgency → Expiry badges  
 **Shopping** 🛒 → Check ingredients → Auto-calculated subtotal → Validate to save  
-**Recipes** 🍳 → View doable dishes → Sorted by expiration urgency → Visual badges  
-**Management** ⚙️ → Add/edit ingredients & recipes → Export/import data  
 **History** 📊 → View past purchases → Batch delete sessions  
 
 **First launch**: Choose demo data or start from scratch (customizable in `src/data/demoData.json`)
@@ -106,11 +106,11 @@ Compiled files will be in the `dist/` folder.
 ## 🧠 Prioritization Logic
 
 Recipes are sorted by earliest ingredient expiration:
-- **Expired** (negative days) → Top priority, red `EXPIRED` badge
-- **Expires soon** (0-7 days) → High priority, orange `D0`-`D-7` badge
-- **No date / later** → Normal priority, no badge
+* **Expired** (negative days) → Highest priority, red badge
+* **Soon** (0–3 days) → Orange badge (`J0`, `J-1`, etc.)
+* **Later** (> threshold) → No badge
 
-The most urgent ingredient in each recipe is highlighted with an orange outline.
+Ingredients list shows localized date + days remaining and a ⚠️ icon for soon / expired items.
 
 ---
 
