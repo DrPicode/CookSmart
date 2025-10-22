@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { CategoryIngredients } from './CategoryIngredients';
 import { ShoppingOverlay } from './ShoppingOverlay';
+import { SearchBar } from './SearchBar';
 import { IngredientsType, CategoriesType, FreshCategoriesType } from '../types';
 
 interface CoursesTabProps {
@@ -44,8 +45,37 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
     setIngredients,
     totalCourses
 }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredCategories = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return categories;
+        }
+
+        const query = searchQuery.toLowerCase().trim();
+        const filtered: CategoriesType = {};
+
+        for (const [categorie, items] of Object.entries(categories)) {
+            const filteredItems = items.filter(item => 
+                item.toLowerCase().includes(query)
+            );
+            
+            if (filteredItems.length > 0) {
+                filtered[categorie] = filteredItems;
+            }
+        }
+
+        return filtered;
+    }, [categories, searchQuery]);
+
     return (
         <div className="space-y-4">
+            <SearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={t('searchIngredients')}
+            />
+
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                 <p className="text-xs text-orange-800"><strong>{t('tip')} :</strong> {t('tipCheckbox').replace(/^.*?:\s*/, '')}</p>
             </div>
@@ -54,13 +84,13 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
                 <button
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={startShopping}
-                    className="w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium shadow hover:bg-green-700 active:scale-[.98] transition"
+                    className="w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium shadow hover:bg-green-700 active:scale-[.98] transition-smooth"
                 >
                     {t('startShopping')} ({ingredientsManquants.length} {t('articles')})
                 </button>
             )}
 
-            {Object.entries(categories).map(([categorie, items]) => (
+            {Object.entries(filteredCategories).map(([categorie, items]) => (
                 <CategoryIngredients
                     key={categorie}
                     categorie={categorie}

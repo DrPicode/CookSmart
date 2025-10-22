@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChefHat } from 'lucide-react';
 import { IngredientsType, RecipeType } from '../types';
 import { RecipeGroup } from './RecipeGroup';
+import { SearchBar } from './SearchBar';
 
 interface RecipesTabProps {
     t: (k: string) => string;
@@ -10,6 +11,7 @@ interface RecipesTabProps {
     expiringIngredients: { name: string; status: string; daysLeft: number }[];
     recettesPrioritaires: RecipeType[];
     ingredients: IngredientsType;
+    lang: 'fr' | 'en';
 }
 
 export const RecipesTab: React.FC<RecipesTabProps> = ({
@@ -18,8 +20,33 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
     recettesGroupees,
     expiringIngredients,
     recettesPrioritaires,
-    ingredients
+    ingredients,
+    lang
 }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredRecipes = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return recettesGroupees;
+        }
+
+        const query = searchQuery.toLowerCase().trim();
+        const filtered: { [cat: string]: RecipeType[] } = {};
+
+        for (const [categorie, recipes] of Object.entries(recettesGroupees)) {
+            const filteredRecs = recipes.filter(recipe => 
+                recipe.nom.toLowerCase().includes(query) ||
+                recipe.ingredients.some(ing => ing.toLowerCase().includes(query))
+            );
+            
+            if (filteredRecs.length > 0) {
+                filtered[categorie] = filteredRecs;
+            }
+        }
+
+        return filtered;
+    }, [recettesGroupees, searchQuery]);
+
     if (recettesPossibles.length === 0) {
         return (
             <div className="text-center py-8">
@@ -31,7 +58,13 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
 
     return (
         <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <SearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={t('searchRecipes')}
+            />
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 animate-fade-in">
                 <p className="text-green-800 text-sm"><strong>{t('canCookIntro')}</strong> {t('canCookMiddle')} {recettesPossibles.length} {recettesPossibles.length > 1 ? t('dishes') : t('dish')}.</p>
             </div>
 
@@ -72,14 +105,20 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                 </div>
             )}
 
-            {Object.entries(recettesGroupees).map(([categorie, recs]) => (
-                <RecipeGroup
-                    key={categorie}
-                    categorie={categorie}
-                    recettes={recs}
-                    ingredients={ingredients}
-                />
-            ))}
+            {Object.keys(filteredRecipes).length === 0 && searchQuery ? (
+                <div className="text-center py-8 animate-fade-in">
+                    <p className="text-gray-500 text-sm">{lang === 'fr' ? 'Aucune recette trouvée' : 'No recipe found'}</p>
+                </div>
+            ) : (
+                Object.entries(filteredRecipes).map(([categorie, recs]) => (
+                    <RecipeGroup
+                        key={categorie}
+                        categorie={categorie}
+                        recettes={recs}
+                        ingredients={ingredients}
+                    />
+                ))
+            )}
         </div>
     );
 };

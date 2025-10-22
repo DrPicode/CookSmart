@@ -17,11 +17,16 @@ import { TabsBar } from './components/TabsBar';
 import { AddIngredientModal } from './components/AddIngredientModal';
 import { AddRecipeModal } from './components/AddRecipeModal';
 import { PWAInstallButton } from './components/PWAInstallButton';
+import { ToastContainer } from './components/Toast';
+import { NotificationSettings } from './components/NotificationSettings';
 import { useTranslations } from './hooks/useTranslations';
 import { useShopping } from './hooks/useShopping';
 import { useRecipes } from './hooks/useRecipes';
 import { useManagement } from './hooks/useManagement';
 import { usePWAInstall } from './hooks/usePWAInstall';
+import { useToast } from './hooks/useToast';
+import { usePushNotifications } from './hooks/usePushNotifications';
+import { useExpiryNotifications } from './hooks/useExpiryNotifications';
 
 export function App() {
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', {});
@@ -38,18 +43,58 @@ export function App() {
     });
     useEffect(() => { try { localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory)); } catch { } }, [shoppingHistory]);
 
+    // Toast notifications
+    const { toasts, removeToast, success, error } = useToast();
+
+    // Push notifications pour les produits périmés
+    const { permission, isSupported, requestPermission, sendNotification } = usePushNotifications();
+    const [notificationsEnabled, setNotificationsEnabled] = usePersistentState('notificationsEnabled', false);
+
+    useExpiryNotifications({
+        ingredients,
+        isEnabled: notificationsEnabled && permission === 'granted',
+        sendNotification,
+        lang
+    });
+
     const resetAllData = () => {
         if (!confirm(t('confirmReset'))) return;
-        try { ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen'].forEach(k => localStorage.removeItem(k)); } catch { }
+        try { 
+            const keys = ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen', 'notificationsEnabled'];
+            for (const k of keys) {
+                localStorage.removeItem(k);
+            }
+        } catch { }
         setIngredients({});
         setCategories({});
         setRecettes([]);
         setShoppingHistory([]);
         setRecipeCategories([]);
         setHasSeenTutorial(false);
+        setNotificationsEnabled(false);
         setShowHelp(true);
+        success(lang === 'fr' ? 'Données réinitialisées' : 'Data reset', 2000);
     };
     const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
+
+    const handleNotificationToggle = async () => {
+        if (permission === 'denied') {
+            return;
+        }
+        
+        if (permission === 'default' || permission === 'granted' && !notificationsEnabled) {
+            const result = await requestPermission();
+            if (result === 'granted') {
+                setNotificationsEnabled(true);
+                success(lang === 'fr' ? 'Notifications activées !' : 'Notifications enabled!', 3000);
+            } else {
+                error(lang === 'fr' ? 'Permission refusée' : 'Permission denied', 3000);
+            }
+        } else {
+            setNotificationsEnabled(false);
+            success(lang === 'fr' ? 'Notifications désactivées' : 'Notifications disabled', 2000);
+        }
+    };
 
     // PWA Install
     const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
@@ -245,18 +290,28 @@ export function App() {
                             expiringIngredients={expiringIngredients}
                             recettesPrioritaires={recettesPrioritaires}
                             ingredients={ingredients}
+                            lang={lang}
                         />
                     )}
 
                     {activeTab === 'gestion' && (
-                        <ManageTab
-                            t={t}
-                            lang={lang}
-                            categories={categories}
-                            ingredients={ingredients}
-                            freshCategories={freshCategories}
-                            management={management}
-                        />
+                        <>
+                            <NotificationSettings 
+                                isSupported={isSupported}
+                                permission={permission}
+                                isEnabled={notificationsEnabled}
+                                onToggle={handleNotificationToggle}
+                                t={t}
+                            />
+                            <ManageTab
+                                t={t}
+                                lang={lang}
+                                categories={categories}
+                                ingredients={ingredients}
+                                freshCategories={freshCategories}
+                                management={management}
+                            />
+                        </>
                     )}
 
                     {activeTab === 'historique' && (
@@ -326,6 +381,8 @@ export function App() {
                 isInstalled={isInstalled}
                 onInstallPWA={promptInstall}
             />
+
+            <ToastContainer toasts={toasts} onClose={removeToast} />
         </div>
     );
 }
