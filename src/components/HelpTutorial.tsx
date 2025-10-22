@@ -91,17 +91,16 @@ export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onSt
                                     {isFirstTime ? (
                                         <>
                                             {isInstallable && !isInstalled && (
-                                                <div className="pt-2 pb-2 px-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className="text-2xl">📱</div>
-                                                        <div className="flex-1">
-                                                            <h4 className="text-sm font-semibold text-gray-800 mb-1">{t('installPWATitle')}</h4>
-                                                            <p className="text-xs text-gray-600 mb-2">{t('installPWADescription')}</p>
+                                                <div className="pt-1 pb-1 px-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded border border-blue-200">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-lg">📱</div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-[10px] text-gray-600 mb-1">{t('installPWADescription')}</p>
                                                             <button
                                                                 onClick={() => {
                                                                     onInstallPWA?.();
                                                                 }}
-                                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-md shadow-sm"
+                                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-semibold py-1 rounded shadow-sm"
                                                             >{t('installPWAButton')}</button>
                                                         </div>
                                                     </div>
