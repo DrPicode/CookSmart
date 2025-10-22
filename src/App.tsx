@@ -138,13 +138,11 @@ export function App() {
     };
     const deleteHistoryIds = (ids: string[]) => {
         if (ids.length === 0) return;
-        const singleMsgFr = 'Supprimer cette session ?';
-        const singleMsgEn = 'Delete this session?';
-        const multiMsgFr = `Supprimer ${ids.length} sessions ?`;
-        const multiMsgEn = `Delete ${ids.length} sessions?`;
-        const message = ids.length === 1
-            ? (lang === 'fr' ? singleMsgFr : singleMsgEn)
-            : (lang === 'fr' ? multiMsgFr : multiMsgEn);
+        const isSingle = ids.length === 1;
+        const message = (() => {
+            if (lang === 'fr') return isSingle ? 'Supprimer cette session ?' : `Supprimer ${ids.length} sessions ?`;
+            return isSingle ? 'Delete this session?' : `Delete ${ids.length} sessions?`;
+        })();
         if (!confirm(message)) return;
         setShoppingHistory(prev => prev.filter(s => !ids.includes(s.id)));
         setHistorySelected(new Set());

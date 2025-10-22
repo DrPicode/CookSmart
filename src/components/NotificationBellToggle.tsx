@@ -5,24 +5,14 @@ interface NotificationBellToggleProps {
   permission: NotificationPermission;
   isEnabled: boolean;
   onToggle: () => void;
-  t: (k: string) => string;
   size?: number;
   lang: 'fr' | 'en';
 }
 
-/**
- * Compact bell icon toggle for notifications.
- * States:
- * - granted + enabled => active (ringing)
- * - granted + disabled => outline bell
- * - default => muted bell (suggest enabling)
- * - denied => crossed / ban icon (non-interactive)
- */
 export const NotificationBellToggle: React.FC<NotificationBellToggleProps> = ({
   permission,
   isEnabled,
   onToggle,
-  t,
   size = 18,
   lang
 }) => {
@@ -49,13 +39,11 @@ export const NotificationBellToggle: React.FC<NotificationBellToggleProps> = ({
       disabled={disabled}
       title={title}
       aria-label={title}
-      className={`p-2 rounded-lg border transition-colors ${
-        disabled
-          ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
-          : isEnabled && permission === 'granted'
-          ? 'border-orange-300 bg-orange-50 hover:bg-orange-100'
-          : 'border-gray-300 bg-white hover:bg-gray-100'
-      }`}
+      className={(() => {
+        if (disabled) return 'p-2 rounded-lg border transition-colors border-gray-300 bg-gray-100 cursor-not-allowed';
+        if (permission === 'granted' && isEnabled) return 'p-2 rounded-lg border transition-colors border-orange-300 bg-orange-50 hover:bg-orange-100';
+        return 'p-2 rounded-lg border transition-colors border-gray-300 bg-white hover:bg-gray-100';
+      })()}
     >
       {icon}
     </button>

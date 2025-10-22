@@ -81,7 +81,9 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                     placeholder={t('searchRecipes')}
                 />
                 {(() => {
-                    const label = editMode ? (lang === 'fr' ? 'Terminer' : 'Done') : (lang === 'fr' ? 'Modifier' : 'Manage');
+                    const labelFr = editMode ? 'Terminer' : 'Modifier';
+                    const labelEn = editMode ? 'Done' : 'Manage';
+                    const label = lang === 'fr' ? labelFr : labelEn;
                     return (
                         <button
                             onClick={() => setEditMode(m => !m)}
@@ -122,12 +124,15 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                                                 let chipClass = 'bg-green-100 text-green-700';
                                                 let suffix = '';
                                                 if (e) {
-                                                    if (e.status === 'expired') { chipClass = 'bg-red-600 text-white'; suffix = ' · ⛔'; }
-                                                    else { chipClass = 'bg-red-100 text-red-700'; suffix = ` · ${e.daysLeft === 0 ? 'J0' : `J-${e.daysLeft}`}`; }
+                                                    if (e.status === 'expired') {
+                                                        chipClass = 'bg-red-600 text-white';
+                                                        suffix = ' · ⛔';
+                                                    } else {
+                                                        chipClass = 'bg-red-100 text-red-700';
+                                                        suffix = ' · ' + (e.daysLeft === 0 ? 'J0' : 'J-' + e.daysLeft);
+                                                    }
                                                 }
-                                                return (
-                                                    <span key={ing} className={`px-2 py-0.5 rounded-full text-[10px] ${chipClass}`}>{ing}{suffix}</span>
-                                                );
+                                                return <span key={ing} className={`px-2 py-0.5 rounded-full text-[10px] ${chipClass}`}>{ing}{suffix}</span>;
                                             })}
                                         </div>
                                     </div>
@@ -194,7 +199,9 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                                             onClick={() => {
                                                 if (!confirm(lang === 'fr' ? 'Supprimer la catégorie et toutes ses recettes ?' : 'Delete category and all its recipes?')) return;
                                                 // delete all recipes of category
-                                                items.forEach(({ index }) => deleteRecipe(index));
+                                                for (const { index } of items) {
+                                                    deleteRecipe(index);
+                                                }
                                             }}
                                         >
                                             <Trash2 className="w-3.5 h-3.5 text-red-600" />

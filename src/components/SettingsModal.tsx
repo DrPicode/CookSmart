@@ -39,11 +39,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-md rounded-2xl bg-white shadow-xl ring-1 ring-black/10">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-xl ring-1 ring-black/10">
             <div className="flex items-center justify-between px-5 py-4 border-b">
-              <Dialog.Title className="text-sm font-semibold flex items-center gap-2">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
                 <Info className="w-4 h-4 text-orange-600" /> {lang === 'fr' ? 'Paramètres' : 'Settings'}
-              </Dialog.Title>
+              </h2>
               <button
                 onClick={onClose}
                 aria-label={t('close')}
@@ -53,7 +53,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </button>
             </div>
             <div className="p-5 space-y-5">
-              {/* Language */}
+              
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Languages className="w-5 h-5 text-purple-600" />
@@ -68,7 +68,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 >{lang.toUpperCase()}</button>
               </div>
 
-              {/* Help / Tutorial */}
+              
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <HelpCircle className="w-5 h-5 text-blue-600" />
@@ -83,7 +83,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 >{lang === 'fr' ? 'Ouvrir' : 'Open'}</button>
               </div>
 
-              {/* Notifications */}
+              
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {notificationsEnabled && permission === 'granted' ? (
@@ -92,7 +92,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <BellOff className="w-5 h-5 text-gray-500" />
                   )}
                   <div>
-                    <p className="text-sm font-medium">{lang === 'fr' ? 'Notifications' : 'Notifications'}</p>
+                    <p className="text-sm font-medium">Notifications</p>
                     <p className="text-xs text-gray-500">{lang === 'fr' ? 'Alertes péremption produits' : 'Expiry alerts for products'}</p>
                   </div>
                 </div>
@@ -100,12 +100,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   permission={permission}
                   isEnabled={notificationsEnabled}
                   onToggle={onToggleNotifications}
-                  t={t}
                   lang={lang}
                 />
               </div>
 
-              {/* Reset Data */}
+              
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Trash2 className="w-5 h-5 text-red-600" />
@@ -120,7 +119,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 >{lang === 'fr' ? 'Effacer' : 'Clear'}</button>
               </div>
 
-              {/* PWA Install (keep header button if not installed) */}
+              
               {!isInstalled && isInstallable && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -137,7 +136,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               )}
             </div>
-          </Dialog.Panel>
+          </div>
         </div>
       </div>
     </Dialog>
