@@ -44,7 +44,7 @@ export function AddIngredientModal({
 
     return (
         <Transition.Root show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-[100]" onClose={handleCancel}>
+            <Dialog as="div" className="relative z-[200]" onClose={handleCancel}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-200"
@@ -54,7 +54,7 @@ export function AddIngredientModal({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-md" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 overflow-y-auto">

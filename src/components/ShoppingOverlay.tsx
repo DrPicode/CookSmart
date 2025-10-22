@@ -39,7 +39,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
 }) => {
     if (!visible) return null;
     return (
-        <div className="fixed inset-0 z-50 bg-white/95 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[150] bg-white/98 backdrop-blur-xl p-4 overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="max-w-md mx-auto space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-800">{t('shoppingListTitle')}</h2>

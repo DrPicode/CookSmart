@@ -37,13 +37,13 @@ export function HelpTutorial({ open, onClose, lang, t, isFirstTime = false, onSt
 
     return (
         <Transition.Root show={open} as={Fragment}>
-            <Dialog as="div" className="relative z-[100]" onClose={isFirstTime ? () => { } : onClose}>
+            <Dialog as="div" className="relative z-[250]" onClose={isFirstTime ? () => { } : onClose}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
                     leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-md" />
                 </Transition.Child>
                 <div className="fixed inset-0 overflow-y-auto">
                     <div className="flex min-h-full items-start justify-center p-4 sm:p-8">
@@ -148,7 +148,7 @@ export function FloatingHelpButton({ onClick, label }: { onClick: () => void; la
     return (
         <button
             onClick={onClick}
-            className="fixed bottom-20 right-4 sm:right-6 z-[60] bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg rounded-full px-4 py-2 flex items-center gap-2 text-xs font-semibold hover:shadow-xl active:scale-[.97]"
+            className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg rounded-full px-4 py-2 flex items-center gap-2 text-xs font-semibold hover:shadow-xl active:scale-[.97]"
         >
             <HelpCircle className="w-4 h-4" /> {label}
         </button>

@@ -1,5 +1,10 @@
 <svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
-  <rect width="192" height="192" fill="#4F46E5" rx="32"/>
-  <text x="96" y="85" font-family="Arial, sans-serif" font-size="80" text-anchor="middle" dominant-baseline="middle">🍳</text>
-  <text x="96" y="155" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" dominant-baseline="middle">Recipes</text>
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="19.200000000000003" ry="19.200000000000003" fill="url(#gradient)"/>
+  <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="96" fill="white" text-anchor="middle" dominant-baseline="middle">🍳</text>
 </svg>

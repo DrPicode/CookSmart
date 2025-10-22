@@ -12,7 +12,7 @@ interface TabsBarProps {
 
 export const TabsBar: React.FC<TabsBarProps> = ({ active, onChange, recipesPossibleCount, t }) => {
     return (
-        <div className="flex fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 pt-[env(safe-area-inset-bottom)]">
+        <div className="flex fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 pb-[env(safe-area-inset-bottom)]">
             <button onClick={() => onChange('courses')} className={`w-full px-2 py-4 font-medium transition-colors flex items-center justify-center gap-1 text-xs ${active === 'courses' ? 'bg-orange-50 text-orange-600 border-t-2 border-orange-500' : 'text-gray-500'}`}>
                 <ShoppingCart className="w-6 h-6" />
                 <span>{t('tabCourses')}</span>
