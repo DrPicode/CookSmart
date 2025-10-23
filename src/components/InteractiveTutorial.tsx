@@ -1,4 +1,5 @@
 ﻿import { Fragment, useState, useEffect, useRef } from 'react';
+import { useConfirm } from '../hooks/useConfirm';
 import { Dialog, Transition } from '@headlessui/react';
 import { ChevronRight, ChevronLeft, X, Check, Plus } from 'lucide-react';
 import { IngredientsType, RecipeType } from '../types';
@@ -50,6 +51,7 @@ export function InteractiveTutorial({
     shoppingHistory: _shoppingHistory,
     setShoppingHistory
 }: InteractiveTutorialProps) {
+    const confirmDialog = useConfirm();
     const [currentStep, setCurrentStep] = useState(0);
     // Track which steps have been completed by user actions
     const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -396,12 +398,14 @@ export function InteractiveTutorial({
         }
     };
 
-    const handleSkipTutorial = () => {
-        if (confirm(lang === 'fr' 
-            ? 'Voulez-vous vraiment quitter le tutoriel ?' 
-            : 'Do you really want to skip the tutorial?')) {
-            onClose();
-        }
+    const handleSkipTutorial = async () => {
+        const ok = await confirmDialog({
+            title: lang === 'fr' ? 'Quitter le tutoriel' : 'Exit tutorial',
+            message: lang === 'fr' ? 'Voulez-vous vraiment quitter le tutoriel ?' : 'Do you really want to skip the tutorial?',
+            confirmLabel: lang === 'fr' ? 'Quitter' : 'Exit',
+            cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel'
+        });
+        if (ok) onClose();
     };
 
     const handleComplete = () => {

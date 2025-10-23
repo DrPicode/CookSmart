@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useConfirm } from '../hooks/useConfirm';
 import { ShoppingSession } from '../lib/exportImport';
 
 interface HistoryTabProps {
@@ -26,34 +27,60 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
     lang,
     editMode
 }) => {
+    const confirmDialog = useConfirm();
+
+    const MonthDeleteButton: React.FC<{ lang: 'fr' | 'en'; monthName: string; sessions: ShoppingSession[]; deleteHistoryIds: (ids: string[]) => void }> = useCallback(({ lang, monthName, sessions, deleteHistoryIds }) => {
+        const handleClick = async () => {
+            const msg = lang === 'fr'
+                ? `Supprimer toutes les sessions de ${monthName} ?`
+                : `Delete all sessions from ${monthName}?`;
+            let ok = true;
+            if (confirmDialog) {
+                ok = await confirmDialog({
+                    title: lang === 'fr' ? 'Confirmer la suppression' : 'Confirm deletion',
+                    message: msg,
+                    confirmLabel: lang === 'fr' ? 'Supprimer' : 'Delete',
+                    cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+                    variant: 'danger'
+                });
+            } else {
+                ok = globalThis.confirm(msg);
+            }
+            if (!ok) return;
+            deleteHistoryIds(sessions.map(s => s.id));
+        };
+        return (
+            <button
+                onClick={handleClick}
+                className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700"
+                aria-label={lang === 'fr' ? 'Supprimer le mois' : 'Delete month'}
+                title={lang === 'fr' ? 'Supprimer le mois' : 'Delete month'}
+            >{lang === 'fr' ? 'Supprimer mois' : 'Delete month'}</button>
+        );
+    }, [confirmDialog]);
     const groupedByMonth = React.useMemo(() => {
         const groups: { [key: string]: ShoppingSession[] } = {};
-
-        shoppingHistory.forEach(session => {
+        for (const session of shoppingHistory) {
             const date = new Date(session.date);
             const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-
-            if (!groups[monthKey]) {
-                groups[monthKey] = [];
-            }
+            if (!groups[monthKey]) groups[monthKey] = [];
             groups[monthKey].push(session);
+        }
+        const monthKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+        return monthKeys.map(monthKey => {
+            const sessions = [...groups[monthKey]];
+            sessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const total = sessions.reduce((sum, s) => sum + s.total, 0);
+            return { monthKey, sessions, total };
         });
-
-        return Object.keys(groups)
-            .sort((a, b) => b.localeCompare(a))
-            .map(monthKey => ({
-                monthKey,
-                sessions: groups[monthKey].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-                total: groups[monthKey].reduce((sum, session) => sum + session.total, 0)
-            }));
     }, [shoppingHistory]);
 
     // Sync external editMode with internal selection mode
     React.useEffect(() => {
         if (editMode) {
             if (!historySelectMode) setHistorySelectMode(true);
-        } else {
-            if (historySelectMode) setHistorySelectMode(false);
+        } else if (historySelectMode) {
+            setHistorySelectMode(false);
         }
     }, [editMode, historySelectMode, setHistorySelectMode]);
 
@@ -80,7 +107,7 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                     )}
                     {groupedByMonth.map(({ monthKey, sessions, total }) => {
                         const [year, month] = monthKey.split('-');
-                        const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+                        const date = new Date(Number.parseInt(year, 10), Number.parseInt(month, 10) - 1, 1);
                         const monthName = date.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { month: 'long', year: 'numeric' });
 
                         return (
@@ -91,24 +118,21 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-bold text-green-700">{total.toFixed(2)} €</span>
                                             {editMode && (
-                                                <button
-                                                    onClick={() => {
-                                                        const msg = lang === 'fr'
-                                                            ? `Supprimer toutes les sessions de ${monthName} ?`
-                                                            : `Delete all sessions from ${monthName}?`;
-                                                        if (!confirm(msg)) return;
-                                                        const ids = sessions.map(s => s.id);
-                                                        deleteHistoryIds(ids);
-                                                    }}
-                                                    className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700"
-                                                    aria-label={lang === 'fr' ? 'Supprimer le mois' : 'Delete month'}
-                                                    title={lang === 'fr' ? 'Supprimer le mois' : 'Delete month'}
-                                                >{lang === 'fr' ? 'Supprimer mois' : 'Delete month'}</button>
+                                                <MonthDeleteButton
+                                                    lang={lang}
+                                                    monthName={monthName}
+                                                    sessions={sessions}
+                                                    deleteHistoryIds={deleteHistoryIds}
+                                                />
                                             )}
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-orange-700 mt-1">
-                                        {sessions.length} {lang === 'fr' ? `session${sessions.length > 1 ? 's' : ''} de courses` : `shopping session${sessions.length > 1 ? 's' : ''}`}
+                                        {(() => {
+                                            const count = sessions.length;
+                                            if (lang === 'fr') return `${count} session${count > 1 ? 's' : ''} de courses`;
+                                            return `${count} shopping session${count > 1 ? 's' : ''}`;
+                                        })()}
                                     </p>
                                 </div>
 
@@ -118,13 +142,14 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                                         return (
                                             <div key={session.id} className={`border rounded-lg p-3 bg-white shadow-sm relative ${checked ? 'ring-2 ring-orange-400' : ''}`}>
                                                 {historySelectMode && (
-                                                    <label className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] cursor-pointer select-none">
+                                                    <label className="absolute top-2 right-2 inline-flex items-center gap-1 text-[10px] cursor-pointer select-none" aria-label={lang === 'fr' ? 'Sélectionner la session' : 'Select session'}>
                                                         <input
                                                             type="checkbox"
                                                             className="w-3 h-3"
                                                             checked={checked}
                                                             onChange={() => toggleHistorySelect(session.id)}
                                                         />
+                                                        <span className="sr-only">{lang === 'fr' ? 'Sélection' : 'Select'}</span>
                                                     </label>
                                                 )}
                                                 <div className="flex justify-between items-center mb-1 pr-6">

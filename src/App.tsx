@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { ConfirmProvider, useConfirm } from './hooks/useConfirm';
 import { ShoppingSession, loadDemoData } from './lib/exportImport';
 import { ChefHat, Plus, Settings, Edit2, Check } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
@@ -29,7 +30,7 @@ import { usePushNotifications } from './hooks/usePushNotifications';
 import { useExpiryNotifications } from './hooks/useExpiryNotifications';
 import { useNotificationOnboarding } from './hooks/useNotificationOnboarding';
 
-export function App() {
+function AppInner() {
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', {});
     const [categories, setCategories] = usePersistentState<CategoriesType>('categories', {});
     const [recettes, setRecettes] = usePersistentState<RecipeType[]>('recettes', []);
@@ -78,9 +79,17 @@ export function App() {
         lang
     });
 
+    const confirmDialog = useConfirm();
     const RESET_KEYS = ['ingredients','categories','recettes','shoppingHistory','recipeCategories','tutorialSeen','notificationsEnabled','notificationPrompted','categoryOrder'];
-    const resetAllData = useCallback(() => {
-        if (!confirm(t('confirmReset'))) return;
+    const resetAllData = useCallback(async () => {
+        const ok = await confirmDialog({
+            title: lang === 'fr' ? 'Réinitialiser les données' : 'Reset data',
+            message: t('confirmReset'),
+            confirmLabel: lang === 'fr' ? 'Réinitialiser' : 'Reset',
+            cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+            variant: 'danger'
+        });
+        if (!ok) return;
         try { for (const k of RESET_KEYS) localStorage.removeItem(k); } catch { /* ignore */ }
         setIngredients({});
         setCategories({});
@@ -162,18 +171,25 @@ export function App() {
             return next;
         });
     }, []);
-    const deleteHistoryIds = useCallback((ids: string[]) => {
+    const deleteHistoryIds = useCallback(async (ids: string[]) => {
         if (ids.length === 0) return;
         const isSingle = ids.length === 1;
         const message = (() => {
             if (lang === 'fr') return isSingle ? 'Supprimer cette session ?' : `Supprimer ${ids.length} sessions ?`;
             return isSingle ? 'Delete this session?' : `Delete ${ids.length} sessions?`;
         })();
-        if (!confirm(message)) return;
+        const ok = await confirmDialog({
+            title: lang === 'fr' ? 'Confirmer la suppression' : 'Confirm deletion',
+            message,
+            confirmLabel: lang === 'fr' ? 'Supprimer' : 'Delete',
+            cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+            variant: 'danger'
+        });
+        if (!ok) return;
         setShoppingHistory(prev => prev.filter(s => !ids.includes(s.id)));
         setHistorySelected(new Set());
         setHistorySelectMode(false);
-    }, [lang]);
+    }, [lang, confirmDialog]);
     const selectAllHistory = useCallback(() => {
         if (historySelected.size === shoppingHistory.length) {
             setHistorySelected(new Set());
@@ -604,6 +620,14 @@ export function App() {
                 </div>
             )}
         </div>
+    );
+}
+
+export function App() {
+    return (
+        <ConfirmProvider>
+            <AppInner />
+        </ConfirmProvider>
     );
 }
 

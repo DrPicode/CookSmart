@@ -257,8 +257,15 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                                         <button
                                             className="p-1 rounded hover:bg-red-100"
                                             title={lang === 'fr' ? 'Supprimer catégorie' : 'Delete category'}
-                                            onClick={() => {
-                                                if (!confirm(lang === 'fr' ? `Supprimer la catégorie et tous ses ingrédients ?` : 'Delete category and all its ingredients?')) return;
+                                            onClick={async () => {
+                                                const ok = await (management as any).confirmDialog?.({
+                                                    title: lang === 'fr' ? 'Confirmer la suppression' : 'Confirm deletion',
+                                                    message: lang === 'fr' ? 'Supprimer la catégorie et tous ses ingrédients ?' : 'Delete category and all its ingredients?',
+                                                    confirmLabel: lang === 'fr' ? 'Supprimer' : 'Delete',
+                                                    cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+                                                    variant: 'danger'
+                                                }) || true;
+                                                if (!ok) return;
                                                 const toDelete = [...(categories[categorie] || [])];
                                                 setCategories(prev => {
                                                     const copy = { ...prev };
@@ -553,8 +560,15 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                                         <button
                                             className="p-1 rounded hover:bg-red-100"
                                             title={lang === 'fr' ? 'Supprimer catégorie' : 'Delete category'}
-                                            onClick={() => {
-                                                if (!confirm(lang === 'fr' ? 'Supprimer la catégorie et toutes ses recettes ?' : 'Delete category and all its recipes?')) return;
+                                            onClick={async () => {
+                                                const ok = await (management as any).confirmDialog?.({
+                                                    title: lang === 'fr' ? 'Confirmer la suppression' : 'Confirm deletion',
+                                                    message: lang === 'fr' ? 'Supprimer la catégorie et toutes ses recettes ?' : 'Delete category and all its recipes?',
+                                                    confirmLabel: lang === 'fr' ? 'Supprimer' : 'Delete',
+                                                    cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+                                                    variant: 'danger'
+                                                }) || true;
+                                                if (!ok) return;
                                                 setRecettes(prev => prev.filter(r => r.categorie !== cat));
                                                 setRecipeCategories(prev => prev.filter(c => c !== cat));
                                                 setEditingRecipeCategory(ec => ec && ec.original === cat ? null : ec);

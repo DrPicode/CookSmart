@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useConfirm } from './useConfirm';
 import { buildExportData, validateExportData, sanitizeImport, ShoppingSession } from '../lib/exportImport';
 import { IngredientsType, CategoriesType, RecipeType, EditingRecipeType, FreshCategoriesType } from '../types';
 
@@ -39,6 +40,8 @@ export function useManagement({
     notifySuccess,
     onAfterImport
 }: UseManagementParams) {
+    // Custom confirm dialog hook
+    const confirmDialog = useConfirm();
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<EditingRecipeType>(null);
@@ -99,8 +102,15 @@ export function useManagement({
         setShowAddIngredient(false);
     }, [newIngredient, ingredients, lang, setIngredients, setCategories, showNewIngredientCategoryField, newIngredientCategoryInput, categories, t]);
 
-    const deleteIngredient = useCallback((ingredient: string, category: string) => {
-        if (!confirm(t('deleteIngredientConfirm').replace('{name}', ingredient))) return;
+    const deleteIngredient = useCallback(async (ingredient: string, category: string) => {
+        const ok = await confirmDialog({
+            title: lang === 'fr' ? 'Confirmer la suppression' : 'Confirm deletion',
+            message: t('deleteIngredientConfirm').replace('{name}', ingredient),
+            confirmLabel: lang === 'fr' ? 'Supprimer' : 'Delete',
+            cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+            variant: 'danger'
+        });
+        if (!ok) return;
         setIngredients(prev => { const copy = { ...prev }; delete copy[ingredient]; return copy; });
         setCategories(prev => ({ ...prev, [category]: prev[category].filter(i => i !== ingredient) }));
         setRecettes(prev => {
@@ -151,8 +161,15 @@ export function useManagement({
         setEditingRecipe(null);
     }, [editingRecipe, recipeCategories, setRecettes, setRecipeCategories]);
 
-    const deleteRecipe = useCallback((index: number) => {
-        if (!confirm(t('deleteRecipeConfirm'))) return;
+    const deleteRecipe = useCallback(async (index: number) => {
+        const ok = await confirmDialog({
+            title: lang === 'fr' ? 'Confirmer la suppression' : 'Confirm deletion',
+            message: t('deleteRecipeConfirm'),
+            confirmLabel: lang === 'fr' ? 'Supprimer' : 'Delete',
+            cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+            variant: 'danger'
+        });
+        if (!ok) return;
         const catDeleted = recettes[index].categorie;
         setRecettes(prev => prev.filter((_, i) => i !== index));
         if (recettes.filter((r, i) => i !== index && r.categorie === catDeleted).length === 0) {
@@ -218,7 +235,7 @@ export function useManagement({
     const handleImportFile = useCallback((file: File) => {
         setImportError(null);
         const reader = new FileReader();
-        reader.onload = () => {
+    reader.onload = async () => {
             try {
                 const text = reader.result as string;
                 const parsed = JSON.parse(text);
@@ -228,8 +245,14 @@ export function useManagement({
                     return;
                 }
                 const cleaned = sanitizeImport(parsed);
-                if (warnings.length) alert(`${t('importAdjustmentsPrefix')}\n` + warnings.join('\n'));
-                if (!confirm(t('importConfirm'))) return;
+                if (warnings.length) alert(`${t('importAdjustmentsPrefix')}` + warnings.join('\n'));
+                const ok = await confirmDialog({
+                    title: lang === 'fr' ? 'Importer les données' : 'Import data',
+                    message: t('importConfirm'),
+                    confirmLabel: lang === 'fr' ? 'Importer' : 'Import',
+                    cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel'
+                });
+                if (!ok) return;
                 setIngredients(cleaned.ingredients);
                 setCategories(cleaned.categories);
                 setRecettes(cleaned.recettes);
@@ -310,20 +333,27 @@ export function useManagement({
         setNewRecipeCategoryInput('');
     }, [newRecipeCategoryInput, recipeCategories, newRecipe, t, setRecipeCategories]);
 
-    const deleteRecipeCategory = useCallback((category: string) => {
+    const deleteRecipeCategory = useCallback(async (category: string) => {
         const count = recettes.filter(r => r.categorie === category).length;
         const pluralFr = count > 1 ? 'toutes ses recettes' : 'sa recette';
         const pluralEn = count > 1 ? 'all its recipes' : 'its recipe';
         const message = lang === 'fr'
             ? `Supprimer la catégorie et ${pluralFr} ?`
             : `Delete category and ${pluralEn}?`;
-        if (!confirm(message)) return;
+        const ok = await confirmDialog({
+            title: lang === 'fr' ? 'Confirmer la suppression' : 'Confirm deletion',
+            message,
+            confirmLabel: lang === 'fr' ? 'Supprimer' : 'Delete',
+            cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel',
+            variant: 'danger'
+        });
+        if (!ok) return;
         setRecettes(prev => prev.filter(r => r.categorie !== category));
         setRecipeCategories(prev => prev.filter(c => c !== category));
         setEditingRecipe(er => er && er.data.categorie === category ? null : er);
         setEditingRecipeCategory(ec => ec && ec.original === category ? null : ec);
         setNewRecipe(r => ({ ...r, categorie: r.categorie === category ? '' : r.categorie }));
-    }, [recettes, lang, setRecettes, setRecipeCategories, setEditingRecipe, setEditingRecipeCategory, setNewRecipe]);
+    }, [recettes, lang, confirmDialog, setRecettes, setRecipeCategories, setEditingRecipe, setEditingRecipeCategory, setNewRecipe]);
 
     return {
         showAddIngredient, setShowAddIngredient,
