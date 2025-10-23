@@ -18,14 +18,14 @@
 
 ## 🎯 What is it?
 
-A mobile-first web app to:
-- 📦 Track ingredients with prices, portions & expiration dates
-- 🍳 Discover recipes you can make right now
-- ⏰ Prioritize dishes by ingredient expiration (reduce waste!)
-- 🛒 Shop efficiently with a smart checklist & auto-calculated subtotal
-- 📊 Track your shopping history
+Mobile-first app to:
+- 📦 Track ingredients (price, stock, expiry)
+- 🍳 Show only doable recipes
+- ⏰ Prioritize by earliest expiry
+- 🛒 Smart shopping checklist + subtotal
+- 📊 Keep purchase history
 
-Perfect for daily use on smartphone, fast and efficient even in-store.
+Optimized for quick daily use on phone (fast + offline-capable).
 
 ---
 
@@ -59,12 +59,12 @@ src/
 
 ---
 
-## 🚀 Installation
+## 🚀 Installation / Run
 
 ### Prerequisites
 - Node.js 16+ and npm
 
-### Quick Installation
+### Quick Start
 ```bash
 # Clone the repository
 git clone https://github.com/DrPicode/CookSmart.git
@@ -77,9 +77,9 @@ npm install
 npm run dev
 ```
 
-The application will be available at **http://localhost:5173**
+Dev server: **http://localhost:5173** (auto reload)
 
-### Production Build
+### Production Build (local)
 ```bash
 # Compile for production
 npm run build
@@ -88,7 +88,10 @@ npm run build
 npm run preview
 ```
 
-Compiled files will be in the `dist/` folder.
+Output in `dist/`.
+
+### Windows (PowerShell) Notes
+If `curl` shows HTML, try `curl.exe` (native) or use a browser DevTools fetch.
 
 ---
 
@@ -156,11 +159,11 @@ Foreground notifications:
 - Hook `useExpiryNotifications` scans ingredients shortly after load and then periodically while the app is open.
 - Fires local notifications (Web Notifications API) at most once per day per category (soon / expired).
 
-Background Web Push (implemented):
-- Service Worker listens to `push` and displays notifications even if the app is closed.
-- Users subscribe via `usePushNotifications` which obtains the VAPID public key from an API route and registers with `pushManager.subscribe`.
-- Backend (serverless API routes on Vercel) stores subscriptions and sends push payloads using `web-push`.
-- A daily Vercel Cron invokes `/api/push/check-expiry` to compute expiring items and broadcast notifications.
+Background Web Push:
+- SW handles `push` even app closed.
+- `usePushNotifications` fetches VAPID key + subscribes.
+- Serverless API (Vercel) stores + broadcasts via `web-push`.
+- Daily Cron `/api/push/check-expiry` builds expiry notifications.
 
 File overview:
 - `src/hooks/usePushNotifications.ts`: permission + subscription logic
@@ -169,25 +172,48 @@ File overview:
 - `vercel.json`: cron configuration
  - `src/components/PushNotificationsToggle.tsx`: UI to activate background push
 
-Testing locally:
-1. Generate VAPID keys: `node -e "import('web-push').then(m=>console.log(m.generateVAPIDKeys()))"`
-2. Add keys to `.env.local` (`PUSH_VAPID_PUBLIC_KEY`, `PUSH_VAPID_PRIVATE_KEY`).
-  Or run `npm run vapid:gen` to generate them.
-3. Run `vercel dev` so API routes are available (port 3000).
-4. Open app at `http://localhost:5173` via Vite (or via Vercel dev proxy).
-5. Grant notification permission and subscribe.
-6. POST to `/api/push/send` to trigger a test push.
+Local push test:
+1. `npm run vapid:gen` (or node script) → copy keys into `.env.local`.
+2. `vercel dev` (API on :3000) + `npm run dev` (Vite :5173) if not proxied.
+3. Open app, enable notifications, watch console.
+4. POST JSON `{ "title":"Test" }` to `/api/push/send`.
 
-Production setup:
-- Add env vars in Vercel dashboard (all environments).
-- Deploy; verify `/api/push/vapid-public` returns the public key.
-- Cron triggers daily expiration check.
+Production:
+1. Add env vars (all envs) in Vercel: `PUSH_VAPID_PUBLIC_KEY`, `PUSH_VAPID_PRIVATE_KEY`.
+2. Deploy → check `/api/push/vapid-public` returns key.
+3. Ensure deployment protection disabled for public access.
+4. Cron (08:00 UTC) hits `/api/push/check-expiry`.
+
+Cleanup: invalid endpoints removed on 404/410 responses.
 
 Unsubscribing (future enhancement):
 - Implement endpoint to remove subscription by `endpoint` when user disables notifications.
 
-Cleanup strategy:
-- Remove subscriptions returning 404/410 from `web-push` responses to avoid stale entries.
+---
+
+## ☁️ Vercel Deployment (Quick)
+
+1. Repo: push to GitHub (or import in Vercel UI).
+2. Install dependencies locally: `npm install` (build step: `npm run build`).
+3. Set Environment Variables (Settings > Environment Variables):
+  - `PUSH_VAPID_PUBLIC_KEY` (Development, Preview, Production)
+  - `PUSH_VAPID_PRIVATE_KEY` (same scopes)
+4. (Optional) Cron already defined in `vercel.json` → auto-active after deploy.
+5. Deploy:
+  - Preview (PR / `npx vercel`)
+  - Production (`npx vercel --prod`)
+6. Verify:
+  - `curl https://<deploy>/api/push/vapid-public` returns `{ publicKey: ... }`
+  - Open site → toggle push notifications → send test `/api/push/send`.
+7. If you see auth HTML → disable Deployment Protection.
+
+CLI helpers:
+```
+npx vercel env ls
+npx vercel env pull .env.vercel
+```
+
+Rollback: Vercel Deployments page → Promote previous.
 
 ---
 
