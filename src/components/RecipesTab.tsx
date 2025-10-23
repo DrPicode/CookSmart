@@ -14,6 +14,7 @@ interface RecipesTabProps {
     ingredients: IngredientsType;
     lang: 'fr' | 'en';
     management: UseManagementReturn;
+    editMode: boolean;
 }
 
 export const RecipesTab: React.FC<RecipesTabProps> = ({
@@ -24,10 +25,10 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
     recettesPrioritaires,
     ingredients,
     lang,
-    management
+    management,
+    editMode
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [editMode, setEditMode] = useState(false);
 
     const {
         editingRecipe, setEditingRecipe,
@@ -73,25 +74,14 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2">
-                <SearchBar 
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    placeholder={t('searchRecipes')}
-                />
-                {(() => {
-                    const labelFr = editMode ? 'Terminer' : 'Modifier';
-                    const labelEn = editMode ? 'Done' : 'Manage';
-                    const label = lang === 'fr' ? labelFr : labelEn;
-                    return (
-                        <button
-                            onClick={() => setEditMode(m => !m)}
-                            className={`px-3 py-2 rounded-lg text-xs font-medium ${editMode ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'} hover:opacity-90`}
-                        >{label}</button>
-                    );
-                })()}
-            </div>
+        <div className="space-y-4 pb-24">
+            {/* Full width search bar (edit button moved to floating pencil) */}
+            <SearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={t('searchRecipes')}
+                className="mb-2"
+            />
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 animate-fade-in">
                 <p className="text-green-800 text-sm"><strong>{t('canCookIntro')}</strong> {t('canCookMiddle')} {recettesPossibles.length} {recettesPossibles.length > 1 ? t('dishes') : t('dish')}.</p>

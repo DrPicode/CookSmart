@@ -31,6 +31,8 @@ interface CoursesTabProps {
     lang: 'fr' | 'en';
     // notifications removed from this tab; keep placeholders out
     shoppingActivePersisted: boolean;
+    // external edit mode state & toggle (managed by App via floating pencil)
+    editMode: boolean;
 }
 
 export const CoursesTab: React.FC<CoursesTabProps> = ({
@@ -56,10 +58,11 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
     management,
     lang,
     // notification props removed
-    shoppingActivePersisted
+    shoppingActivePersisted,
+    editMode
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [editMode, setEditMode] = useState(false);
+    // editMode provided externally now
 
     const {
         editingCategory, setEditingCategory,
@@ -144,27 +147,16 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
         return filtered;
     }, [orderedCategories, searchQuery]);
 
-    const containerClasses = shoppingMode ? 'space-y-4 bg-white rounded-lg p-2 -mx-2 sm:mx-0' : 'space-y-4';
+    const containerClasses = shoppingMode ? 'space-y-4 bg-white rounded-lg p-2 -mx-2 sm:mx-0 pb-24' : 'space-y-4 pb-24';
     return (
         <div className={containerClasses}>
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 flex-1">
-                    <SearchBar 
-                        value={searchQuery}
-                        onChange={setSearchQuery}
-                        placeholder={t('searchIngredients')}
-                    />
-                </div>
-                {(() => {
-                    const label = editMode ? (lang === 'fr' ? 'Terminer' : 'Done') : (lang === 'fr' ? 'Modifier' : 'Manage');
-                    return (
-                        <button
-                            onClick={() => setEditMode(m => !m)}
-                            className={`px-3 py-2 rounded-lg text-xs font-medium ${editMode ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700'} hover:opacity-90`}
-                        >{label}</button>
-                    );
-                })()}
-            </div>
+            {/* Full width search bar (manage button moved to floating pencil) */}
+            <SearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={t('searchIngredients')}
+                className="mb-2"
+            />
 
             {editMode && (
                 <div className="space-y-4 animate-fade-in">
@@ -579,3 +571,5 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
         </div>
     );
 };
+
+// Spacer element added at end inside parent (handled above). Ensure export unchanged.

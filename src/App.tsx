@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ShoppingSession, loadDemoData } from './lib/exportImport';
-import { ChefHat, Plus, Settings } from 'lucide-react';
+import { ChefHat, Plus, Settings, Edit2, Check } from 'lucide-react';
 import { usePersistentState } from './hooks/usePersistentState';
 import {
     IngredientsType,
@@ -109,6 +109,9 @@ export function App() {
     const [showAddIngredientModal, setShowAddIngredientModal] = useState(false);
     const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
     const [pushBusy, setPushBusy] = useState(false);
+    // Centralized edit modes for courses (ingredients) and recipes tabs
+    const [coursesEditMode, setCoursesEditMode] = useState(false);
+    const [recipesEditMode, setRecipesEditMode] = useState(false);
     const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
         try { return localStorage.getItem('tutorialSeen') === '1'; } catch { return false; }
     });
@@ -317,6 +320,7 @@ export function App() {
                             setCategoryOrder={setCategoryOrder}
                             management={management}
                             lang={lang}
+                            editMode={coursesEditMode}
                         />
                     )}
 
@@ -330,6 +334,7 @@ export function App() {
                             ingredients={ingredients}
                             lang={lang}
                             management={management}
+                            editMode={recipesEditMode}
                         />
                     )}
 
@@ -351,23 +356,72 @@ export function App() {
                     )}
                 </div>
             </div>
+            {/* Floating action buttons (stacked pencil above plus) */}
             {!showHelp && activeTab === 'courses' && (
-                <button
-                    onClick={() => setShowAddIngredientModal(true)}
-                    className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
-                    aria-label={t('addIngredient')}
-                >
-                    <Plus className="w-6 h-6" />
-                </button>
+                <div className="fixed bottom-[calc(4.0rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] flex flex-col items-center gap-2.5">
+                    {(() => {
+                        let editAriaLabel: string;
+                        let editTitle: string;
+                        if (coursesEditMode) {
+                            editAriaLabel = lang === 'fr' ? 'Terminer modifications' : 'Finish editing';
+                            editTitle = lang === 'fr' ? 'Terminer' : 'Done';
+                        } else {
+                            editAriaLabel = lang === 'fr' ? 'Modifier ingrédients' : 'Edit ingredients';
+                            editTitle = lang === 'fr' ? 'Modifier' : 'Edit';
+                        }
+                        return (
+                            <button
+                                onClick={() => setCoursesEditMode(m => !m)}
+                                className={`w-9 h-9 rounded-full shadow-md flex items-center justify-center bg-white text-blue-600 border border-blue-200 hover:shadow-lg active:scale-[.97] transition-transform ${coursesEditMode ? 'ring-2 ring-blue-500' : ''}`}
+                                aria-label={editAriaLabel}
+                                title={editTitle}
+                            >
+                                {coursesEditMode ? <Check className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                            </button>
+                        );
+                    })()}
+                    <button
+                        onClick={() => setShowAddIngredientModal(true)}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-full w-12 h-12 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                        aria-label={t('addIngredient')}
+                        title={t('addIngredient')}
+                    >
+                        <Plus className="w-5 h-5" />
+                    </button>
+                </div>
             )}
             {!showHelp && activeTab === 'recettes' && (
-                <button
-                    onClick={() => setShowAddRecipeModal(true)}
-                    className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-14 h-14 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
-                    aria-label={t('addRecipe')}
-                >
-                    <Plus className="w-6 h-6" />
-                </button>
+                <div className="fixed bottom-[calc(4.0rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] flex flex-col items-center gap-2.5">
+                    {(() => {
+                        let editAriaLabel: string;
+                        let editTitle: string;
+                        if (recipesEditMode) {
+                            editAriaLabel = lang === 'fr' ? 'Terminer modifications' : 'Finish editing';
+                            editTitle = lang === 'fr' ? 'Terminer' : 'Done';
+                        } else {
+                            editAriaLabel = lang === 'fr' ? 'Modifier recettes' : 'Edit recipes';
+                            editTitle = lang === 'fr' ? 'Modifier' : 'Edit';
+                        }
+                        return (
+                            <button
+                                onClick={() => setRecipesEditMode(m => !m)}
+                                className={`w-9 h-9 rounded-full shadow-md flex items-center justify-center bg-white text-purple-600 border border-purple-200 hover:shadow-lg active:scale-[.97] transition-transform ${recipesEditMode ? 'ring-2 ring-purple-500' : ''}`}
+                                aria-label={editAriaLabel}
+                                title={editTitle}
+                            >
+                                {recipesEditMode ? <Check className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                            </button>
+                        );
+                    })()}
+                    <button
+                        onClick={() => setShowAddRecipeModal(true)}
+                        className="bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg rounded-full w-12 h-12 flex items-center justify-center hover:shadow-xl active:scale-[.97] transition-transform"
+                        aria-label={t('addRecipe')}
+                        title={t('addRecipe')}
+                    >
+                        <Plus className="w-5 h-5" />
+                    </button>
+                </div>
             )}
 
             <AddIngredientModal
