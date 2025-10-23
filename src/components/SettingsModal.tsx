@@ -27,6 +27,7 @@ interface SettingsModalProps {
   onRequestPushPermission: () => Promise<NotificationPermission>;
   onSubscribePush: () => Promise<any>;
   onUnsubscribePush: () => Promise<boolean>;
+  pushBusy: boolean;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -53,6 +54,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onRequestPushPermission,
   onSubscribePush,
   onUnsubscribePush,
+  pushBusy,
 }) => {
   // Push state lifted to parent.
   // (Legacy notification bell logic removed; unified push + local toggle below)
@@ -164,21 +166,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }
                     }
                   }}
-                  disabled={pushPermission === 'denied'}
+                  disabled={pushPermission === 'denied' || pushBusy}
                   className={
                     `w-28 justify-center flex px-3 py-2 rounded-lg text-xs font-medium transition-colors ` +
                     (pushPermission === 'denied'
                       ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                      : isSubscribed
-                        ? 'bg-orange-600 text-white hover:bg-orange-700 active:scale-[.97]'
-                        : 'bg-green-600 text-white hover:bg-green-700 active:scale-[.97]')
+                      : pushBusy
+                        ? 'bg-orange-300 text-white cursor-wait'
+                        : isSubscribed
+                          ? 'bg-orange-600 text-white hover:bg-orange-700 active:scale-[.97]'
+                          : 'bg-green-600 text-white hover:bg-green-700 active:scale-[.97]')
                   }
                 >
                   {pushPermission === 'denied'
                     ? (lang === 'fr' ? 'Refusée' : 'Denied')
-                    : isSubscribed
-                      ? (lang === 'fr' ? 'Désactiver' : 'Disable')
-                      : (lang === 'fr' ? 'Activer' : 'Enable')}
+                    : pushBusy
+                      ? (lang === 'fr' ? 'Chargement…' : 'Loading…')
+                      : isSubscribed
+                        ? (lang === 'fr' ? 'Désactiver' : 'Disable')
+                        : (lang === 'fr' ? 'Activer' : 'Enable')}
                 </button>
               </div>
 

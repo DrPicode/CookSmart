@@ -134,6 +134,7 @@ export function App() {
     const [showSettings, setShowSettings] = useState(false);
     const [showAddIngredientModal, setShowAddIngredientModal] = useState(false);
     const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
+    const [pushBusy, setPushBusy] = useState(false);
     const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
         try { return localStorage.getItem('tutorialSeen') === '1'; } catch { return false; }
     });
@@ -473,8 +474,15 @@ export function App() {
                 pushPermission={permission}
                 isSubscribed={isSubscribed}
                 onRequestPushPermission={requestPermission}
-                onSubscribePush={subscribe}
-                onUnsubscribePush={unsubscribe}
+                onUnsubscribePush={async () => {
+                    setPushBusy(true);
+                    try { return await unsubscribe(); } finally { setPushBusy(false); }
+                }}
+                onSubscribePush={async () => {
+                    setPushBusy(true);
+                    try { return await subscribe(); } finally { setPushBusy(false); }
+                }}
+                pushBusy={pushBusy}
             />
 
             {/* Post start notification prompt modal */}
@@ -497,16 +505,15 @@ export function App() {
                                     setNotificationPrompted(true);
                                     if (result === 'granted') {
                                         setNotificationsEnabled(true);
-                                        // Immediately attempt push subscription
+                                        setPushBusy(true);
                                         try {
                                             const sub = await subscribe();
-                                            if (sub) {
-                                                success(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled', 2500);
-                                            } else {
-                                                success(lang === 'fr' ? 'Permission accordée (push indisponible)' : 'Permission granted (push unavailable)', 2500);
-                                            }
+                                            if (sub) success(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled', 2500);
+                                            else success(lang === 'fr' ? 'Permission accordée (push indisponible)' : 'Permission granted (push unavailable)', 2500);
                                         } catch {
                                             success(lang === 'fr' ? 'Permission accordée (erreur abonnement)' : 'Permission granted (subscription error)', 2500);
+                                        } finally {
+                                            setPushBusy(false);
                                         }
                                     } else {
                                         success(lang === 'fr' ? 'Autorisation refusée' : 'Permission denied', 2000);
@@ -527,6 +534,18 @@ export function App() {
                                 {lang === 'fr' ? 'Plus tard' : 'Later'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {pushBusy && (
+                <div className="fixed inset-0 z-[600] flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                    <div className="relative bg-white/90 px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 text-sm font-medium text-gray-700">
+                        <svg className="animate-spin h-5 w-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" opacity="0.25" />
+                            <path d="M12 2a10 10 0 0 1 10 10" />
+                        </svg>
+                        {lang === 'fr' ? 'Abonnement aux notifications…' : 'Subscribing to notifications…'}
                     </div>
                 </div>
             )}
