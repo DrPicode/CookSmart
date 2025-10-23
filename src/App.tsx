@@ -27,6 +27,7 @@ import { usePWAInstall } from './hooks/usePWAInstall';
 import { useToast } from './hooks/useToast';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useExpiryNotifications } from './hooks/useExpiryNotifications';
+import { useNotificationOnboarding } from './hooks/useNotificationOnboarding';
 
 export function App() {
     const [ingredients, setIngredients] = usePersistentState<IngredientsType>('ingredients', {});
@@ -39,10 +40,14 @@ export function App() {
     const { t } = useTranslations(lang);
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'historique'>('courses');
     const [shoppingHistory, setShoppingHistory] = useState<ShoppingSession[]>(() => {
-        const saved = localStorage.getItem('shoppingHistory');
-        return saved ? JSON.parse(saved) : [];
+        try {
+            const saved = localStorage.getItem('shoppingHistory');
+            return saved ? JSON.parse(saved) : [];
+        } catch { return []; }
     });
-    useEffect(() => { try { localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory)); } catch { } }, [shoppingHistory]);
+    useEffect(() => {
+        try { localStorage.setItem('shoppingHistory', JSON.stringify(shoppingHistory)); } catch { /* ignore */ }
+    }, [shoppingHistory]);
 
     const { toasts, removeToast, success } = useToast();
 
@@ -56,40 +61,15 @@ export function App() {
             })();
         }
     }, [permission, notificationsEnabled, isSubscribed, subscribe]);
-    // Track if we've already prompted the user explicitly about enabling notifications
     const [notificationPrompted, setNotificationPrompted] = usePersistentState<boolean>('notificationPrompted', false);
-    const [showNotificationBanner, setShowNotificationBanner] = useState(false);
-
-    // Decide when to show the notification onboarding banner (first visit, permission still default)
-    useEffect(() => {
-        if (permission === 'default' && !notificationsEnabled && !notificationPrompted) {
-            const timer = setTimeout(() => setShowNotificationBanner(true), 1200); // slight delay after load
-            return () => clearTimeout(timer);
-        } else {
-            setShowNotificationBanner(false);
-        }
-    }, [permission, notificationsEnabled, notificationPrompted]);
-
-    const handleEnableNotifications = async () => {
-        // Request permission from browser
-        const result = await requestPermission();
-        setNotificationPrompted(true);
-        setShowNotificationBanner(false);
-        if (result === 'granted') {
-            setNotificationsEnabled(true);
-            success(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled', 2500);
-        } else if (result === 'denied') {
-            success(lang === 'fr' ? 'Notifications refusées' : 'Notifications denied', 2500);
-        } else {
-            success(lang === 'fr' ? 'Autorisation inchangée' : 'Permission unchanged', 2000);
-        }
-    };
-
-    const handleDismissNotificationBanner = () => {
-        // Mark as prompted so we don't nag continuously; you could choose not to set this to show again later.
-        setNotificationPrompted(true);
-        setShowNotificationBanner(false);
-    };
+    const onboarding = useNotificationOnboarding({
+        permission,
+        notificationsEnabled,
+        notificationPrompted,
+        setNotificationPrompted: (v) => setNotificationPrompted(v),
+        requestPermission,
+        onGranted: () => setNotificationsEnabled(true)
+    });
 
     useExpiryNotifications({
         ingredients,
@@ -98,14 +78,10 @@ export function App() {
         lang
     });
 
-    const resetAllData = () => {
+    const RESET_KEYS = ['ingredients','categories','recettes','shoppingHistory','recipeCategories','tutorialSeen','notificationsEnabled','notificationPrompted','categoryOrder'];
+    const resetAllData = useCallback(() => {
         if (!confirm(t('confirmReset'))) return;
-        try { 
-            const keys = ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen', 'notificationsEnabled', 'notificationPrompted', 'categoryOrder'];
-            for (const k of keys) {
-                localStorage.removeItem(k);
-            }
-        } catch { }
+        try { for (const k of RESET_KEYS) localStorage.removeItem(k); } catch { /* ignore */ }
         setIngredients({});
         setCategories({});
         setRecettes([]);
@@ -118,19 +94,17 @@ export function App() {
         setShowHelp(true);
         try { unsubscribe(); } catch { }
         success(lang === 'fr' ? 'Données réinitialisées' : 'Data reset', 2000);
-    };
-    const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
+    }, [t, unsubscribe, success, lang]);
+    const toggleLang = useCallback(() => setLang(prev => prev === 'fr' ? 'en' : 'fr'), []);
 
     
     const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
 
-    useEffect(() => { }, []);
+    // removed empty effect
     const [historySelectMode, setHistorySelectMode] = useState(false);
     const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
     const [showHelp, setShowHelp] = useState(false);
     const [showInteractiveTutorial, setShowInteractiveTutorial] = useState(false);
-    // Show a dedicated prompt asking user to enable notifications after initial data choice or tutorial
-    const [showPostStartNotificationPrompt, setShowPostStartNotificationPrompt] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showAddIngredientModal, setShowAddIngredientModal] = useState(false);
     const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
@@ -152,7 +126,7 @@ export function App() {
             try { localStorage.setItem('tutorialSeen', '1'); } catch { }
         }
     };
-    const startWithDemoData = () => {
+    const startWithDemoData = useCallback(() => {
         const demoData = loadDemoData();
         setIngredients(demoData.ingredients);
         setCategories(demoData.categories);
@@ -160,36 +134,32 @@ export function App() {
         setRecipeCategories(demoData.recipeCategories);
         setFreshCategories(demoData.freshCategories);
         setShoppingHistory(demoData.shoppingHistory);
-        if (!notificationsEnabled && !notificationPrompted) {
-            setTimeout(() => setShowPostStartNotificationPrompt(true), 400);
-        }
-    };
-    const startWithEmptyData = () => {
+        onboarding.triggerPostStartPrompt();
+    }, [onboarding]);
+    const startWithEmptyData = useCallback(() => {
         setIngredients({});
         setCategories({});
         setRecettes([]);
         setRecipeCategories([]);
         setFreshCategories([]);
-        if (!notificationsEnabled && !notificationPrompted) {
-            setTimeout(() => setShowPostStartNotificationPrompt(true), 400);
-        }
-    };
-    const startInteractiveTutorial = () => {
+        onboarding.triggerPostStartPrompt();
+    }, [onboarding]);
+    const startInteractiveTutorial = useCallback(() => {
         setIngredients({});
         setCategories({});
         setRecettes([]);
         setRecipeCategories([]);
         setFreshCategories([]);
         setShowInteractiveTutorial(true);
-    };
-    const toggleHistorySelect = (id: string) => {
+    }, []);
+    const toggleHistorySelect = useCallback((id: string) => {
         setHistorySelected(prev => {
             const next = new Set(prev);
             if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
-    };
-    const deleteHistoryIds = (ids: string[]) => {
+    }, []);
+    const deleteHistoryIds = useCallback((ids: string[]) => {
         if (ids.length === 0) return;
         const isSingle = ids.length === 1;
         const message = (() => {
@@ -200,14 +170,14 @@ export function App() {
         setShoppingHistory(prev => prev.filter(s => !ids.includes(s.id)));
         setHistorySelected(new Set());
         setHistorySelectMode(false);
-    };
-    const selectAllHistory = () => {
+    }, [lang]);
+    const selectAllHistory = useCallback(() => {
         if (historySelected.size === shoppingHistory.length) {
             setHistorySelected(new Set());
         } else {
             setHistorySelected(new Set(shoppingHistory.map(s => s.id)));
         }
-    };
+    }, [historySelected, shoppingHistory]);
 
     const { recettesPossibles, recettesGroupees, expiringIngredients, recettesPrioritaires } = useRecipes({ ingredients, recettes });
 
@@ -284,7 +254,7 @@ export function App() {
                             </div>
                         </div>
                     </div>
-                    {showNotificationBanner && (
+                    {onboarding.showBanner && (
                         <div className="mt-3 bg-white/15 backdrop-blur-sm rounded-lg p-2 border border-white/30 animate-fade-in flex items-center justify-between gap-2 text-[11px]">
                             <span className="leading-snug">
                                 {lang === 'fr'
@@ -293,13 +263,16 @@ export function App() {
                             </span>
                             <div className="flex gap-1">
                                 <button
-                                    onClick={handleEnableNotifications}
+                                    onClick={async () => {
+                                        await onboarding.handleBannerEnable();
+                                        if (permission === 'granted') success(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled', 2500);
+                                    }}
                                     className="px-2 py-1 rounded bg-orange-600 hover:bg-orange-700 text-white font-medium"
                                 >
                                     {lang === 'fr' ? 'Activer' : 'Enable'}
                                 </button>
                                 <button
-                                    onClick={handleDismissNotificationBanner}
+                                    onClick={onboarding.dismissBanner}
                                     className="px-2 py-1 rounded bg-white/30 hover:bg-white/40 text-white font-medium"
                                 >
                                     {lang === 'fr' ? 'Plus tard' : 'Later'}
@@ -435,9 +408,7 @@ export function App() {
                 open={showInteractiveTutorial}
                 onClose={() => setShowInteractiveTutorial(false)}
                 onCompleted={() => {
-                    if (!notificationsEnabled && !notificationPrompted) {
-                        setTimeout(() => setShowPostStartNotificationPrompt(true), 500);
-                    }
+                    onboarding.triggerPostStartPrompt();
                 }}
                 lang={lang}
                 t={t}
@@ -486,9 +457,16 @@ export function App() {
             />
 
             {/* Post start notification prompt modal */}
-            {showPostStartNotificationPrompt && (
+            {onboarding.showPostStartPrompt && (
                 <div className="fixed inset-0 z-[500] flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowPostStartNotificationPrompt(false)} />
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={onboarding.closePostStartPrompt}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onboarding.closePostStartPrompt(); }}
+                        aria-label={lang === 'fr' ? 'Fermer la fenêtre' : 'Close dialog backdrop'}
+                    />
                     <div className="relative bg-white rounded-2xl shadow-2xl w-[92%] max-w-md p-6 ring-1 ring-black/10 animate-scale-fade-in">
                         <h2 className="text-lg font-bold mb-2 flex items-center gap-2">
                             <span>🔔</span> {lang === 'fr' ? 'Recevoir des alertes' : 'Get alerts'}
@@ -501,9 +479,8 @@ export function App() {
                         <div className="flex flex-col sm:flex-row gap-3 mt-2">
                             <button
                                 onClick={async () => {
-                                    const result = await requestPermission();
-                                    setNotificationPrompted(true);
-                                    if (result === 'granted') {
+                                    await onboarding.handlePostStartEnable();
+                                    if (permission === 'granted') {
                                         setNotificationsEnabled(true);
                                         setPushBusy(true);
                                         try {
@@ -515,20 +492,15 @@ export function App() {
                                         } finally {
                                             setPushBusy(false);
                                         }
-                                    } else {
-                                        success(lang === 'fr' ? 'Autorisation refusée' : 'Permission denied', 2000);
                                     }
-                                    setShowPostStartNotificationPrompt(false);
+                                    onboarding.closePostStartPrompt();
                                 }}
                                 className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 rounded-xl shadow-lg active:scale-[0.98]"
                             >
                                 {lang === 'fr' ? 'Activer' : 'Enable'}
                             </button>
                             <button
-                                onClick={() => {
-                                    setNotificationPrompted(true);
-                                    setShowPostStartNotificationPrompt(false);
-                                }}
+                                onClick={onboarding.closePostStartPrompt}
                                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-xl shadow"
                             >
                                 {lang === 'fr' ? 'Plus tard' : 'Later'}
