@@ -59,6 +59,7 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
     , notifEnabled: 'Notifications activées', notifDisabled: 'Activer notifications', notifDenied: 'Notifications refusées', notifRequest: 'Demander autorisation',
     categorySavedNoIngredient: 'Catégorie enregistrée sans ingrédient.',
     categorySavedNoRecipe: 'Catégorie enregistrée sans recette.'
+    , importSuccess: 'Données importées'
     },
     en: {
         appTitle: 'CookSmart',
@@ -118,6 +119,7 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
     , notifEnabled: 'Notifications enabled', notifDisabled: 'Enable notifications', notifDenied: 'Notifications denied', notifRequest: 'Request permission',
     categorySavedNoIngredient: 'Category saved without ingredient.',
     categorySavedNoRecipe: 'Category saved without recipe.'
+    , importSuccess: 'Data imported'
     }
 };
 

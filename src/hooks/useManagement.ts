@@ -17,6 +17,8 @@ interface UseManagementParams {
     setShoppingHistory: React.Dispatch<React.SetStateAction<ShoppingSession[]>>;
     lang: 'fr' | 'en';
     t: (k: string) => string;
+    notifySuccess?: (message: string, duration?: number) => void;
+    onAfterImport?: () => void;
 }
 
 export function useManagement({
@@ -33,7 +35,9 @@ export function useManagement({
     shoppingHistory,
     setShoppingHistory,
     lang,
-    t
+    t,
+    notifySuccess,
+    onAfterImport
 }: UseManagementParams) {
     const [showAddIngredient, setShowAddIngredient] = useState(false);
     const [showAddRecipe, setShowAddRecipe] = useState(false);
@@ -54,7 +58,11 @@ export function useManagement({
     const allIngredients = useMemo(() => Object.keys(ingredients), [ingredients]);
     const recettesParCategorie = useMemo(() => {
         const map: { [key: string]: { recette: RecipeType; index: number }[] } = {};
-        recettes.forEach((r, idx) => { (map[r.categorie] ||= []).push({ recette: r, index: idx }); });
+        for (let idx = 0; idx < recettes.length; idx++) {
+            const r = recettes[idx];
+            if (!map[r.categorie]) map[r.categorie] = [];
+            map[r.categorie].push({ recette: r, index: idx });
+        }
         return map;
     }, [recettes]);
 
@@ -69,9 +77,9 @@ export function useManagement({
             }
         }
         
-        const priceNum = parseFloat(newIngredient.price);
-        const partsNum = parseInt(newIngredient.parts, 10);
-        if (!name || !category || isNaN(priceNum) || isNaN(partsNum) || partsNum < 1 || priceNum < 0) {
+        const priceNum = Number.parseFloat(newIngredient.price);
+        const partsNum = Number.parseInt(newIngredient.parts, 10);
+        if (!name || !category || Number.isNaN(priceNum) || Number.isNaN(partsNum) || partsNum < 1 || priceNum < 0) {
             alert(lang === 'fr' ? 'Veuillez entrer un nom, une catégorie, un prix ≥ 0 et des parts ≥ 1.' : 'Enter name, category, price ≥ 0 and parts ≥ 1.');
             return;
         }
@@ -95,7 +103,19 @@ export function useManagement({
         if (!confirm(t('deleteIngredientConfirm').replace('{name}', ingredient))) return;
         setIngredients(prev => { const copy = { ...prev }; delete copy[ingredient]; return copy; });
         setCategories(prev => ({ ...prev, [category]: prev[category].filter(i => i !== ingredient) }));
-        setRecettes(prev => prev.map(r => ({ ...r, ingredients: r.ingredients.filter(i => i !== ingredient) })).filter(r => r.ingredients.length > 0));
+        setRecettes(prev => {
+            const next: RecipeType[] = [];
+            for (const r of prev) {
+                const filteredIngredients = [] as string[];
+                for (const ing of r.ingredients) {
+                    if ( ing !== ingredient ) filteredIngredients.push(ing);
+                }
+                if (filteredIngredients.length > 0) {
+                    next.push({ ...r, ingredients: filteredIngredients });
+                }
+            }
+            return next;
+        });
     }, [t, setIngredients, setCategories, setRecettes]);
 
     const addRecipe = useCallback(() => {
@@ -207,7 +227,7 @@ export function useManagement({
                     setImportError(`${t('invalidFilePrefix')} ` + (errors.join(' | ') || (lang === 'fr' ? 'Raison inconnue' : 'Unknown reason')));
                     return;
                 }
-                const cleaned = sanitizeImport(parsed as any);
+                const cleaned = sanitizeImport(parsed);
                 if (warnings.length) alert(`${t('importAdjustmentsPrefix')}\n` + warnings.join('\n'));
                 if (!confirm(t('importConfirm'))) return;
                 setIngredients(cleaned.ingredients);
@@ -219,13 +239,16 @@ export function useManagement({
                 if ((cleaned as any).freshCategories && Array.isArray((cleaned as any).freshCategories)) {
                     setFreshCategories((cleaned as any).freshCategories.filter((c: any) => typeof c === 'string'));
                 }
+                // Success toast / popup
+                notifySuccess?.(t('importSuccess'), 2200);
+                onAfterImport?.();
             } catch {
                 setImportError(t('readFail'));
             }
         };
         reader.onerror = () => setImportError(t('cannotReadFile'));
         reader.readAsText(file, 'utf-8');
-    }, [t, lang, setIngredients, setCategories, setRecettes, setShoppingHistory, setRecipeCategories, setFreshCategories]);
+    }, [t, lang, setIngredients, setCategories, setRecettes, setShoppingHistory, setRecipeCategories, setFreshCategories, notifySuccess]);
 
     const onImportInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

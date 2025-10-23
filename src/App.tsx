@@ -215,7 +215,9 @@ export function App() {
         shoppingHistory,
         setShoppingHistory,
         lang,
-        t
+        t,
+        notifySuccess: (message, duration) => success(message, duration || 2000),
+        onAfterImport: () => setShowSettings(false)
     });
 
     const toggleIngredient = useCallback((ingredient: string) => {
