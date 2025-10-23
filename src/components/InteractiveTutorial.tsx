@@ -8,6 +8,7 @@ import { ShoppingSession } from '../lib/exportImport';
 interface InteractiveTutorialProps {
     open: boolean;
     onClose: () => void;
+    onCompleted?: () => void; // callback after final step completed
     lang: 'fr' | 'en';
     t: (k: string) => string;
     ingredients: IngredientsType;
@@ -37,6 +38,7 @@ const getDatePlusDays = (days: number): string => {
 export function InteractiveTutorial({
     open,
     onClose,
+    onCompleted,
     lang,
     t,
     ingredients,
@@ -49,7 +51,8 @@ export function InteractiveTutorial({
     setShoppingHistory
 }: InteractiveTutorialProps) {
     const [currentStep, setCurrentStep] = useState(0);
-    const [, setCompletedSteps] = useState<Set<number>>(new Set());
+    // Track which steps have been completed by user actions
+    const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
     const [waitingForModalClose, setWaitingForModalClose] = useState(false);
     const [hideOverlay, setHideOverlay] = useState(false);
     const [pendingIngredientData, setPendingIngredientData] = useState<any>(null);
@@ -371,8 +374,7 @@ export function InteractiveTutorial({
     const handleNext = () => {
         if (currentStep < steps.length - 1) {
             setCurrentStep(currentStep + 1);
-            
-            // Switch tab based on step
+            // Switch tab based on next step
             if (steps[currentStep + 1].action === 'recipe') {
                 setActiveTab('recettes');
             } else if (steps[currentStep + 1].action === 'ingredient' || steps[currentStep + 1].action === 'toggle') {
@@ -406,14 +408,32 @@ export function InteractiveTutorial({
         setCompletedSteps(prev => new Set([...prev, currentStep]));
         setTimeout(() => {
             onClose();
+            onCompleted?.();
         }, 300);
     };
 
     const ingredientName = currentStepData.action === 'ingredient' 
         ? (lang === 'fr' ? currentStepData.data.nameFr : currentStepData.data.name)
         : '';
-    
     const ingredientExists = ingredientName && ingredients[ingredientName];
+
+    // Determine if current step is completed
+    const isRecipeCreated = currentStepData.action === 'recipe' && recettes.some(r => r.nom === (lang === 'fr' ? currentStepData.data.nameFr : currentStepData.data.name));
+    const isCompleteStep = currentStepData.action === 'complete';
+    const isIngredientStepCompleted = currentStepData.action === 'ingredient' && !!ingredientExists;
+    const isToggleStep = currentStepData.action === 'toggle';
+    const isStepCompleted = completedSteps.has(currentStep) ||
+        isIngredientStepCompleted ||
+        isRecipeCreated ||
+        isCompleteStep ||
+        isToggleStep; // toggle is informational, allow next immediately
+
+    // Auto-mark toggle informational step as completed when reached
+    useEffect(() => {
+        if (currentStepData.action === 'toggle' && !completedSteps.has(currentStep)) {
+            setCompletedSteps(prev => new Set([...prev, currentStep]));
+        }
+    }, [currentStepData, currentStep, completedSteps]);
     
     // For certain steps, make the overlay transparent so users can see the app behind
     const isViewingStep = false; // No longer needed since showManagement step was removed
@@ -651,7 +671,7 @@ export function InteractiveTutorial({
                                             </button>
                                             <button
                                                 onClick={handleNext}
-                                                disabled={currentStep === steps.length - 1}
+                                                disabled={currentStep === steps.length - 1 || !isStepCompleted}
                                                 className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                             >
                                                 {lang === 'fr' ? 'Suivant' : 'Next'}

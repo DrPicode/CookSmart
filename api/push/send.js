@@ -16,10 +16,15 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const { title = 'CookSmart', body = 'Test notification', url = '/' } = req.body || {};
   const payload = JSON.stringify({ title, body, url });
+  // Use a generous TTL (12h) so notifications survive device being offline/turned off for a while.
+  const options = {
+    TTL: 60 * 60 * 12, // 12 hours
+    urgency: 'normal' // could be 'high' for very time-sensitive alerts
+  };
   const results = [];
   for (const sub of subscriptions) {
     try {
-      await webPush.sendNotification(sub, payload);
+  await webPush.sendNotification(sub, payload, options);
       results.push({ endpoint: sub.endpoint, ok: true });
     } catch (e) {
       console.error('Push send error', e?.statusCode, e?.body);

@@ -30,9 +30,11 @@ export default async function handler(req, res) {
       body: `${item.itemName} expire bientôt (${item.expiryDate}).`,
       url: '/?focus=expiry'
     });
-    for (const sub of subscriptions) {
+  // Long TTL so morning cron push is still delivered if device powers on later in the day.
+  const options = { TTL: 60 * 60 * 12, urgency: 'high' };
+  for (const sub of subscriptions) {
       try {
-        await webPush.sendNotification(sub, payload);
+  await webPush.sendNotification(sub, payload, options);
         notificationsSent++;
       } catch (e) {
         console.error('Push send error', e?.statusCode, e?.body);

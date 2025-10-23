@@ -46,8 +46,16 @@ export function App() {
 
     const { toasts, removeToast, success } = useToast();
 
-    const { permission, sendNotification, requestPermission } = usePushNotifications();
+    const { permission, sendNotification, requestPermission, unsubscribe, subscribe, isSubscribed } = usePushNotifications();
     const [notificationsEnabled, setNotificationsEnabled] = usePersistentState('notificationsEnabled', false);
+    // If permission granted and local flag enabled but not actually subscribed, attempt silent subscribe
+    useEffect(() => {
+        if (permission === 'granted' && notificationsEnabled && !isSubscribed) {
+            (async () => {
+                try { await subscribe(); } catch { /* ignore */ }
+            })();
+        }
+    }, [permission, notificationsEnabled, isSubscribed, subscribe]);
     // Track if we've already prompted the user explicitly about enabling notifications
     const [notificationPrompted, setNotificationPrompted] = usePersistentState<boolean>('notificationPrompted', false);
     const [showNotificationBanner, setShowNotificationBanner] = useState(false);
@@ -93,7 +101,7 @@ export function App() {
     const resetAllData = () => {
         if (!confirm(t('confirmReset'))) return;
         try { 
-            const keys = ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen', 'notificationsEnabled', 'categoryOrder'];
+            const keys = ['ingredients', 'categories', 'recettes', 'shoppingHistory', 'recipeCategories', 'tutorialSeen', 'notificationsEnabled', 'notificationPrompted', 'categoryOrder'];
             for (const k of keys) {
                 localStorage.removeItem(k);
             }
@@ -106,7 +114,9 @@ export function App() {
         setCategoryOrder([]);
         setHasSeenTutorial(false);
         setNotificationsEnabled(false);
+        setNotificationPrompted(false);
         setShowHelp(true);
+        try { unsubscribe(); } catch { }
         success(lang === 'fr' ? 'Données réinitialisées' : 'Data reset', 2000);
     };
     const toggleLang = () => setLang(prev => prev === 'fr' ? 'en' : 'fr');
@@ -119,6 +129,8 @@ export function App() {
     const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
     const [showHelp, setShowHelp] = useState(false);
     const [showInteractiveTutorial, setShowInteractiveTutorial] = useState(false);
+    // Show a dedicated prompt asking user to enable notifications after initial data choice or tutorial
+    const [showPostStartNotificationPrompt, setShowPostStartNotificationPrompt] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showAddIngredientModal, setShowAddIngredientModal] = useState(false);
     const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
@@ -147,6 +159,9 @@ export function App() {
         setRecipeCategories(demoData.recipeCategories);
         setFreshCategories(demoData.freshCategories);
         setShoppingHistory(demoData.shoppingHistory);
+        if (!notificationsEnabled && !notificationPrompted) {
+            setTimeout(() => setShowPostStartNotificationPrompt(true), 400);
+        }
     };
     const startWithEmptyData = () => {
         setIngredients({});
@@ -154,6 +169,9 @@ export function App() {
         setRecettes([]);
         setRecipeCategories([]);
         setFreshCategories([]);
+        if (!notificationsEnabled && !notificationPrompted) {
+            setTimeout(() => setShowPostStartNotificationPrompt(true), 400);
+        }
     };
     const startInteractiveTutorial = () => {
         setIngredients({});
@@ -415,6 +433,11 @@ export function App() {
             <InteractiveTutorial
                 open={showInteractiveTutorial}
                 onClose={() => setShowInteractiveTutorial(false)}
+                onCompleted={() => {
+                    if (!notificationsEnabled && !notificationPrompted) {
+                        setTimeout(() => setShowPostStartNotificationPrompt(true), 500);
+                    }
+                }}
                 lang={lang}
                 t={t}
                 ingredients={ingredients}
@@ -436,20 +459,77 @@ export function App() {
                 onToggleLang={toggleLang}
                 onOpenHelp={openHelp}
                 onResetData={resetAllData}
-                permission={permission}
                 notificationsEnabled={notificationsEnabled}
                 onToggleNotifications={() => setNotificationsEnabled(prev => !prev)}
                 isInstallable={isInstallable}
                 isInstalled={isInstalled}
                 onInstallPWA={promptInstall}
-                onRequestNotificationPermission={requestPermission}
                 onNotifyInfo={(m) => success(m, 2000)}
                 onNotifySuccess={(m) => success(m, 2000)}
                 onNotifyError={(m) => success(m, 2500)}
                 onExportData={management.handleExport}
                 onImportData={management.onImportInputChange}
                 importError={management.importError}
+                pushPermission={permission}
+                isSubscribed={isSubscribed}
+                onRequestPushPermission={requestPermission}
+                onSubscribePush={subscribe}
+                onUnsubscribePush={unsubscribe}
             />
+
+            {/* Post start notification prompt modal */}
+            {showPostStartNotificationPrompt && (
+                <div className="fixed inset-0 z-[500] flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowPostStartNotificationPrompt(false)} />
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-[92%] max-w-md p-6 ring-1 ring-black/10 animate-scale-fade-in">
+                        <h2 className="text-lg font-bold mb-2 flex items-center gap-2">
+                            <span>🔔</span> {lang === 'fr' ? 'Recevoir des alertes' : 'Get alerts'}
+                        </h2>
+                        <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                            {lang === 'fr'
+                                ? 'Activez les notifications pour être prévenu quand un ingrédient approche de sa date de péremption.'
+                                : 'Enable notifications to get alerted when an ingredient is nearing expiry.'}
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                            <button
+                                onClick={async () => {
+                                    const result = await requestPermission();
+                                    setNotificationPrompted(true);
+                                    if (result === 'granted') {
+                                        setNotificationsEnabled(true);
+                                        // Immediately attempt push subscription
+                                        try {
+                                            const sub = await subscribe();
+                                            if (sub) {
+                                                success(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled', 2500);
+                                            } else {
+                                                success(lang === 'fr' ? 'Permission accordée (push indisponible)' : 'Permission granted (push unavailable)', 2500);
+                                            }
+                                        } catch {
+                                            success(lang === 'fr' ? 'Permission accordée (erreur abonnement)' : 'Permission granted (subscription error)', 2500);
+                                        }
+                                    } else {
+                                        success(lang === 'fr' ? 'Autorisation refusée' : 'Permission denied', 2000);
+                                    }
+                                    setShowPostStartNotificationPrompt(false);
+                                }}
+                                className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-3 rounded-xl shadow-lg active:scale-[0.98]"
+                            >
+                                {lang === 'fr' ? 'Activer' : 'Enable'}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setNotificationPrompted(true);
+                                    setShowPostStartNotificationPrompt(false);
+                                }}
+                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 rounded-xl shadow"
+                            >
+                                {lang === 'fr' ? 'Plus tard' : 'Later'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

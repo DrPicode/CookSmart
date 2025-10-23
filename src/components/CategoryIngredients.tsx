@@ -31,16 +31,29 @@ function CategoryIngredientsComponent({ categorie, items, ingredients, onToggle,
                                 {inStock ? <CheckCircle2 className="w-6 h-6 text-green-500" /> : <Circle className="w-6 h-6 text-gray-300" />}
                                 <div className="flex flex-col">
                                     <span className={inStock ? 'text-gray-900 text-[13px] leading-tight' : 'text-gray-500 text-[13px] leading-tight'}>{ingredient}</span>
-                                    {ingredients[ingredient].expiryDate && inStock && (() => {
-                                        const { status, daysLeft } = computeExpiryStatus(ingredients[ingredient]);
+                                    {inStock && ingredients[ingredient].expiryDate && (() => {
+                                        const expiryDate = ingredients[ingredient].expiryDate;
+                                        const { status, daysLeft } = computeExpiryStatus({ expiryDate, inStock: true });
                                         if (status === 'none' || status === 'out') return null;
-                                        const dateStr = formatDate(ingredients[ingredient].expiryDate!, lang);
+                                        const dateStr = formatDate(expiryDate, lang);
                                         const daysStr = formatDaysLeft(daysLeft, lang);
                                         const isWarn = status === 'soon' || status === 'expired';
-                                        const cls = status === 'expired' ? 'text-red-600' : (status === 'soon' ? 'text-orange-600' : 'text-gray-400');
+                                        let cls: string;
+                                        if (status === 'expired') cls = 'text-red-600';
+                                        else if (status === 'soon') cls = 'text-orange-600';
+                                        else cls = 'text-gray-400';
+                                        let ariaLabel: string;
+                                        if (status === 'expired') ariaLabel = lang === 'fr' ? 'Ingrédient périmé' : 'Expired ingredient';
+                                        else ariaLabel = lang === 'fr' ? 'Ingrédient bientôt périmé' : 'Ingredient expiring soon';
                                         return (
                                             <span className={`text-[10px] mt-0.5 font-medium flex items-center gap-1 ${cls}`}>
-                                                {isWarn && <span>⚠️</span>}{dateStr}{daysStr ? ` (${daysStr})` : ''}
+                                                {isWarn && (
+                                                    <span
+                                                        className={status === 'expired' ? 'text-red-600' : 'text-orange-500'}
+                                                        aria-label={ariaLabel}
+                                                    >⚠️</span>
+                                                )}
+                                                {dateStr}{daysStr ? ` (${daysStr})` : ''}
                                             </span>
                                         );
                                     })()}

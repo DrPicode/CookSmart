@@ -67,6 +67,15 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                 <div className="px-3 py-2 bg-gray-100 text-xs font-semibold text-gray-700 sticky top-0 z-10">{cat}</div>
                                 <div className="divide-y">
                                     {missingByCategory[cat].map(ing => {
+                                        const updateIngredientExpiry = (val: string) => {
+                                            setIngredients(prev => {
+                                                const current = prev[ing];
+                                                return {
+                                                    ...prev,
+                                                    [ing]: { ...current, expiryDate: val || undefined }
+                                                };
+                                            });
+                                        };
                                         const checked = shoppingSelected.has(ing);
                                         const isFresh = freshCategories.some(fc => categories[fc]?.includes(ing));
                                         const showExpiry = isFresh && checked;
@@ -80,14 +89,19 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                             <button
                                                 type="button"
                                                 key={ing}
-                                                onClick={() => toggleShoppingItem(ing)}
-                                                className={`w-full text-left px-3 py-2 text-sm select-none active:bg-gray-50 ${statusClass}`}
+                                                onClick={(e) => {
+                                                    const target = e.target as HTMLElement;
+                                                    if (target.closest('.expiry-editor') || target.closest('input[type="checkbox"]')) return;
+                                                    toggleShoppingItem(ing);
+                                                }}
+                                                className={`w-full text-left px-3 py-2 text-sm select-none hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${statusClass}`}
                                             >
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div className="flex items-center gap-2">
                                                         <input
                                                             type="checkbox"
                                                             checked={checked}
+                                                            aria-label={checked ? t('uncheckIngredient') : t('checkIngredient')}
                                                             onChange={(e) => { e.stopPropagation(); toggleShoppingItem(ing); }}
                                                             className="w-4 h-4 accent-green-600"
                                                         />
@@ -96,22 +110,18 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                                     <span className="text-xs text-gray-500">{ingredients[ing].price.toFixed(2)}€</span>
                                                 </div>
                                                 {showExpiry && (
-                                                    <div className="mt-2 flex items-center gap-2">
-                                                        <label className="text-[10px] text-gray-600">{t('dateExpiry')} :</label>
+                                                    <fieldset className="expiry-editor mt-2 flex items-center gap-2" aria-label={t('dateExpiry')}>
+                                                        <label className="text-[10px] text-gray-600" htmlFor={`expiry-${ing}`}>{t('dateExpiry')} :</label>
                                                         <input
+                                                            id={`expiry-${ing}`}
                                                             type="date"
                                                             className="px-2 py-1 border rounded text-xs"
                                                             value={ingredients[ing].expiryDate ? ingredients[ing].expiryDate.slice(0, 10) : ''}
                                                             min={new Date().toISOString().slice(0, 10)}
-                                                            onChange={(e) => {
-                                                                const val = e.target.value;
-                                                                setIngredients(prev => ({
-                                                                    ...prev,
-                                                                    [ing]: { ...prev[ing], expiryDate: val || undefined }
-                                                                }));
-                                                            }}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            onChange={(e) => updateIngredientExpiry(e.target.value)}
                                                         />
-                                                    </div>
+                                                    </fieldset>
                                                 )}
                                             </button>
                                         );

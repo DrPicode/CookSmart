@@ -1,8 +1,6 @@
 import React from 'react';
 import { Dialog } from '@headlessui/react';
 import { X, Languages, Trash2, HelpCircle, BellRing, BellOff, Download, Info } from 'lucide-react';
-import { NotificationBellToggle } from './NotificationBellToggle';
-import PushNotificationsToggle from './PushNotificationsToggle';
 
 interface SettingsModalProps {
   open: boolean;
@@ -12,19 +10,23 @@ interface SettingsModalProps {
   onToggleLang: () => void;
   onOpenHelp: () => void;
   onResetData: () => void;
-  permission: NotificationPermission;
   notificationsEnabled: boolean;
   onToggleNotifications: () => void;
   isInstallable: boolean;
   isInstalled: boolean;
   onInstallPWA: () => void;
-  onRequestNotificationPermission?: () => Promise<NotificationPermission | void>;
+  // Removed legacy notification permission callback (push hook handles it)
   onNotifyInfo?: (msg: string) => void;
   onNotifySuccess?: (msg: string) => void;
   onNotifyError?: (msg: string) => void;
   onExportData?: () => void;
   onImportData?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   importError?: string | null;
+  pushPermission: NotificationPermission;
+  isSubscribed: boolean;
+  onRequestPushPermission: () => Promise<NotificationPermission>;
+  onSubscribePush: () => Promise<any>;
+  onUnsubscribePush: () => Promise<boolean>;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -35,39 +37,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleLang,
   onOpenHelp,
   onResetData,
-  permission,
   notificationsEnabled,
   onToggleNotifications,
   isInstallable,
   isInstalled,
   onInstallPWA,
-  onRequestNotificationPermission,
   onNotifyInfo,
   onNotifySuccess,
   onNotifyError,
   onExportData,
   onImportData,
   importError,
+  pushPermission,
+  isSubscribed,
+  onRequestPushPermission,
+  onSubscribePush,
+  onUnsubscribePush,
 }) => {
-  const requestPermission = async () => {
-    if (!onRequestNotificationPermission) return;
-    const before = permission;
-    let finalPerm: NotificationPermission | undefined;
-    try {
-      finalPerm = (await onRequestNotificationPermission()) || permission;
-    } catch {
-      onNotifyError?.(lang === 'fr' ? 'Erreur permission notifications' : 'Notification permission error');
-      return;
-    }
-    if (before !== 'default') return; // only notify on first ask
-    if (finalPerm === 'granted') {
-      onNotifySuccess?.(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled');
-    } else if (finalPerm === 'denied') {
-      onNotifyError?.(lang === 'fr' ? 'Notifications refusées' : 'Notifications denied');
-    } else {
-      onNotifyInfo?.(lang === 'fr' ? 'Autorisation inchangée' : 'Permission unchanged');
-    }
-  };
+  // Push state lifted to parent.
+  // (Legacy notification bell logic removed; unified push + local toggle below)
   return (
     <Dialog open={open} onClose={onClose} className="relative z-[250]">
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />
@@ -120,27 +108,79 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {notificationsEnabled && permission === 'granted' ? (
+                  {isSubscribed && pushPermission === 'granted' ? (
                     <BellRing className="w-5 h-5 text-orange-600" />
                   ) : (
                     <BellOff className="w-5 h-5 text-gray-500" />
                   )}
                   <div>
-                    <p className="text-sm font-medium">Notifications</p>
-                    <p className="text-xs text-gray-500">{lang === 'fr' ? 'Alertes péremption produits' : 'Expiry alerts for products'}</p>
+                    <p className="text-sm font-medium">{lang === 'fr' ? 'Notifications' : 'Notifications'}</p>
+                    <p className="text-xs text-gray-500">
+                      {lang === 'fr'
+                        ? 'Alertes d\'expiration (local + push).'
+                        : 'Expiry alerts (local + push).'}
+                    </p>
+                    <p className="text-[10px] mt-0.5 font-medium">
+                      {pushPermission === 'denied' && (
+                        <span className="text-red-600">{lang === 'fr' ? 'Refusées par le navigateur' : 'Denied by browser'}</span>
+                      )}
+                      {pushPermission !== 'denied' && !isSubscribed && (
+                        <span className="text-gray-500">{lang === 'fr' ? 'Non abonné' : 'Not subscribed'}</span>
+                      )}
+                      {pushPermission === 'granted' && isSubscribed && (
+                        <span className="text-green-600">{lang === 'fr' ? 'Abonné' : 'Subscribed'}</span>
+                      )}
+                    </p>
                   </div>
                 </div>
-                <NotificationBellToggle
-                  permission={permission}
-                  isEnabled={notificationsEnabled}
-                  onToggle={onToggleNotifications}
-                  onRequestPermission={requestPermission}
-                  lang={lang}
-                />
-              </div>
+                <button
+                  onClick={async () => {
+                    // Refresh permission variable after potential request
+                    let current = pushPermission;
+                    if (current === 'default') {
+                      current = await onRequestPushPermission();
+                      if (current !== 'granted') {
+                        onNotifyError?.(lang === 'fr' ? 'Permission refusée' : 'Permission denied');
+                        return;
+                      }
+                    }
+                    if (current === 'denied') return;
 
-              {/* Web Push subscription toggle */}
-              <PushNotificationsToggle />
+                    if (!isSubscribed) {
+                      if (!notificationsEnabled) onToggleNotifications();
+                      const sub = await onSubscribePush();
+                      if (sub) {
+                        onNotifySuccess?.(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled');
+                      } else {
+                        onNotifyError?.(lang === 'fr' ? 'Échec de l\'activation' : 'Failed to enable');
+                      }
+                    } else {
+                      const ok = await onUnsubscribePush();
+                      if (ok) {
+                        if (notificationsEnabled) onToggleNotifications();
+                        onNotifyInfo?.(lang === 'fr' ? 'Notifications désactivées' : 'Notifications disabled');
+                      } else {
+                        onNotifyError?.(lang === 'fr' ? 'Échec de la désactivation' : 'Failed to disable');
+                      }
+                    }
+                  }}
+                  disabled={pushPermission === 'denied'}
+                  className={
+                    `w-28 justify-center flex px-3 py-2 rounded-lg text-xs font-medium transition-colors ` +
+                    (pushPermission === 'denied'
+                      ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : isSubscribed
+                        ? 'bg-orange-600 text-white hover:bg-orange-700 active:scale-[.97]'
+                        : 'bg-green-600 text-white hover:bg-green-700 active:scale-[.97]')
+                  }
+                >
+                  {pushPermission === 'denied'
+                    ? (lang === 'fr' ? 'Refusée' : 'Denied')
+                    : isSubscribed
+                      ? (lang === 'fr' ? 'Désactiver' : 'Disable')
+                      : (lang === 'fr' ? 'Activer' : 'Enable')}
+                </button>
+              </div>
 
               
               <div className="flex items-center justify-between">
