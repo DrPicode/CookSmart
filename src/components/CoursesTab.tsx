@@ -147,9 +147,42 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
         return filtered;
     }, [orderedCategories, searchQuery]);
 
+    // Gather expiring (soon or expired) in-stock ingredients to display a banner similar to RecipesTab
+    const expiringList = useMemo(() => {
+        const list: { name: string; status: 'soon' | 'expired'; daysLeft: number }[] = [];
+        for (const [name, data] of Object.entries(ingredients)) {
+            if (!data.inStock) continue;
+            if (!data.expiryDate) continue;
+            const { status, daysLeft } = computeExpiryStatus({ expiryDate: data.expiryDate, inStock: true });
+            if (status === 'soon' || status === 'expired') {
+                list.push({ name, status, daysLeft });
+            }
+        }
+        // Sort: expired first, then soon by ascending days
+        return list.sort((a, b) => {
+            if (a.status === b.status) return a.daysLeft - b.daysLeft;
+            if (a.status === 'expired') return -1;
+            if (b.status === 'expired') return 1;
+            return 0;
+        });
+    }, [ingredients]);
+
     const containerClasses = shoppingMode ? 'space-y-4 bg-white rounded-lg p-2 -mx-2 sm:mx-0 pb-24' : 'space-y-4 pb-24';
     return (
         <div className={containerClasses}>
+            {expiringList.length > 0 && !editMode && (
+                <div className="border rounded-lg bg-red-50 border-red-200 p-3 space-y-2 animate-fade-in">
+                    <h3 className="text-sm font-semibold text-red-700 flex items-center gap-2">
+                        <span>⚠️ {t('consumeSoon')}</span>
+                        <span className="text-[10px] font-normal text-red-600">({expiringList.length} {lang === 'fr' ? `ingrédient${expiringList.length>1?'s':''}` : `ingredient${expiringList.length>1?'s':''}`})</span>
+                    </h3>
+                    <div className="flex flex-wrap gap-1">
+                        {expiringList.map(e => (
+                            <span key={e.name} className={`px-2 py-1 rounded-full text-[10px] font-medium ${e.status === 'expired' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700'}`}>{e.name} {e.status === 'expired' ? '(périmé)' : (e.daysLeft === 0 ? (lang === 'fr' ? 'J0' : 'D0') : (lang === 'fr' ? 'J-' : 'D-') + e.daysLeft)}</span>
+                        ))}
+                    </div>
+                </div>
+            )}
             {/* Full width search bar (manage button moved to floating pencil) */}
             <SearchBar 
                 value={searchQuery}
