@@ -109,7 +109,6 @@ export function useManagement({
                 return;
             }
         }
-        
         if (!newRecipe.nom.trim() || !categorie || newRecipe.ingredients.length === 0) return;
         
         const recipeToAdd = { ...newRecipe, categorie };

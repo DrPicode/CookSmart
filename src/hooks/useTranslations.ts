@@ -56,7 +56,9 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
         installPWA: 'Installer l\'app', installPWATitle: '📱 Installer l\'application', installPWADescription: 'Installez CookSmart sur votre téléphone pour un accès rapide et une utilisation hors ligne !', installPWAButton: 'Installer maintenant', installPWALater: 'Peut-être plus tard', installPWAAlreadyInstalled: '✓ Déjà installée',
         searchPlaceholder: 'Rechercher...', searchIngredients: 'Rechercher un ingrédient', searchRecipes: 'Rechercher une recette',
         notificationTitle: '🔔 Notifications', notificationDescription: 'Recevez des alertes pour les produits qui périment bientôt', notificationEnable: 'Activer', notificationDisable: 'Désactiver', notificationEnabled: '✓ Activées', notificationDenied: 'Refusées'
-    , notifEnabled: 'Notifications activées', notifDisabled: 'Activer notifications', notifDenied: 'Notifications refusées', notifRequest: 'Demander autorisation'
+    , notifEnabled: 'Notifications activées', notifDisabled: 'Activer notifications', notifDenied: 'Notifications refusées', notifRequest: 'Demander autorisation',
+    categorySavedNoIngredient: 'Catégorie enregistrée sans ingrédient.',
+    categorySavedNoRecipe: 'Catégorie enregistrée sans recette.'
     },
     en: {
         appTitle: 'CookSmart',
@@ -113,7 +115,9 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
         installPWA: 'Install app', installPWATitle: '📱 Install the app', installPWADescription: 'Install CookSmart on your phone for quick access and offline use!', installPWAButton: 'Install now', installPWALater: 'Maybe later', installPWAAlreadyInstalled: '✓ Already installed',
         searchPlaceholder: 'Search...', searchIngredients: 'Search for an ingredient', searchRecipes: 'Search for a recipe',
         notificationTitle: '🔔 Notifications', notificationDescription: 'Receive alerts for products expiring soon', notificationEnable: 'Enable', notificationDisable: 'Disable', notificationEnabled: '✓ Enabled', notificationDenied: 'Denied'
-    , notifEnabled: 'Notifications enabled', notifDisabled: 'Enable notifications', notifDenied: 'Notifications denied', notifRequest: 'Request permission'
+    , notifEnabled: 'Notifications enabled', notifDisabled: 'Enable notifications', notifDenied: 'Notifications denied', notifRequest: 'Request permission',
+    categorySavedNoIngredient: 'Category saved without ingredient.',
+    categorySavedNoRecipe: 'Category saved without recipe.'
     }
 };
 

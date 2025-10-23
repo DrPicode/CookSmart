@@ -13,6 +13,7 @@ interface AddIngredientModalProps {
     ingredients: IngredientsType;
     freshCategories: FreshCategoriesType;
     management: UseManagementReturn;
+    notify: (msg: string, duration?: number) => void; // toast/notification function
 }
 
 export function AddIngredientModal({
@@ -23,7 +24,8 @@ export function AddIngredientModal({
     categories,
     ingredients,
     freshCategories,
-    management
+    management,
+    notify
 }: AddIngredientModalProps) {
     const {
         newIngredient,
@@ -32,6 +34,31 @@ export function AddIngredientModal({
     } = management;
 
     const handleAdd = () => {
+        const categoryChosen = management.showNewIngredientCategoryField
+            ? management.newIngredientCategoryInput.trim() !== ''
+            : !!newIngredient.category;
+        const isCategoryOnly = !newIngredient.name.trim() && categoryChosen;
+
+        if (isCategoryOnly) {
+            // Determine final category name
+            let categoryName = newIngredient.category;
+            if (management.showNewIngredientCategoryField) {
+                categoryName = management.newIngredientCategoryInput.trim();
+            }
+            if (!categoryName) return;
+            // If new category, create it
+            if (!categories[categoryName]) {
+                management.setCategories(prev => ({ ...prev, [categoryName]: [] }));
+            }
+            // Reset inputs
+            management.setNewIngredientCategoryInput('');
+            management.handleIngredientCategoryChange('');
+            notify(t('categorySavedNoIngredient'), 2500);
+            onClose();
+            return;
+        }
+
+        // Normal ingredient add path
         addIngredient();
         onClose();
     };
@@ -166,17 +193,24 @@ export function AddIngredientModal({
                                     <div className="flex gap-2 pt-2">
                                         <button
                                             onClick={handleAdd}
-                                            disabled={
-                                                !newIngredient.name.trim() ||
-                                                (!newIngredient.category && !management.newIngredientCategoryInput.trim()) ||
-                                                newIngredient.price === '' ||
-                                                newIngredient.parts === '' ||
-                                                Number.isNaN(Number.parseFloat(newIngredient.price)) ||
-                                                Number.isNaN(Number.parseInt(newIngredient.parts, 10)) ||
-                                                Number.parseFloat(newIngredient.price) < 0 ||
-                                                Number.parseInt(newIngredient.parts, 10) < 1 ||
-                                                !!ingredients[newIngredient.name.trim()]
-                                            }
+                                            disabled={(() => {
+                                                const categoryChosen = management.showNewIngredientCategoryField
+                                                    ? management.newIngredientCategoryInput.trim() !== ''
+                                                    : !!newIngredient.category;
+                                                const isCategoryOnly = !newIngredient.name.trim() && categoryChosen;
+                                                if (isCategoryOnly) return false; // allow saving just the category
+                                                return (
+                                                    !newIngredient.name.trim() ||
+                                                    !categoryChosen ||
+                                                    newIngredient.price === '' ||
+                                                    newIngredient.parts === '' ||
+                                                    Number.isNaN(Number.parseFloat(newIngredient.price)) ||
+                                                    Number.isNaN(Number.parseInt(newIngredient.parts, 10)) ||
+                                                    Number.parseFloat(newIngredient.price) < 0 ||
+                                                    Number.parseInt(newIngredient.parts, 10) < 1 ||
+                                                    !!ingredients[newIngredient.name.trim()]
+                                                );
+                                            })()}
                                             className="flex-1 bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-600 text-sm"
                                         >
                                             <Save className="w-4 h-4" />

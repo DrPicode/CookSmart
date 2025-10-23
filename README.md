@@ -148,6 +148,31 @@ The PWA is automatically configured via `vite-plugin-pwa` with:
 - App manifest with icons
 - Service worker for caching
 
+### 🔔 Expiry Notifications
+
+CookSmart can alert you when ingredients are expired or about to expire.
+
+How it works today:
+- Uses the **Web Notifications API** directly in the foreground (no server).
+- A hook (`useExpiryNotifications`) scans ingredients shortly after load and then every hour while the app is open.
+- It sends up to two notifications (expired + expiring soon) and only once per day (localStorage daily key).
+
+Limitations:
+- If the app (tab / PWA instance) is fully closed or suspended, hourly checks stop.
+- No background push yet (no `push` event in service worker).
+
+Roadmap for true background alerts:
+1. Implement Push API subscription (`pushManager.subscribe`) with VAPID keys.
+2. Add a backend (or serverless cron) to send Web Push messages hourly.
+3. Handle `self.addEventListener('push', ...)` in the service worker to show notifications even when closed.
+4. Optionally use Periodic Background Sync (experimental) where supported.
+
+First-time prompt:
+- On first visit (permission still `default`) a banner invites the user to enable notifications.
+- User can accept or defer; deferral stores a flag so we do not nag every load.
+
+If you want to contribute this feature, check `src/hooks/usePushNotifications.ts` and extend `sw.js`.
+
 ---
 
 ## 🤝 Contributing

@@ -9,6 +9,7 @@ interface AddRecipeModalProps {
     t: (k: string) => string;
     lang: 'fr' | 'en';
     management: UseManagementReturn;
+    notify: (msg: string, duration?: number) => void; // toast function
 }
 
 export function AddRecipeModal({
@@ -16,7 +17,8 @@ export function AddRecipeModal({
     onClose,
     t,
     lang,
-    management
+    management,
+    notify
 }: AddRecipeModalProps) {
     const {
         newRecipe,
@@ -28,6 +30,27 @@ export function AddRecipeModal({
     } = management;
 
     const handleAdd = () => {
+        const categoryChosen = management.showNewRecipeCategoryField
+            ? management.newRecipeCategoryInput.trim() !== ''
+            : !!newRecipe.categorie;
+        const isCategoryOnly = !newRecipe.nom.trim() && categoryChosen && newRecipe.ingredients.length === 0;
+
+        if (isCategoryOnly) {
+            let catName = newRecipe.categorie;
+            if (management.showNewRecipeCategoryField) {
+                catName = management.newRecipeCategoryInput.trim();
+            }
+            if (!catName) return;
+            if (!management.recipeCategories.includes(catName)) {
+                management.setRecipeCategories(prev => [...prev, catName]);
+            }
+            management.setNewRecipeCategoryInput('');
+            management.handleRecipeCategoryChange('');
+            notify(t('categorySavedNoRecipe'), 2500);
+            onClose();
+            return;
+        }
+
         addRecipe();
         onClose();
     };
@@ -140,11 +163,18 @@ export function AddRecipeModal({
                                     <div className="flex gap-2 pt-2">
                                         <button
                                             onClick={handleAdd}
-                                            disabled={
-                                                !newRecipe.nom.trim() ||
-                                                (!newRecipe.categorie && !management.newRecipeCategoryInput.trim()) ||
-                                                newRecipe.ingredients.length === 0
-                                            }
+                                            disabled={(() => {
+                                                const categoryChosen = management.showNewRecipeCategoryField
+                                                    ? management.newRecipeCategoryInput.trim() !== ''
+                                                    : !!newRecipe.categorie;
+                                                const isCategoryOnly = !newRecipe.nom.trim() && categoryChosen && newRecipe.ingredients.length === 0;
+                                                if (isCategoryOnly) return false; // allow category-only save
+                                                return (
+                                                    !newRecipe.nom.trim() ||
+                                                    !categoryChosen ||
+                                                    newRecipe.ingredients.length === 0
+                                                );
+                                            })()}
                                             className="flex-1 bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-600"
                                         >
                                             <Save className="w-4 h-4" />

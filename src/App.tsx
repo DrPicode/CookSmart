@@ -48,6 +48,40 @@ export function App() {
 
     const { permission, sendNotification, requestPermission } = usePushNotifications();
     const [notificationsEnabled, setNotificationsEnabled] = usePersistentState('notificationsEnabled', false);
+    // Track if we've already prompted the user explicitly about enabling notifications
+    const [notificationPrompted, setNotificationPrompted] = usePersistentState<boolean>('notificationPrompted', false);
+    const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+
+    // Decide when to show the notification onboarding banner (first visit, permission still default)
+    useEffect(() => {
+        if (permission === 'default' && !notificationsEnabled && !notificationPrompted) {
+            const timer = setTimeout(() => setShowNotificationBanner(true), 1200); // slight delay after load
+            return () => clearTimeout(timer);
+        } else {
+            setShowNotificationBanner(false);
+        }
+    }, [permission, notificationsEnabled, notificationPrompted]);
+
+    const handleEnableNotifications = async () => {
+        // Request permission from browser
+        const result = await requestPermission();
+        setNotificationPrompted(true);
+        setShowNotificationBanner(false);
+        if (result === 'granted') {
+            setNotificationsEnabled(true);
+            success(lang === 'fr' ? 'Notifications activées' : 'Notifications enabled', 2500);
+        } else if (result === 'denied') {
+            success(lang === 'fr' ? 'Notifications refusées' : 'Notifications denied', 2500);
+        } else {
+            success(lang === 'fr' ? 'Autorisation inchangée' : 'Permission unchanged', 2000);
+        }
+    };
+
+    const handleDismissNotificationBanner = () => {
+        // Mark as prompted so we don't nag continuously; you could choose not to set this to show again later.
+        setNotificationPrompted(true);
+        setShowNotificationBanner(false);
+    };
 
     useExpiryNotifications({
         ingredients,
@@ -231,6 +265,29 @@ export function App() {
                             </div>
                         </div>
                     </div>
+                    {showNotificationBanner && (
+                        <div className="mt-3 bg-white/15 backdrop-blur-sm rounded-lg p-2 border border-white/30 animate-fade-in flex items-center justify-between gap-2 text-[11px]">
+                            <span className="leading-snug">
+                                {lang === 'fr'
+                                    ? 'Activer les notifications pour recevoir des alertes de péremption.'
+                                    : 'Enable notifications to get expiry alerts.'}
+                            </span>
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={handleEnableNotifications}
+                                    className="px-2 py-1 rounded bg-orange-600 hover:bg-orange-700 text-white font-medium"
+                                >
+                                    {lang === 'fr' ? 'Activer' : 'Enable'}
+                                </button>
+                                <button
+                                    onClick={handleDismissNotificationBanner}
+                                    className="px-2 py-1 rounded bg-white/30 hover:bg-white/40 text-white font-medium"
+                                >
+                                    {lang === 'fr' ? 'Plus tard' : 'Later'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <TabsBar
@@ -328,6 +385,7 @@ export function App() {
                 ingredients={ingredients}
                 freshCategories={freshCategories}
                 management={management}
+                notify={(m,d) => success(m, d || 2000)}
             />
 
             <AddRecipeModal
@@ -336,6 +394,7 @@ export function App() {
                 t={t}
                 lang={lang}
                 management={management}
+                notify={(m,d) => success(m, d || 2000)}
             />
 
             <HelpTutorial
