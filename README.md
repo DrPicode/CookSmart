@@ -148,30 +148,46 @@ The PWA is automatically configured via `vite-plugin-pwa` with:
 - App manifest with icons
 - Service worker for caching
 
-### 🔔 Expiry Notifications
+### 🔔 Expiry Notifications (Foreground & Background)
 
-CookSmart can alert you when ingredients are expired or about to expire.
+CookSmart alerts you when ingredients are expired or about to expire.
 
-How it works today:
-- Uses the **Web Notifications API** directly in the foreground (no server).
-- A hook (`useExpiryNotifications`) scans ingredients shortly after load and then every hour while the app is open.
-- It sends up to two notifications (expired + expiring soon) and only once per day (localStorage daily key).
+Foreground notifications:
+- Hook `useExpiryNotifications` scans ingredients shortly after load and then periodically while the app is open.
+- Fires local notifications (Web Notifications API) at most once per day per category (soon / expired).
 
-Limitations:
-- If the app (tab / PWA instance) is fully closed or suspended, hourly checks stop.
-- No background push yet (no `push` event in service worker).
+Background Web Push (implemented):
+- Service Worker listens to `push` and displays notifications even if the app is closed.
+- Users subscribe via `usePushNotifications` which obtains the VAPID public key from an API route and registers with `pushManager.subscribe`.
+- Backend (serverless API routes on Vercel) stores subscriptions and sends push payloads using `web-push`.
+- A daily Vercel Cron invokes `/api/push/check-expiry` to compute expiring items and broadcast notifications.
 
-Roadmap for true background alerts:
-1. Implement Push API subscription (`pushManager.subscribe`) with VAPID keys.
-2. Add a backend (or serverless cron) to send Web Push messages hourly.
-3. Handle `self.addEventListener('push', ...)` in the service worker to show notifications even when closed.
-4. Optionally use Periodic Background Sync (experimental) where supported.
+File overview:
+- `src/hooks/usePushNotifications.ts`: permission + subscription logic
+- `src/sw-custom.ts`: service worker push & notificationclick handlers
+- `api/push/*`: API routes (`vapid-public`, `subscribe`, `send`, `check-expiry`)
+- `vercel.json`: cron configuration
+ - `src/components/PushNotificationsToggle.tsx`: UI to activate background push
 
-First-time prompt:
-- On first visit (permission still `default`) a banner invites the user to enable notifications.
-- User can accept or defer; deferral stores a flag so we do not nag every load.
+Testing locally:
+1. Generate VAPID keys: `node -e "import('web-push').then(m=>console.log(m.generateVAPIDKeys()))"`
+2. Add keys to `.env.local` (`PUSH_VAPID_PUBLIC_KEY`, `PUSH_VAPID_PRIVATE_KEY`).
+  Or run `npm run vapid:gen` to generate them.
+3. Run `vercel dev` so API routes are available (port 3000).
+4. Open app at `http://localhost:5173` via Vite (or via Vercel dev proxy).
+5. Grant notification permission and subscribe.
+6. POST to `/api/push/send` to trigger a test push.
 
-If you want to contribute this feature, check `src/hooks/usePushNotifications.ts` and extend `sw.js`.
+Production setup:
+- Add env vars in Vercel dashboard (all environments).
+- Deploy; verify `/api/push/vapid-public` returns the public key.
+- Cron triggers daily expiration check.
+
+Unsubscribing (future enhancement):
+- Implement endpoint to remove subscription by `endpoint` when user disables notifications.
+
+Cleanup strategy:
+- Remove subscriptions returning 404/410 from `web-push` responses to avoid stale entries.
 
 ---
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog } from '@headlessui/react';
 import { X, Languages, Trash2, HelpCircle, BellRing, BellOff, Download, Info } from 'lucide-react';
 import { NotificationBellToggle } from './NotificationBellToggle';
+import PushNotificationsToggle from './PushNotificationsToggle';
 
 interface SettingsModalProps {
   open: boolean;
@@ -137,6 +138,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   lang={lang}
                 />
               </div>
+
+              {/* Web Push subscription toggle */}
+              <PushNotificationsToggle />
 
               
               <div className="flex items-center justify-between">

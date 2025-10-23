@@ -36,6 +36,7 @@ export default defineConfig({
                 ]
             },
             workbox: {
+                importScripts: ['sw-custom.js'],
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
                 runtimeCaching: [
                     {
