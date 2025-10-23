@@ -310,6 +310,21 @@ export function useManagement({
         setNewRecipeCategoryInput('');
     }, [newRecipeCategoryInput, recipeCategories, newRecipe, t, setRecipeCategories]);
 
+    const deleteRecipeCategory = useCallback((category: string) => {
+        const count = recettes.filter(r => r.categorie === category).length;
+        const pluralFr = count > 1 ? 'toutes ses recettes' : 'sa recette';
+        const pluralEn = count > 1 ? 'all its recipes' : 'its recipe';
+        const message = lang === 'fr'
+            ? `Supprimer la catégorie et ${pluralFr} ?`
+            : `Delete category and ${pluralEn}?`;
+        if (!confirm(message)) return;
+        setRecettes(prev => prev.filter(r => r.categorie !== category));
+        setRecipeCategories(prev => prev.filter(c => c !== category));
+        setEditingRecipe(er => er && er.data.categorie === category ? null : er);
+        setEditingRecipeCategory(ec => ec && ec.original === category ? null : ec);
+        setNewRecipe(r => ({ ...r, categorie: r.categorie === category ? '' : r.categorie }));
+    }, [recettes, lang, setRecettes, setRecipeCategories, setEditingRecipe, setEditingRecipeCategory, setNewRecipe]);
+
     return {
         showAddIngredient, setShowAddIngredient,
         showAddRecipe, setShowAddRecipe,
@@ -345,7 +360,8 @@ export function useManagement({
         handleIngredientCategoryChange,
         handleRecipeCategoryChange,
         createIngredientCategory,
-        createRecipeCategory
+        createRecipeCategory,
+        deleteRecipeCategory
     };
 }
 

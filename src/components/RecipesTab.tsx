@@ -40,6 +40,7 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
         saveRecipeCategoryRename,
         allIngredients,
         toggleIngredientInRecipe,
+        deleteRecipeCategory,
     } = management;
 
     const filteredRecipes = useMemo(() => {
@@ -187,11 +188,8 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                                             className="p-1 rounded hover:bg-red-100"
                                             title={lang === 'fr' ? 'Supprimer catégorie' : 'Delete category'}
                                             onClick={() => {
-                                                if (!confirm(lang === 'fr' ? 'Supprimer la catégorie et toutes ses recettes ?' : 'Delete category and all its recipes?')) return;
-                                                // delete all recipes of category
-                                                for (const { index } of items) {
-                                                    deleteRecipe(index);
-                                                }
+                                                // Use centralized management hook logic (handles confirmation & state cleanup)
+                                                deleteRecipeCategory(cat);
                                             }}
                                         >
                                             <Trash2 className="w-3.5 h-3.5 text-red-600" />
