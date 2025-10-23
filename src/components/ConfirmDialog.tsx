@@ -50,7 +50,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       : 'bg-indigo-600 hover:bg-indigo-700 text-white';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    // Elevated z-index to appear above InteractiveTutorial (z-[300]) and Shopping popup (z-[400])
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
       <button
         aria-label="Close dialog"
         onClick={onCancel}

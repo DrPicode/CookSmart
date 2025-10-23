@@ -508,6 +508,10 @@ function AppInner() {
                 onCompleted={() => {
                     onboarding.triggerPostStartPrompt();
                 }}
+                onExitEarly={() => {
+                    // When user skips tutorial, still prompt for notifications if eligible
+                    onboarding.triggerPostStartPrompt();
+                }}
                 lang={lang}
                 t={t}
                 ingredients={ingredients}

@@ -1,4 +1,4 @@
-﻿import { Fragment, useState, useEffect, useRef } from 'react';
+﻿import React, { Fragment, useState, useEffect, useRef } from 'react';
 import { useConfirm } from '../hooks/useConfirm';
 import { Dialog, Transition } from '@headlessui/react';
 import { ChevronRight, ChevronLeft, X, Check, Plus } from 'lucide-react';
@@ -10,6 +10,7 @@ interface InteractiveTutorialProps {
     open: boolean;
     onClose: () => void;
     onCompleted?: () => void; // callback after final step completed
+    onExitEarly?: () => void; // callback when user skips tutorial before completion
     lang: 'fr' | 'en';
     t: (k: string) => string;
     ingredients: IngredientsType;
@@ -40,6 +41,7 @@ export function InteractiveTutorial({
     open,
     onClose,
     onCompleted,
+    onExitEarly,
     lang,
     t,
     ingredients,
@@ -405,7 +407,11 @@ export function InteractiveTutorial({
             confirmLabel: lang === 'fr' ? 'Quitter' : 'Exit',
             cancelLabel: lang === 'fr' ? 'Annuler' : 'Cancel'
         });
-        if (ok) onClose();
+        if (ok) {
+            // Trigger early exit callback so parent can show notification subscription prompt
+            onExitEarly?.();
+            onClose();
+        }
     };
 
     const handleComplete = () => {
