@@ -350,8 +350,8 @@ export function App() {
                             toggleHistorySelect={toggleHistorySelect}
                             selectAllHistory={selectAllHistory}
                             deleteHistoryIds={deleteHistoryIds}
-                            clearHistory={() => { if (confirm(t('clearHistoryConfirm'))) setShoppingHistory([]); }}
                             lang={lang}
+                            editMode={historySelectMode}
                         />
                     )}
                 </div>
@@ -388,6 +388,32 @@ export function App() {
                     >
                         <Plus className="w-5 h-5" />
                     </button>
+                </div>
+            )}
+            {!showHelp && activeTab === 'historique' && shoppingHistory.length > 0 && (
+                <div className="fixed bottom-[calc(4.0rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-[60] flex flex-col items-center gap-2.5">
+                    {(() => {
+                        let editAriaLabel: string;
+                        let editTitle: string;
+                        const mode = historySelectMode;
+                        if (mode) {
+                            editAriaLabel = lang === 'fr' ? 'Terminer sélection' : 'Finish selection';
+                            editTitle = lang === 'fr' ? 'Terminer' : 'Done';
+                        } else {
+                            editAriaLabel = lang === 'fr' ? 'Gérer historique' : 'Manage history';
+                            editTitle = lang === 'fr' ? 'Gérer' : 'Manage';
+                        }
+                        return (
+                            <button
+                                onClick={() => setHistorySelectMode(m => !m)}
+                                className={`w-9 h-9 rounded-full shadow-md flex items-center justify-center bg-white text-orange-600 border border-orange-200 hover:shadow-lg active:scale-[.97] transition-transform ${historySelectMode ? 'ring-2 ring-orange-500' : ''}`}
+                                aria-label={editAriaLabel}
+                                title={editTitle}
+                            >
+                                {historySelectMode ? <Check className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
+                            </button>
+                        );
+                    })()}
                 </div>
             )}
             {!showHelp && activeTab === 'recettes' && (

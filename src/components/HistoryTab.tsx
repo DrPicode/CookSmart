@@ -10,8 +10,8 @@ interface HistoryTabProps {
     toggleHistorySelect: (id: string) => void;
     selectAllHistory: () => void;
     deleteHistoryIds: (ids: string[]) => void;
-    clearHistory: () => void;
     lang: 'fr' | 'en';
+    editMode?: boolean; // external pencil state
 }
 
 export const HistoryTab: React.FC<HistoryTabProps> = ({
@@ -23,8 +23,8 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
     toggleHistorySelect,
     selectAllHistory,
     deleteHistoryIds,
-    clearHistory,
-    lang
+    lang,
+    editMode
 }) => {
     const groupedByMonth = React.useMemo(() => {
         const groups: { [key: string]: ShoppingSession[] } = {};
@@ -48,30 +48,26 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
             }));
     }, [shoppingHistory]);
 
+    // Sync external editMode with internal selection mode
+    React.useEffect(() => {
+        if (editMode) {
+            if (!historySelectMode) setHistorySelectMode(true);
+        } else {
+            if (historySelectMode) setHistorySelectMode(false);
+        }
+    }, [editMode, historySelectMode, setHistorySelectMode]);
+
     return (
         <div className="space-y-4">
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-orange-800">{t('historyIntro')}</p>
-                    {shoppingHistory.length > 0 && (
-                        <button
-                            onClick={() => {
-                                if (historySelectMode) {
-                                    setHistorySelectMode(false);
-                                } else {
-                                    setHistorySelectMode(true);
-                                }
-                            }}
-                            className="text-[10px] px-2 py-1 rounded bg-orange-200 text-orange-800 hover:bg-orange-300"
-                        >{historySelectMode ? t('done') : t('manage')}</button>
-                    )}
-                </div>
+                <p className="text-xs text-orange-800">{t('historyIntro')}</p>
+                {/* Manage button removed; pencil outside controls historySelectMode */}
             </div>
             {shoppingHistory.length === 0 ? (
                 <p className="text-center text-xs text-gray-500 py-8">{t('emptyHistory')}</p>
             ) : (
                 <div className="space-y-4">
-                    {historySelectMode && (
+                    {historySelectMode && editMode && (
                         <div className="flex items-center gap-2 text-[10px] bg-white border rounded p-2">
                             <button onClick={selectAllHistory} className="px-2 py-1 rounded bg-gray-200 text-gray-700">{historySelected.size === shoppingHistory.length ? t('deselectAll') : t('selectAll')}</button>
                             <span className="text-gray-500">{historySelected.size} sélectionné(s)</span>
@@ -90,9 +86,26 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                         return (
                             <div key={monthKey} className="space-y-3">
                                 <div className="bg-gradient-to-r from-orange-100 to-orange-50 border-l-4 border-orange-500 rounded-lg p-3 sticky top-0 z-10">
-                                    <div className="flex justify-between items-center">
+                                    <div className="flex justify-between items-center gap-2">
                                         <h3 className="text-sm font-bold text-orange-900 capitalize">{monthName}</h3>
-                                        <span className="text-sm font-bold text-green-700">{total.toFixed(2)} €</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-bold text-green-700">{total.toFixed(2)} €</span>
+                                            {editMode && (
+                                                <button
+                                                    onClick={() => {
+                                                        const msg = lang === 'fr'
+                                                            ? `Supprimer toutes les sessions de ${monthName} ?`
+                                                            : `Delete all sessions from ${monthName}?`;
+                                                        if (!confirm(msg)) return;
+                                                        const ids = sessions.map(s => s.id);
+                                                        deleteHistoryIds(ids);
+                                                    }}
+                                                    className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700"
+                                                    aria-label={lang === 'fr' ? 'Supprimer le mois' : 'Delete month'}
+                                                    title={lang === 'fr' ? 'Supprimer le mois' : 'Delete month'}
+                                                >{lang === 'fr' ? 'Supprimer mois' : 'Delete month'}</button>
+                                            )}
+                                        </div>
                                     </div>
                                     <p className="text-[10px] text-orange-700 mt-1">
                                         {sessions.length} {lang === 'fr' ? `session${sessions.length > 1 ? 's' : ''} de courses` : `shopping session${sessions.length > 1 ? 's' : ''}`}
@@ -144,14 +157,6 @@ export const HistoryTab: React.FC<HistoryTabProps> = ({
                             </div>
                         );
                     })}
-                </div>
-            )}
-            {shoppingHistory.length > 0 && (
-                <div className="pt-2">
-                    <button
-                        onClick={clearHistory}
-                        className="w-full text-xs bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded"
-                    >{t('clearHistory')}</button>
                 </div>
             )}
         </div>
