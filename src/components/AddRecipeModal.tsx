@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useState, useMemo } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Save } from 'lucide-react';
 import { UseManagementReturn } from '../hooks/useManagement';
@@ -28,6 +28,19 @@ export function AddRecipeModal({
         recipeCategories,
         toggleIngredientInRecipe
     } = management;
+
+    // Local search state for filtering ingredients.
+    // Ingredients are displayed alphabetically (case-insensitive) and filtered in real-time by this search input.
+    const [ingredientSearch, setIngredientSearch] = useState('');
+
+    // Sorted + filtered ingredient list (case-insensitive)
+    const visibleIngredients = useMemo(() => {
+        const query = ingredientSearch.trim().toLowerCase();
+        return allIngredients
+            .slice()
+            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+            .filter(ing => ing.toLowerCase().includes(query));
+    }, [allIngredients, ingredientSearch]);
 
     const handleAdd = () => {
         const categoryChosen = management.showNewRecipeCategoryField
@@ -135,17 +148,29 @@ export function AddRecipeModal({
                                         />
                                     )}
 
-                                    <div className="border rounded-lg p-3 bg-white max-h-60 overflow-y-auto">
+                                    <div className="border rounded-lg p-3 bg-white max-h-72 flex flex-col">
                                         <p className="text-sm font-semibold mb-2">
                                             {lang === 'fr' ? 'Sélectionner les ingrédients :' : 'Select ingredients:'}
                                         </p>
-                                        {allIngredients.length === 0 ? (
-                                            <p className="text-sm text-gray-500 italic">
-                                                {lang === 'fr' ? 'Aucun ingrédient disponible. Ajoutez des ingrédients d\'abord.' : 'No ingredients available. Add ingredients first.'}
-                                            </p>
-                                        ) : (
-                                            <div className="space-y-1">
-                                                {allIngredients.map(ing => (
+                                        {/* Search bar */}
+                                        <input
+                                            type="text"
+                                            value={ingredientSearch}
+                                            onChange={(e) => setIngredientSearch(e.target.value)}
+                                            placeholder={lang === 'fr' ? 'Rechercher un ingrédient...' : 'Search ingredient...'}
+                                            className="mb-2 px-3 py-1.5 border rounded-md text-xs focus:outline-none focus:ring focus:ring-purple-200"
+                                        />
+                                        <div className="overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                                            {allIngredients.length === 0 ? (
+                                                <p className="text-sm text-gray-500 italic">
+                                                    {lang === 'fr' ? 'Aucun ingrédient disponible. Ajoutez des ingrédients d\'abord.' : 'No ingredients available. Add ingredients first.'}
+                                                </p>
+                                            ) : visibleIngredients.length === 0 ? (
+                                                <p className="text-sm text-gray-500 italic">
+                                                    {lang === 'fr' ? 'Aucun résultat.' : 'No results.'}
+                                                </p>
+                                            ) : (
+                                                visibleIngredients.map(ing => (
                                                     <label key={ing} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
                                                         <input
                                                             type="checkbox"
@@ -155,9 +180,9 @@ export function AddRecipeModal({
                                                         />
                                                         <span className="text-sm">{ing}</span>
                                                     </label>
-                                                ))}
-                                            </div>
-                                        )}
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="flex gap-2 pt-2">

@@ -12,7 +12,7 @@ interface Props {
 function RecipeGroupComponent({ categorie, recettes, ingredients }: Props) {
     return (
         <div className="border rounded-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-orange-100 to-red-100 px-3 py-2 font-medium text-gray-800 text-sm sticky top-0">{categorie}</div>
+            <div className="bg-gradient-to-r from-orange-100 to-red-100 px-3 py-2 font-medium muted-gray text-sm sticky top-0" style={{ color: '#4b5563' }}>{categorie}</div>
             <div className="divide-y divide-gray-100">
                 {recettes.map((recette, idx) => {
                     const info = earliestExpiryInfo(recette, ingredients);
@@ -32,7 +32,7 @@ function RecipeGroupComponent({ categorie, recettes, ingredients }: Props) {
                     return (
                         <div key={idx} className="p-3">
                             <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
+                                <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm flex items-center gap-2">
                                     {recette.nom}
                                     {urgencyLabel && (
                                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${urgencyClass}`}>{urgencyLabel}</span>

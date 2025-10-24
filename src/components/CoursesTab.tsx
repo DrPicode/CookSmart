@@ -195,7 +195,7 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
                 <div className="space-y-4 animate-fade-in">
                     {/* NotificationSettings removed: central settings modal handles notifications */}
                     <div className="border rounded-lg overflow-hidden">
-                        <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 flex justify-between items-center sticky top-0">
+                        <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 dark:text-gray-100 flex justify-between items-center sticky top-0">
                             <span className="text-sm">{t('manageIngredients')}</span>
                             {!showAddIngredient && (
                                 <button onClick={() => setShowAddIngredient(true)} className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">{lang === 'fr' ? 'Ajouter' : 'Add'}</button>
@@ -516,7 +516,7 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
                                                     </div>
                                                 ) : (
                                                     <div className="flex justify-between items-center p-2">
-                                                        <div className="text-sm font-medium text-gray-800 leading-tight">
+                                                        <div className="text-sm font-medium text-gray-800 dark:text-gray-100 leading-tight">
                                                             <div>{ing}</div>
                                                             <div className="mt-1 text-xs text-gray-500">
                                                                 {ingredients[ing].price.toFixed(2)} € · {ingredients[ing].parts} parts

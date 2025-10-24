@@ -81,7 +81,7 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
     return (
         <div className="space-y-6">
             <div className="border rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 flex justify-between items-center sticky top-0">
+                <div className="bg-gradient-to-r from-blue-100 to-blue-200 px-3 py-2.5 font-medium text-gray-800 dark:text-gray-100 flex justify-between items-center sticky top-0">
                     <span className="text-sm">{t('manageIngredients')}</span>
                 </div>
 
@@ -410,7 +410,7 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                                         ) : (
                                             <div className="flex justify-between items-center p-2">
                                                 <div className="flex items-start gap-4">
-                                                    <div className="text-sm font-medium text-gray-800 leading-tight">
+                                                    <div className="text-sm font-medium text-gray-800 dark:text-gray-100 leading-tight">
                                                         <div>{ing}</div>
                                                         <div className="mt-1 text-xs text-gray-500">
                                                             {ingredients[ing].price.toFixed(2)} € · {ingredients[ing].parts} parts
@@ -461,7 +461,7 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
 
             {/* RECIPES MANAGEMENT */}
             <div className="border rounded-lg overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-3 py-2.5 font-medium text-gray-800 flex justify-between items-center sticky top-0">
+                <div className="bg-gradient-to-r from-purple-100 to-purple-200 px-3 py-2.5 font-medium text-gray-800 dark:text-gray-100 flex justify-between items-center sticky top-0">
                     <span className="text-sm">{t('manageRecipes')}</span>
                 </div>
 
@@ -608,7 +608,7 @@ export const ManageTab: React.FC<ManageTabProps> = ({ t, lang, categories, ingre
                                         <>
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
-                                                    <h4 className="font-semibold text-gray-900">{recette.nom}</h4>
+                                                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">{recette.nom}</h4>
                                                     <p className="text-xs text-gray-500">{recette.categorie}</p>
                                                 </div>
                                                 <div className="flex gap-2">

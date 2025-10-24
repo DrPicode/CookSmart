@@ -43,6 +43,14 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
         deleteRecipeCategory,
     } = management;
 
+    // Handler moved out of render to avoid deep nesting of inline functions
+    const handleIngredientCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const ing = e.currentTarget.dataset.ing;
+        if (ing) {
+            toggleIngredientInRecipe(ing, true);
+        }
+    };
+
     const filteredRecipes = useMemo(() => {
         if (!searchQuery.trim()) {
             return recettesGroupees;
@@ -175,7 +183,8 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                                 </div>
                             ) : (
                                 <div className="flex items-center justify-between mb-1">
-                                    <h3 className="text-sm font-semibold text-purple-700">{cat}</h3>
+                                    {/* Use the same muted gray for category headings in both light and dark modes */}
+                                    <h3 className="text-sm font-semibold muted-gray bg-purple-50" style={{ color: '#4b5563' }}>{cat}</h3>
                                     <div className="flex items-center gap-1">
                                         <button
                                             className="p-1 rounded hover:bg-purple-100"
@@ -188,7 +197,6 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                                             className="p-1 rounded hover:bg-red-100"
                                             title={lang === 'fr' ? 'Supprimer catégorie' : 'Delete category'}
                                             onClick={() => {
-                                                // Use centralized management hook logic (handles confirmation & state cleanup)
                                                 deleteRecipeCategory(cat);
                                             }}
                                         >
@@ -220,8 +228,9 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                                                     <label key={ing} className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded cursor-pointer">
                                                         <input
                                                             type="checkbox"
+                                                            data-ing={ing}
                                                             checked={editingRecipe.data.ingredients.includes(ing)}
-                                                            onChange={() => toggleIngredientInRecipe(ing, true)}
+                                                            onChange={handleIngredientCheckboxChange}
                                                             className="w-4 h-4"
                                                         />
                                                         <span className="text-xs">{ing}</span>
@@ -246,7 +255,7 @@ export const RecipesTab: React.FC<RecipesTabProps> = ({
                                     ) : (
                                         <div className="flex items-start justify-between gap-2">
                                             <div>
-                                                <h4 className="font-semibold text-gray-900 text-sm">{recette.nom}</h4>
+                                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{recette.nom}</h4>
                                                 <div className="flex flex-wrap gap-1 mt-1">
                                                     {recette.ingredients.map(ing => (
                                                         <span key={ing} className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-[10px]">{ing}</span>

@@ -9,8 +9,8 @@ import { ShoppingSession } from '../lib/exportImport';
 interface InteractiveTutorialProps {
     open: boolean;
     onClose: () => void;
-    onCompleted?: () => void; // callback after final step completed
-    onExitEarly?: () => void; // callback when user skips tutorial before completion
+    onCompleted?: () => void;
+    onExitEarly?: () => void;
     lang: 'fr' | 'en';
     t: (k: string) => string;
     ingredients: IngredientsType;

@@ -28,6 +28,7 @@ import { usePWAInstall } from './hooks/usePWAInstall';
 import { useToast } from './hooks/useToast';
 import { usePushNotifications } from './hooks/usePushNotifications';
 import { useExpiryNotifications } from './hooks/useExpiryNotifications';
+import { useTheme } from './hooks/useTheme';
 import { useNotificationOnboarding } from './hooks/useNotificationOnboarding';
 
 function AppInner() {
@@ -40,6 +41,7 @@ function AppInner() {
     const [lang, setLang] = usePersistentState<'fr' | 'en'>('lang', 'fr');
     const { t } = useTranslations(lang);
     const [activeTab, setActiveTab] = useState<'courses' | 'recettes' | 'historique'>('courses');
+    const { mode: themeMode, setMode: setThemeMode } = useTheme();
     const [shoppingHistory, setShoppingHistory] = useState<ShoppingSession[]>(() => {
         try {
             const saved = localStorage.getItem('shoppingHistory');
@@ -247,9 +249,9 @@ function AppInner() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-            <div className="mx-auto bg-white shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white relative">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
+            <div className="mx-auto bg-white dark:bg-gray-950 shadow-md overflow-hidden transition-colors">
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white relative dark:from-orange-600 dark:to-red-600">
                     <div className="flex items-start justify-between gap-3">
                         <div>
                             <h1 className="text-xl font-bold flex items-center gap-2">
@@ -311,7 +313,7 @@ function AppInner() {
                     t={t}
                 />
 
-                <div className="p-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+                <div className="p-2 pb-[calc(4.5rem+env(safe-area-inset-bottom))] bg-white dark:bg-gray-950 transition-colors">
                     {activeTab === 'courses' && (
                         <CoursesTab
                             t={t}
@@ -556,17 +558,16 @@ function AppInner() {
                     try { return await subscribe(); } finally { setPushBusy(false); }
                 }}
                 pushBusy={pushBusy}
+                themeMode={themeMode}
+                onChangeTheme={setThemeMode}
             />
 
             {/* Post start notification prompt modal */}
             {onboarding.showPostStartPrompt && (
                 <div className="fixed inset-0 z-[500] flex items-center justify-center">
-                    <div
+                    <button
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                         onClick={onboarding.closePostStartPrompt}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onboarding.closePostStartPrompt(); }}
                         aria-label={lang === 'fr' ? 'Fermer la fenêtre' : 'Close dialog backdrop'}
                     />
                     <div className="relative bg-white rounded-2xl shadow-2xl w-[92%] max-w-md p-6 ring-1 ring-black/10 animate-scale-fade-in">

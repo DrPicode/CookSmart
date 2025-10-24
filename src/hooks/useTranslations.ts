@@ -60,6 +60,10 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
     categorySavedNoIngredient: 'Catégorie enregistrée sans ingrédient.',
     categorySavedNoRecipe: 'Catégorie enregistrée sans recette.'
     , importSuccess: 'Données importées'
+    , theme: 'Thème'
+    , themeLight: 'Clair'
+    , themeDark: 'Sombre'
+    , themeSystem: 'Système'
     },
     en: {
         appTitle: 'CookSmart',
@@ -120,6 +124,10 @@ const TRANSLATIONS: Record<'fr' | 'en', Record<string, string>> = {
     categorySavedNoIngredient: 'Category saved without ingredient.',
     categorySavedNoRecipe: 'Category saved without recipe.'
     , importSuccess: 'Data imported'
+    , theme: 'Theme'
+    , themeLight: 'Light'
+    , themeDark: 'Dark'
+    , themeSystem: 'System'
     }
 };
 

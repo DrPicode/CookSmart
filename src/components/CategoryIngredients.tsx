@@ -30,7 +30,7 @@ function CategoryIngredientsComponent({ categorie, items, ingredients, onToggle,
                             <div className="flex items-center gap-3">
                                 {inStock ? <CheckCircle2 className="w-6 h-6 text-green-500" /> : <Circle className="w-6 h-6 text-gray-300" />}
                                 <div className="flex flex-col">
-                                    <span className={inStock ? 'text-gray-900 text-[13px] leading-tight' : 'text-gray-500 text-[13px] leading-tight'}>{ingredient}</span>
+                                    <span className={inStock ? 'text-gray-900 dark:text-gray-100 text-[13px] leading-tight' : 'text-gray-500 dark:text-gray-400 text-[13px] leading-tight'}>{ingredient}</span>
                                     {inStock && ingredients[ingredient].expiryDate && (() => {
                                         const expiryDate = ingredients[ingredient].expiryDate;
                                         const { status, daysLeft } = computeExpiryStatus({ expiryDate, inStock: true });
@@ -60,7 +60,7 @@ function CategoryIngredientsComponent({ categorie, items, ingredients, onToggle,
                                 </div>
                             </div>
                             <div className="flex flex-col items-end">
-                                <span className="text-gray-600 font-medium text-xs">{ingredients[ingredient].price.toFixed(2)} €</span>
+                                    <span className="text-gray-600 dark:text-gray-300 font-medium text-xs">{ingredients[ingredient].price.toFixed(2)} €</span>
                             </div>
                         </button>
                     );

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -21,8 +22,10 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onCancel,
   variant = 'default'
 }) => {
-  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const firstButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lastButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (open && firstButtonRef.current) {
@@ -42,6 +45,22 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     return () => globalThis.removeEventListener('keydown', handler);
   }, [open, onCancel]);
 
+  // Focus trap (Tab cycles between buttons)
+  // Removed custom focus trap for simplicity (only two buttons). If needed later, implement with native dialog.showModal() pattern.
+
+  // Save/restore previously focused element & lock scroll
+  useEffect(() => {
+    if (open) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        previousActiveElement.current?.focus?.();
+      };
+    }
+  }, [open]);
+
   if (!open) return null;
 
   const confirmClasses =
@@ -49,30 +68,20 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       ? 'bg-red-600 hover:bg-red-700 text-white'
       : 'bg-indigo-600 hover:bg-indigo-700 text-white';
 
-  return (
-    // Elevated z-index to appear above InteractiveTutorial (z-[300]) and Shopping popup (z-[400])
-    <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
-      <button
-        aria-label="Close dialog"
+  return createPortal(
+    <div ref={containerRef} className="fixed inset-0 z-[550] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"
         onClick={onCancel}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onCancel();
-          }
-        }}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in cursor-default"
-        tabIndex={0}
-        style={{ border: 'none', padding: 0, margin: 0 }}
+        aria-hidden="true"
       />
       <dialog
         open
-        ref={dialogRef}
         aria-labelledby="confirm-dialog-title"
         className="relative w-full max-w-sm bg-white rounded-xl shadow-lg border border-gray-200 animate-scale-in p-0"
       >
-        <form method="dialog" className="p-4 m-0">
-          <h2 id="confirm-dialog-title" className="text-sm font-semibold text-gray-800 mb-2">
+        <form method="dialog" className="p-4 m-0" onSubmit={(e) => { e.preventDefault(); onConfirm(); }}>
+          <h2 id="confirm-dialog-title" className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
             {title}
           </h2>
           <div className="text-xs text-gray-600 mb-4 leading-relaxed">{message}</div>
@@ -86,6 +95,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               {cancelLabel}
             </button>
             <button
+              ref={lastButtonRef}
               type="button"
               onClick={onConfirm}
               className={`px-3 py-1.5 text-xs font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-smooth ${confirmClasses}`}
@@ -95,7 +105,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           </div>
         </form>
       </dialog>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -48,7 +48,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                         className="absolute top-4 right-5 text-gray-400 hover:text-gray-600 focus:outline-none"
                         aria-label={t('close')}
                     >×</button>
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-1">{t('shoppingListTitle')}</h2>
+                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-1">{t('shoppingListTitle')}</h2>
                     <p className="text-xs text-gray-500 leading-relaxed max-w-2xl">Cochez au fur et à mesure. Les produits frais et surgelés apparaissent à la fin pour optimiser la chaîne du froid.</p>
                 </div>
                 <div className="px-5">
