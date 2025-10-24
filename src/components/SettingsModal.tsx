@@ -145,22 +145,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <p className="text-xs text-gray-500 dark:text-gray-400">{lang === 'fr' ? 'Apparence' : 'Appearance'}</p>
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div>
+                  {/* Single toggle button: light <-> dark. If current mode is 'system' treat as light for toggle UI. */}
                   <button
-                    onClick={() => onChangeTheme('light')}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium border ${themeMode === 'light' ? 'bg-yellow-500 text-white border-yellow-600' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'}`}
-                    aria-label={t('themeLight')}
-                  >{t('themeLight')}</button>
-                  <button
-                    onClick={() => onChangeTheme('dark')}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium border ${themeMode === 'dark' ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'}`}
-                    aria-label={t('themeDark')}
-                  >{t('themeDark')}</button>
-                  <button
-                    onClick={() => onChangeTheme('system')}
-                    className={`px-3 py-2 rounded-lg text-xs font-medium border ${themeMode === 'system' ? 'bg-teal-600 text-white border-teal-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700'}`}
-                    aria-label={t('themeSystem')}
-                  >{t('themeSystem')}</button>
+                    onClick={() => onChangeTheme(themeMode === 'dark' ? 'light' : 'dark')}
+                    className={`w-28 justify-center flex px-3 py-2 rounded-lg text-xs font-medium ${themeMode === 'dark' ? 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-[.97]' : 'bg-yellow-500 text-white hover:bg-yellow-600 active:scale-[.97]'}`}
+                    aria-label={themeMode === 'dark' ? t('themeDark') : t('themeLight')}
+                  >
+                    {themeMode === 'dark' ? t('themeDark') : t('themeLight')}
+                  </button>
                 </div>
               </div>
 
