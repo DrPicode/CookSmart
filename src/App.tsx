@@ -252,14 +252,14 @@ function AppInner() {
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
             <div className="mx-auto bg-white dark:bg-gray-950 shadow-md overflow-hidden transition-colors">
                 <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 text-white relative dark:from-orange-600 dark:to-red-600">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center justify-between gap-3">
                         <div>
                             <h1 className="text-xl font-bold flex items-center gap-2">
                                 <ChefHat className="w-6 h-6" /> {t('appTitle')}
                             </h1>
                             <p className="mt-1 text-orange-100 text-xs">{t('appSubtitle')}</p>
                         </div>
-                        <div className="flex flex-col gap-2 items-end">
+                        <div className="flex flex-col gap-2 items-center h-full">
                             <div className="flex flex-nowrap gap-1.5 justify-end items-center">
                                 <button
                                     onClick={() => setShowSettings(true)}
