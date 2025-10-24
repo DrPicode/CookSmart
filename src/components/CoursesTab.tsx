@@ -20,6 +20,7 @@ interface CoursesTabProps {
     shoppingSelected: Set<string>;
     shoppingSubtotal: number;
     shoppingProgress: number;
+    totalCourses: number;
     finishShopping: () => void;
     cancelShopping: () => void;
     toggleShoppingItem: (ing: string) => void;
@@ -47,6 +48,7 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
     missingByCategory,
     shoppingSelected,
     shoppingSubtotal,
+    totalCourses,
     shoppingProgress,
     finishShopping,
     cancelShopping,
@@ -576,7 +578,7 @@ export const CoursesTab: React.FC<CoursesTabProps> = ({
                     onClick={startShopping}
                     className="w-full bg-green-600 text-white py-3 rounded-lg text-sm font-medium shadow hover:bg-green-700 active:scale-[.98] transition-smooth"
                 >
-                    {shoppingActivePersisted ? (lang === 'fr' ? 'Reprendre les courses' : 'Resume shopping') : `${t('startShopping')} (${ingredientsManquants.length} ${t('articles')})`}
+                    {shoppingActivePersisted ? (lang === 'fr' ? 'Reprendre les courses' : 'Resume shopping') : `${t('startShopping')} (${ingredientsManquants.length} ${t('articles')} · ${totalCourses.toFixed(2)} €)`}
                 </button>
             )}
 

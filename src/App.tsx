@@ -209,6 +209,7 @@ function AppInner() {
         ingredientsManquants,
         shoppingCategoryOrder,
         missingByCategory,
+        totalCourses,
         shoppingSubtotal,
         shoppingProgress,
         startShopping,
@@ -326,6 +327,7 @@ function AppInner() {
                             shoppingCategoryOrder={shoppingCategoryOrder}
                             missingByCategory={missingByCategory}
                             shoppingSelected={shoppingSelected}
+                            totalCourses={totalCourses}
                             shoppingActivePersisted={shoppingActivePersisted}
                             shoppingSubtotal={shoppingSubtotal}
                             shoppingProgress={shoppingProgress}
