@@ -1,5 +1,6 @@
 import { IngredientsType, CategoriesType, RecipeType } from '../types';
 import demoDataJson from '../data/demoData.json';
+import demoDataEnJson from '../data/demoData.en.json';
 
 export type ShoppingSession = { id: string; date: string; items: string[]; total: number };
 
@@ -152,6 +153,6 @@ export function sanitizeImport(data: AnyExportData): AnyExportData {
     return { ...data, categories, recettes, ingredients, shoppingHistory, recipeCategories, freshCategories } as AnyExportData;
 }
 
-export function loadDemoData(): ExportDataV4 {
-    return demoDataJson as ExportDataV4;
+export function loadDemoData(lang: 'fr' | 'en' = 'fr'): ExportDataV4 {
+    return (lang === 'en' ? demoDataEnJson : demoDataJson) as ExportDataV4;
 }

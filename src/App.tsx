@@ -141,7 +141,7 @@ function AppInner() {
         }
     };
     const startWithDemoData = useCallback(() => {
-        const demoData = loadDemoData();
+        const demoData = loadDemoData(lang);
         setIngredients(demoData.ingredients);
         setCategories(demoData.categories);
         setRecettes(demoData.recettes);
