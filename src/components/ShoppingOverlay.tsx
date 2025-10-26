@@ -1,6 +1,5 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { computeExpiryStatus } from '../utils/expiry';
 import { IngredientsType, FreshCategoriesType, CategoriesType } from '../types';
 
 interface ShoppingOverlayProps {
@@ -79,12 +78,6 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                         const checked = shoppingSelected.has(ing);
                                         const isFresh = freshCategories.some(fc => categories[fc]?.includes(ing));
                                         const showExpiry = isFresh && checked;
-                                        let statusClass = '';
-                                        if (isFresh && ingredients[ing].expiryDate) {
-                                            const { status } = computeExpiryStatus({ expiryDate: ingredients[ing].expiryDate, inStock: true });
-                                            if (status === 'expired') statusClass = 'border border-red-500 bg-red-50';
-                                            else if (status === 'soon') statusClass = 'border border-orange-400 bg-orange-50';
-                                        }
                                         return (
                                             <button
                                                 type="button"
@@ -94,7 +87,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                                                     if (target.closest('.expiry-editor') || target.closest('input[type="checkbox"]')) return;
                                                     toggleShoppingItem(ing);
                                                 }}
-                                                className={`w-full text-left px-3 py-2 text-sm select-none hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 ${statusClass}`}
+                                                className={`w-full text-left px-3 py-2 text-sm select-none hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400`}
                                             >
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div className="flex items-center gap-2">
