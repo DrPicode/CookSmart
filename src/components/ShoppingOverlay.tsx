@@ -41,7 +41,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
     if (!visible) return null;
     return createPortal(
     <div className="fixed inset-0 z-[500] bg-black/55 backdrop-blur-sm flex items-start sm:items-center justify-center p-1 sm:p-2">
-            <div className="relative w-full max-w-4xl bg-white shadow-2xl rounded-2xl flex flex-col animate-fade-in min-h-[96vh] sm:min-h-[96vh] overflow-hidden">
+            <div className="relative w-full max-w-4xl bg-white shadow-2xl rounded-2xl flex flex-col animate-fade-in max-h-[96vh] sm:max-h-[96vh] overflow-hidden">
                 <div className="px-5 pt-5 pb-2">
                     <button
                         onClick={cancelShopping}
@@ -60,7 +60,7 @@ export const ShoppingOverlay: React.FC<ShoppingOverlayProps> = ({
                         </div>
                     </div>
                 </div>
-                <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-6">
+                <div className="flex-1 overflow-y-auto px-5 pb-8 space-y-6">
                     {shoppingCategoryOrder.map(cat => (
                         missingByCategory[cat] && missingByCategory[cat].length > 0 && (
                             <div key={cat} className="border rounded-lg max-w-xl">
